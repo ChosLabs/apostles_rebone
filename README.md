@@ -1,4 +1,4 @@
-# apostles_rb
+# apostles_rebone
 2026 apostles summer retreat application
 
 개요: 대구동신교회 청년부 '아포슬' 2026년도 전체여름수련회를 위한 웹앱
