@@ -1,0 +1,35 @@
+{
+  "name": "apostles_rebone",
+  "version": "1.0.0",
+  "description": "2026 apostles summer retreat application",
+  "main": "index.js",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "next": "^16.2.4",
+    "react": "^19.2.5",
+    "react-dom": "^19.2.5",
+    "lucide-react": "^1.8.0",
+    "clsx": "^2.1.1",
+    "tailwind-merge": "^3.5.0",
+    "framer-motion": "^12.38.0",
+    "tailwindcss": "^3.4.1",
+    "postcss": "^8.4.35",
+    "autoprefixer": "^10.4.18"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.3",
+    "@types/node": "^20.11.24",
+    "@types/react": "^18.2.61",
+    "@types/react-dom": "^18.2.19",
+    "eslint": "^8.57.0",
+    "eslint-config-next": "^15.0.0"
+  }
+}
