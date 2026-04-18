@@ -1,7 +1,10 @@
-# apostles_rb
+# apostles_rebone
 2026 apostles summer retreat application
 
-개요: 대구동신교회 청년부 '아포슬' 2026년도 전체여름수련회를 위한 웹앱
+# 개요
+- 대구동신교회 청년부 '아포슬' 2026년도 전체여름수련회를 위한 웹앱
+- 주제: Re:본(3가지)
+Re:本, Re:born, Re:bond
 
 
 # 개발 환경
@@ -41,6 +44,13 @@
 - 기본 250MB 무료, 이후 저장 용량 및 다운로드 대역폭당 과금
 
 
+# 디자인 레퍼런스
+- 메인 도메인
+토스(toss) 어플리케이션: 컬러 팔레트 및 테두리 radius, 직관적인 구조 등
+- 어드민 도메인
+Tailwind 템플릿: https://demo.tailadmin.com/
+
+
 # 개발 기능
 
 ## 헤더
@@ -53,6 +63,8 @@
 - 기도 버튼
 - 콜링존 버튼
 - 더보기 버튼
+
+## admin 페이지
 
 ## main 페이지
 
