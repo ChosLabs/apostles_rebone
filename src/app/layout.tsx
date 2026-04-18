@@ -3,16 +3,17 @@ import "./globals.css";
 import { BottomNav, GlobalHeader } from "@/components/Navigation";
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://apostles-rebone.pages.dev"),
   title: "Re:본 - 2026 아포슬 여름수련회",
-  description: "대구동신교회 청년부 아포슬 2026 수련회 공식 웹앱",
+  description: "",
   openGraph: {
     title: "Re:본 - 2026 아포슬 여름수련회",
-    description: "대구에서 평창까지, 우리를 다시 묶으시는 하나님의 부르심",
-    url: "https://apostles-rebone.pages.dev", // 나중에 실제 Cloudflare 주소로 수정하세요
+    description: "",
+    url: "https://apostles-rebone.pages.dev",
     siteName: "Re:본",
     images: [
       {
-        url: "/og-image.png", // public 폴더에 og-image.png 파일을 넣어야 합니다
+        url: "/og-image.png",
         width: 1200,
         height: 630,
         alt: "Re:본 수련회 메인 이미지",
@@ -24,7 +25,7 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "Re:본 - 2026 아포슬 여름수련회",
-    description: "대구에서 평창까지, 우리를 다시 묶으시는 하나님의 부르심",
+    description: "",
     images: ["/og-image.png"],
   },
 };
