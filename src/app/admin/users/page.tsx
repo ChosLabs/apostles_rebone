@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 
 type TeamType = "초신자팀" | "기신자팀" | "1팀" | "2팀" | "3팀" | "4팀" | "5팀" | "6팀" | "웰컴팀" | "임원단";
+type AttendanceType = "A형" | "B-1형" | "B-2형" | "C형" | "D형";
 
 interface Participant {
   id: number;
@@ -29,6 +30,7 @@ interface Participant {
   group?: number;
   isLeader: boolean;
   room?: string;
+  attendanceType: AttendanceType;
 }
 
 interface GroupInfo {
@@ -52,16 +54,17 @@ export default function AdminUsersPage() {
 
   // Mock data
   const [participants] = useState<Participant[]>([
-    { id: 1, name: "홍길동", team: "1팀", phone: "010-1234-5678", group: 21, isLeader: true, room: "101호" },
-    { id: 2, name: "김철수", team: "2팀", phone: "010-2345-6789", group: 21, isLeader: false, room: "101호" },
-    { id: 3, name: "이영희", team: "기신자팀", phone: "010-3456-7890", group: 12, isLeader: true, room: "205호" },
-    { id: 4, name: "박민준", team: "3팀", phone: "010-4567-8901", group: 5, isLeader: false, room: "302호" },
-    { id: 5, name: "최서연", team: "웰컴팀", phone: "010-5678-9012", group: 1, isLeader: true, room: "410호" },
-    { id: 6, name: "강하늘", team: "1팀", phone: "010-6789-0123", group: 21, isLeader: false, room: "101호" },
-    { id: 7, name: "윤서준", team: "4팀", phone: "010-7890-1234", group: 12, isLeader: false, room: "205호" },
+    { id: 1, name: "홍길동", team: "1팀", phone: "010-1234-5678", group: 21, isLeader: true, room: "101호", attendanceType: "A형" },
+    { id: 2, name: "김철수", team: "2팀", phone: "010-2345-6789", group: 21, isLeader: false, room: "101호", attendanceType: "A형" },
+    { id: 3, name: "이영희", team: "기신자팀", phone: "010-3456-7890", group: 12, isLeader: true, room: "205호", attendanceType: "B-1형" },
+    { id: 4, name: "박민준", team: "3팀", phone: "010-4567-8901", group: 5, isLeader: false, room: "302호", attendanceType: "C형" },
+    { id: 5, name: "최서연", team: "웰컴팀", phone: "010-5678-9012", group: 1, isLeader: true, room: "410호", attendanceType: "A형" },
+    { id: 6, name: "강하늘", team: "1팀", phone: "010-6789-0123", group: 21, isLeader: false, room: "101호", attendanceType: "D형" },
+    { id: 7, name: "윤서준", team: "4팀", phone: "010-7890-1234", group: 12, isLeader: false, room: "205호", attendanceType: "B-2형" },
   ]);
 
   const teams: TeamType[] = ["초신자팀", "기신자팀", "1팀", "2팀", "3팀", "4팀", "5팀", "6팀", "웰컴팀", "임원단"];
+  const attendanceTypes: AttendanceType[] = ["A형", "B-1형", "B-2형", "C형", "D형"];
 
   // Grouping logic for tabs
   const groups: GroupInfo[] = Array.from(new Set(participants.map(p => p.group))).filter(Boolean).map(gId => ({
@@ -155,6 +158,7 @@ export default function AdminUsersPage() {
                   <tr className="bg-toss-lightGray/50 text-toss-gray text-[10px] lg:text-[11px] font-black uppercase tracking-wider">
                     <th className="px-4 lg:px-6 py-4">이름 / 팀</th>
                     <th className="px-4 lg:px-6 py-4">연락처</th>
+                    <th className="px-4 lg:px-6 py-4">참석구분</th>
                     <th className="px-4 lg:px-6 py-4">조 / 역할</th>
                     <th className="px-4 lg:px-6 py-4">숙소</th>
                     <th className="px-4 lg:px-6 py-4 text-right">관리</th>
@@ -175,6 +179,7 @@ export default function AdminUsersPage() {
                         </div>
                       </td>
                       <td className="px-4 lg:px-6 py-4 text-xs font-bold text-toss-gray whitespace-nowrap">{user.phone}</td>
+                      <td className="px-4 lg:px-6 py-4 text-xs font-bold text-toss-gray">{user.attendanceType}</td>
                       <td className="px-4 lg:px-6 py-4">
                         <div className="flex items-center gap-2">
                           <span className="text-xs font-black text-toss-black">{user.group}조</span>
@@ -391,6 +396,7 @@ export default function AdminUsersPage() {
               <div className="space-y-1.5"><label className="text-[10px] lg:text-xs font-black text-toss-gray px-1 italic uppercase tracking-wider">이름</label><input type="text" placeholder="실명을 입력하세요" className="w-full px-4 py-2.5 lg:py-3 rounded-xl border border-toss-border focus:border-toss-blue outline-none transition-all font-bold text-sm lg:text-base" /></div>
               <div className="space-y-1.5"><label className="text-[10px] lg:text-xs font-black text-toss-gray px-1 italic uppercase tracking-wider">팀 선택</label><select className="w-full px-4 py-2.5 lg:py-3 rounded-xl border border-toss-border focus:border-toss-blue outline-none appearance-none bg-white font-bold text-sm lg:text-base">{teams.map(t => <option key={t} value={t}>{t}</option>)}</select></div>
               <div className="space-y-1.5"><label className="text-[10px] lg:text-xs font-black text-toss-gray px-1 italic uppercase tracking-wider">전화번호</label><input type="tel" placeholder="010-0000-0000" className="w-full px-4 py-2.5 lg:py-3 rounded-xl border border-toss-border focus:border-toss-blue outline-none transition-all font-bold text-sm lg:text-base" /></div>
+              <div className="space-y-1.5"><label className="text-[10px] lg:text-xs font-black text-toss-gray px-1 italic uppercase tracking-wider">참석 구분</label><select className="w-full px-4 py-2.5 lg:py-3 rounded-xl border border-toss-border focus:border-toss-blue outline-none appearance-none bg-white font-bold text-sm lg:text-base">{attendanceTypes.map(t => <option key={t} value={t}>{t}</option>)}</select></div>
               <div className="pt-4 flex gap-3"><button type="button" onClick={() => setIsAdding(false)} className="flex-1 py-3 lg:py-4 rounded-2xl font-bold text-toss-gray bg-toss-lightGray hover:bg-toss-border transition-all text-sm lg:text-base">취소</button><button type="submit" className="flex-[2] py-3 lg:py-4 rounded-2xl font-bold text-white bg-toss-blue hover:bg-toss-blue/90 transition-all shadow-lg shadow-toss-blue/20 text-sm lg:text-base">등록하기</button></div>
             </form>
           </div>
