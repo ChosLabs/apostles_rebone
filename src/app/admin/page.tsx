@@ -13,7 +13,7 @@ import {
 export default function AdminDashboard() {
   const stats = [
     { 
-      label: "전체 참석자", 
+      label: "전체 참가자", 
       value: "1,240명", 
       change: "+12%", 
       trend: "up", 
@@ -114,7 +114,7 @@ export default function AdminDashboard() {
             </button>
             <button className="w-full bg-white text-toss-black border border-toss-border font-bold py-3 rounded-xl hover:bg-toss-lightGray transition-colors flex items-center justify-center gap-2">
               <Users size={18} />
-              참석자 명단 다운로드
+              참가자 명단 다운로드
             </button>
           </div>
         </div>

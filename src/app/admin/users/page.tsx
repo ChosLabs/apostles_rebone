@@ -44,6 +44,8 @@ interface RoomInfo {
 export default function AdminUsersPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [isAdding, setIsAdding] = useState(false);
+  const [isAddingGroup, setIsAddingGroup] = useState(false);
+  const [isAddingRoom, setIsAddingRoom] = useState(false);
   const [selectedTab, setSelectedTab] = useState<"all" | "groups" | "rooms">("all");
   const [selectedGroup, setSelectedGroup] = useState<GroupInfo | null>(null);
   const [selectedRoom, setSelectedRoom] = useState<RoomInfo | null>(null);
@@ -83,17 +85,21 @@ export default function AdminUsersPage() {
           <p className="text-sm text-toss-gray mt-1">참가자 명단 확인, 조 및 숙소 편성을 관리합니다.</p>
         </div>
         <div className="flex gap-2">
-          <button className="bg-white text-toss-black border border-toss-border px-5 py-2.5 rounded-xl font-bold flex items-center gap-2 hover:bg-toss-lightGray transition-all shadow-sm">
-            <Download size={18} />
-            엑셀 내보내기
-          </button>
-          <button 
-            onClick={() => setIsAdding(true)}
-            className="bg-toss-blue text-white px-5 py-2.5 rounded-xl font-bold flex items-center gap-2 hover:bg-toss-blue/90 transition-all shadow-sm shadow-toss-blue/20"
-          >
-            <UserPlus size={20} />
-            참가자 추가
-          </button>
+          {selectedTab === "all" && (
+            <>
+              <button className="bg-white text-toss-black border border-toss-border px-5 py-2.5 rounded-xl font-bold flex items-center gap-2 hover:bg-toss-lightGray transition-all shadow-sm">
+                <Download size={18} />
+                엑셀 내보내기
+              </button>
+              <button 
+                onClick={() => setIsAdding(true)}
+                className="bg-toss-blue text-white px-5 py-2.5 rounded-xl font-bold flex items-center gap-2 hover:bg-toss-blue/90 transition-all shadow-sm shadow-toss-blue/20"
+              >
+                <UserPlus size={20} />
+                참가자 추가
+              </button>
+            </>
+          )}
         </div>
       </div>
 
@@ -221,7 +227,10 @@ export default function AdminUsersPage() {
               </div>
             </div>
           ))}
-          <button className="border-2 border-dashed border-toss-border rounded-3xl p-6 flex flex-col items-center justify-center gap-2 hover:bg-white hover:border-toss-blue/30 transition-all text-toss-gray hover:text-toss-blue">
+          <button 
+            onClick={() => setIsAddingGroup(true)}
+            className="border-2 border-dashed border-toss-border rounded-3xl p-6 flex flex-col items-center justify-center gap-2 hover:bg-white hover:border-toss-blue/30 transition-all text-toss-gray hover:text-toss-blue"
+          >
             <Plus size={32} strokeWidth={1.5} />
             <span className="font-bold text-sm">새 조 생성하기</span>
           </button>
@@ -266,7 +275,10 @@ export default function AdminUsersPage() {
               </div>
             </div>
           ))}
-          <button className="border-2 border-dashed border-toss-border rounded-3xl p-6 flex flex-col items-center justify-center gap-2 hover:bg-white hover:border-toss-blue/30 transition-all text-toss-gray hover:text-toss-blue">
+          <button 
+            onClick={() => setIsAddingRoom(true)}
+            className="border-2 border-dashed border-toss-border rounded-3xl p-6 flex flex-col items-center justify-center gap-2 hover:bg-white hover:border-toss-blue/30 transition-all text-toss-gray hover:text-toss-blue"
+          >
             <Plus size={32} strokeWidth={1.5} />
             <span className="font-bold text-sm">새 숙소 등록하기</span>
           </button>
@@ -364,8 +376,8 @@ export default function AdminUsersPage() {
 
       {/* Participant Add Modal */}
       {isAdding && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="bg-white w-full max-w-md rounded-3xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-200" onClick={() => setIsAdding(false)}>
+          <div className="bg-white w-full max-w-md rounded-3xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200" onClick={(e) => e.stopPropagation()}>
             <div className="px-8 py-6 border-b border-toss-border flex justify-between items-center">
               <h2 className="text-xl font-black text-toss-black">참가자 등록</h2>
               <button onClick={() => setIsAdding(false)} className="p-2 hover:bg-toss-lightGray rounded-full transition-colors text-toss-gray">
@@ -377,6 +389,64 @@ export default function AdminUsersPage() {
               <div className="space-y-1.5"><label className="text-xs font-black text-toss-gray px-1 italic uppercase tracking-wider">팀 선택</label><select className="w-full px-4 py-3 rounded-xl border border-toss-border focus:border-toss-blue outline-none appearance-none bg-white font-bold text-sm">{teams.map(t => <option key={t} value={t}>{t}</option>)}</select></div>
               <div className="space-y-1.5"><label className="text-xs font-black text-toss-gray px-1 italic uppercase tracking-wider">전화번호</label><input type="tel" placeholder="010-0000-0000" className="w-full px-4 py-3 rounded-xl border border-toss-border focus:border-toss-blue outline-none transition-all font-bold" /></div>
               <div className="pt-4 flex gap-3"><button type="button" onClick={() => setIsAdding(false)} className="flex-1 py-4 rounded-2xl font-bold text-toss-gray bg-toss-lightGray hover:bg-toss-border transition-all">취소</button><button type="submit" className="flex-[2] py-4 rounded-2xl font-bold text-white bg-toss-blue hover:bg-toss-blue/90 transition-all shadow-lg shadow-toss-blue/20">등록하기</button></div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Group Add Modal */}
+      {isAddingGroup && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-200" onClick={() => setIsAddingGroup(false)}>
+          <div className="bg-white w-full max-w-md rounded-3xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200" onClick={(e) => e.stopPropagation()}>
+            <div className="px-8 py-6 border-b border-toss-border flex justify-between items-center">
+              <h2 className="text-xl font-black text-toss-black">새 조 생성</h2>
+              <button onClick={() => setIsAddingGroup(false)} className="p-2 hover:bg-toss-lightGray rounded-full transition-colors text-toss-gray">
+                <X size={24} />
+              </button>
+            </div>
+            <form className="p-8 space-y-5">
+              <div className="space-y-1.5">
+                <label className="text-xs font-black text-toss-gray px-1 italic uppercase tracking-wider">조 번호</label>
+                <input 
+                  type="number" 
+                  placeholder="예: 22"
+                  className="w-full px-4 py-3 rounded-xl border border-toss-border focus:border-toss-blue outline-none transition-all font-bold"
+                />
+              </div>
+              <p className="text-xs text-toss-gray px-1">조 생성 후 조원 관리 모달에서 조원을 추가할 수 있습니다.</p>
+              <div className="pt-4 flex gap-3">
+                <button type="button" onClick={() => setIsAddingGroup(false)} className="flex-1 py-4 rounded-2xl font-bold text-toss-gray bg-toss-lightGray hover:bg-toss-border transition-all">취소</button>
+                <button type="submit" className="flex-[2] py-4 rounded-2xl font-bold text-white bg-toss-blue hover:bg-toss-blue/90 transition-all shadow-lg shadow-toss-blue/20">생성하기</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Room Add Modal */}
+      {isAddingRoom && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-200" onClick={() => setIsAddingRoom(false)}>
+          <div className="bg-white w-full max-w-md rounded-3xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200" onClick={(e) => e.stopPropagation()}>
+            <div className="px-8 py-6 border-b border-toss-border flex justify-between items-center">
+              <h2 className="text-xl font-black text-toss-black">새 숙소 등록</h2>
+              <button onClick={() => setIsAddingRoom(false)} className="p-2 hover:bg-toss-lightGray rounded-full transition-colors text-toss-gray">
+                <X size={24} />
+              </button>
+            </div>
+            <form className="p-8 space-y-5">
+              <div className="space-y-1.5">
+                <label className="text-xs font-black text-toss-gray px-1 italic uppercase tracking-wider">숙소 명칭 / 호수</label>
+                <input 
+                  type="text" 
+                  placeholder="예: 102호 또는 비전홀"
+                  className="w-full px-4 py-3 rounded-xl border border-toss-border focus:border-toss-blue outline-none transition-all font-bold"
+                />
+              </div>
+              <p className="text-xs text-toss-gray px-1">숙소 등록 후 숙소 관리 모달에서 인원을 배정할 수 있습니다.</p>
+              <div className="pt-4 flex gap-3">
+                <button type="button" onClick={() => setIsAddingRoom(false)} className="flex-1 py-4 rounded-2xl font-bold text-toss-gray bg-toss-lightGray hover:bg-toss-border transition-all">취소</button>
+                <button type="submit" className="flex-[2] py-4 rounded-2xl font-bold text-white bg-toss-blue hover:bg-toss-blue/90 transition-all shadow-lg shadow-toss-blue/20">등록하기</button>
+              </div>
             </form>
           </div>
         </div>

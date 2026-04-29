@@ -29,7 +29,7 @@ export default function AdminLayout({
     { name: "공지사항 관리", icon: <Bell size={20} />, href: "/admin/notices" },
     { name: "타임테이블 관리", icon: <Calendar size={20} />, href: "/admin/timetable" },
     { name: "기도제목 관리", icon: <MessageSquare size={20} />, href: "/admin/pray" },
-    { name: "참석자 관리", icon: <Users size={20} />, href: "/admin/users" },
+    { name: "참가자 관리", icon: <Users size={20} />, href: "/admin/users" },
   ];
 
   return (
