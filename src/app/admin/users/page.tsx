@@ -1,0 +1,386 @@
+"use client";
+
+import React, { useState } from "react";
+import { 
+  Search, 
+  UserPlus, 
+  MoreVertical, 
+  Edit2, 
+  Trash2, 
+  Home, 
+  Users, 
+  Phone,
+  Download,
+  X,
+  Plus,
+  ChevronRight,
+  UserCheck,
+  DoorOpen,
+  LayoutGrid
+} from "lucide-react";
+
+type TeamType = "초신자팀" | "기신자팀" | "1팀" | "2팀" | "3팀" | "4팀" | "5팀" | "6팀" | "웰컴팀" | "임원단";
+
+interface Participant {
+  id: number;
+  name: string;
+  team: TeamType;
+  phone: string;
+  group?: number;
+  isLeader: boolean;
+  room?: string;
+}
+
+interface GroupInfo {
+  id: number;
+  members: Participant[];
+}
+
+interface RoomInfo {
+  id: string;
+  members: Participant[];
+}
+
+export default function AdminUsersPage() {
+  const [searchTerm, setSearchTerm] = useState("");
+  const [isAdding, setIsAdding] = useState(false);
+  const [selectedTab, setSelectedTab] = useState<"all" | "groups" | "rooms">("all");
+  const [selectedGroup, setSelectedGroup] = useState<GroupInfo | null>(null);
+  const [selectedRoom, setSelectedRoom] = useState<RoomInfo | null>(null);
+
+  // Mock data
+  const [participants] = useState<Participant[]>([
+    { id: 1, name: "홍길동", team: "1팀", phone: "010-1234-5678", group: 21, isLeader: true, room: "101호" },
+    { id: 2, name: "김철수", team: "2팀", phone: "010-2345-6789", group: 21, isLeader: false, room: "101호" },
+    { id: 3, name: "이영희", team: "기신자팀", phone: "010-3456-7890", group: 12, isLeader: true, room: "205호" },
+    { id: 4, name: "박민준", team: "3팀", phone: "010-4567-8901", group: 5, isLeader: false, room: "302호" },
+    { id: 5, name: "최서연", team: "웰컴팀", phone: "010-5678-9012", group: 1, isLeader: true, room: "410호" },
+    { id: 6, name: "강하늘", team: "1팀", phone: "010-6789-0123", group: 21, isLeader: false, room: "101호" },
+    { id: 7, name: "윤서준", team: "4팀", phone: "010-7890-1234", group: 12, isLeader: false, room: "205호" },
+  ]);
+
+  const teams: TeamType[] = ["초신자팀", "기신자팀", "1팀", "2팀", "3팀", "4팀", "5팀", "6팀", "웰컴팀", "임원단"];
+
+  // Grouping logic for tabs
+  const groups: GroupInfo[] = Array.from(new Set(participants.map(p => p.group))).filter(Boolean).map(gId => ({
+    id: gId!,
+    members: participants.filter(p => p.group === gId).sort((a, b) => a.name.localeCompare(b.name))
+  })).sort((a, b) => a.id - b.id);
+
+  const rooms: RoomInfo[] = Array.from(new Set(participants.map(p => p.room))).filter(Boolean).map(rId => ({
+    id: rId!,
+    members: participants.filter(p => p.room === rId).sort((a, b) => a.name.localeCompare(b.name))
+  })).sort((a, b) => a.id.localeCompare(b.id));
+
+  const sortedParticipants = [...participants].sort((a, b) => a.name.localeCompare(b.name));
+
+  return (
+    <div className="space-y-6">
+      {/* Page Header */}
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-2xl font-black text-toss-black">참가자 관리</h1>
+          <p className="text-sm text-toss-gray mt-1">참가자 명단 확인, 조 및 숙소 편성을 관리합니다.</p>
+        </div>
+        <div className="flex gap-2">
+          <button className="bg-white text-toss-black border border-toss-border px-5 py-2.5 rounded-xl font-bold flex items-center gap-2 hover:bg-toss-lightGray transition-all shadow-sm">
+            <Download size={18} />
+            엑셀 내보내기
+          </button>
+          <button 
+            onClick={() => setIsAdding(true)}
+            className="bg-toss-blue text-white px-5 py-2.5 rounded-xl font-bold flex items-center gap-2 hover:bg-toss-blue/90 transition-all shadow-sm shadow-toss-blue/20"
+          >
+            <UserPlus size={20} />
+            참가자 추가
+          </button>
+        </div>
+      </div>
+
+      {/* Navigation Tabs */}
+      <div className="flex p-1 bg-toss-lightGray rounded-2xl w-fit">
+        {[
+          { id: "all", label: "전체 명단", icon: <LayoutGrid size={16} /> },
+          { id: "groups", label: "조 편성", icon: <Users size={16} /> },
+          { id: "rooms", label: "숙소 편성", icon: <DoorOpen size={16} /> },
+        ].map((tab) => (
+          <button
+            key={tab.id}
+            onClick={() => setSelectedTab(tab.id as any)}
+            className={`px-6 py-3 rounded-xl font-bold text-sm flex items-center gap-2 transition-all ${
+              selectedTab === tab.id 
+                ? "bg-white text-toss-blue shadow-sm" 
+                : "text-toss-gray hover:text-toss-black"
+            }`}
+          >
+            {tab.icon}
+            {tab.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Conditional Rendering based on Tab */}
+      {selectedTab === "all" && (
+        <div className="space-y-6 animate-in fade-in duration-300">
+          <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
+            <div className="flex gap-2 w-full md:w-auto overflow-x-auto pb-2 md:pb-0 no-scrollbar">
+              <select className="px-4 py-2.5 bg-white border border-toss-border rounded-xl text-sm font-bold outline-none focus:border-toss-blue">
+                <option value="">팀 전체</option>
+                {teams.map(t => <option key={t} value={t}>{t}</option>)}
+              </select>
+            </div>
+            <div className="relative w-full md:w-80">
+              <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-toss-gray" />
+              <input 
+                type="text" 
+                placeholder="이름 또는 전화번호 검색..."
+                className="w-full pl-11 pr-4 py-2.5 bg-white border border-toss-border rounded-xl text-sm font-medium outline-none focus:border-toss-blue transition-all"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+          </div>
+
+          <div className="bg-white rounded-3xl border border-toss-border shadow-sm overflow-hidden">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="bg-toss-lightGray/50 text-toss-gray text-[11px] font-black uppercase tracking-wider">
+                  <th className="px-6 py-4">이름 / 팀</th>
+                  <th className="px-6 py-4">연락처</th>
+                  <th className="px-6 py-4">조 / 역할</th>
+                  <th className="px-6 py-4">숙소</th>
+                  <th className="px-6 py-4 text-right">관리</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-toss-border">
+                {sortedParticipants.map((user) => (
+                  <tr key={user.id} className="hover:bg-toss-lightGray/20 transition-colors group">
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-9 h-9 rounded-full bg-toss-lightGray flex items-center justify-center font-bold text-toss-gray text-xs">
+                          {user.name[0]}
+                        </div>
+                        <div>
+                          <p className="text-sm font-bold text-toss-black">{user.name}</p>
+                          <p className="text-[11px] font-medium text-toss-gray">{user.team}</p>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 text-xs font-bold text-toss-gray">{user.phone}</td>
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-black text-toss-black">{user.group}조</span>
+                        {user.isLeader && <span className="text-[10px] font-black bg-toss-blue text-white px-2 py-1 rounded-lg italic">LEADER</span>}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 text-xs font-bold text-toss-gray">{user.room}</td>
+                    <td className="px-6 py-4 text-right">
+                      <div className="flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button className="p-2 text-toss-gray hover:text-toss-blue hover:bg-toss-blue/5 rounded-lg transition-all"><Edit2 size={16} /></button>
+                        <button className="p-2 text-toss-gray hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"><Trash2 size={16} /></button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {selectedTab === "groups" && (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
+          {groups.map(group => (
+            <div 
+              key={group.id} 
+              onClick={() => setSelectedGroup(group)}
+              className="bg-white p-6 rounded-3xl border border-toss-border shadow-sm hover:shadow-md transition-all cursor-pointer group"
+            >
+              <div className="flex justify-between items-start mb-4">
+                <div className="w-12 h-12 rounded-2xl bg-toss-blue/10 flex items-center justify-center text-toss-blue font-black text-xl">
+                  {group.id}
+                </div>
+                <button className="p-2 text-toss-gray hover:bg-toss-lightGray rounded-xl transition-colors">
+                  <MoreVertical size={18} />
+                </button>
+              </div>
+              <h3 className="text-lg font-black text-toss-black mb-1">{group.id}조</h3>
+              <p className="text-sm text-toss-gray font-medium mb-4">총 {group.members.length}명의 조원</p>
+              
+              <div className="space-y-2">
+                <p className="text-[11px] font-black text-toss-gray uppercase tracking-widest">조장</p>
+                <div className="flex items-center gap-2 text-sm font-bold text-toss-blue">
+                  <UserCheck size={16} />
+                  {group.members.find(m => m.isLeader)?.name || "미지정"}
+                </div>
+              </div>
+
+              <div className="mt-6 flex justify-between items-center text-toss-blue font-bold text-sm">
+                조원 관리하기
+                <ChevronRight size={18} className="group-hover:translate-x-1 transition-transform" />
+              </div>
+            </div>
+          ))}
+          <button className="border-2 border-dashed border-toss-border rounded-3xl p-6 flex flex-col items-center justify-center gap-2 hover:bg-white hover:border-toss-blue/30 transition-all text-toss-gray hover:text-toss-blue">
+            <Plus size={32} strokeWidth={1.5} />
+            <span className="font-bold text-sm">새 조 생성하기</span>
+          </button>
+        </div>
+      )}
+
+      {selectedTab === "rooms" && (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
+          {rooms.map(room => (
+            <div 
+              key={room.id} 
+              onClick={() => setSelectedRoom(room)}
+              className="bg-white p-6 rounded-3xl border border-toss-border shadow-sm hover:shadow-md transition-all cursor-pointer group"
+            >
+              <div className="flex justify-between items-start mb-4">
+                <div className="w-12 h-12 rounded-2xl bg-green-500/10 flex items-center justify-center text-green-600 font-black text-lg italic">
+                  <Home size={22} />
+                </div>
+                <button className="p-2 text-toss-gray hover:bg-toss-lightGray rounded-xl transition-colors">
+                  <MoreVertical size={18} />
+                </button>
+              </div>
+              <h3 className="text-lg font-black text-toss-black mb-1">{room.id}</h3>
+              <p className="text-sm text-toss-gray font-medium mb-4">현재 {room.members.length}명 입실 중</p>
+              
+              <div className="flex -space-x-2 overflow-hidden mb-4">
+                {room.members.slice(0, 5).map((member, i) => (
+                  <div key={i} className="inline-block h-8 w-8 rounded-full ring-2 ring-white bg-toss-lightGray flex items-center justify-center text-[10px] font-bold text-toss-gray">
+                    {member.name[0]}
+                  </div>
+                ))}
+                {room.members.length > 5 && (
+                  <div className="inline-block h-8 w-8 rounded-full ring-2 ring-white bg-toss-lightGray flex items-center justify-center text-[10px] font-bold text-toss-gray">
+                    +{room.members.length - 5}
+                  </div>
+                )}
+              </div>
+
+              <div className="mt-2 flex justify-between items-center text-green-600 font-bold text-sm">
+                숙소 관리하기
+                <ChevronRight size={18} className="group-hover:translate-x-1 transition-transform" />
+              </div>
+            </div>
+          ))}
+          <button className="border-2 border-dashed border-toss-border rounded-3xl p-6 flex flex-col items-center justify-center gap-2 hover:bg-white hover:border-toss-blue/30 transition-all text-toss-gray hover:text-toss-blue">
+            <Plus size={32} strokeWidth={1.5} />
+            <span className="font-bold text-sm">새 숙소 등록하기</span>
+          </button>
+        </div>
+      )}
+
+      {/* Group Detail Modal */}
+      {selectedGroup && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm" onClick={() => setSelectedGroup(null)}>
+          <div className="bg-white w-full max-w-2xl rounded-3xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200" onClick={(e) => e.stopPropagation()}>
+            <div className="px-8 py-6 border-b border-toss-border flex justify-between items-center">
+              <div>
+                <h2 className="text-xl font-black text-toss-black">{selectedGroup.id}조 조원 관리</h2>
+                <p className="text-sm text-toss-gray mt-1">조장을 지정하고 조원을 추가/삭제할 수 있습니다.</p>
+              </div>
+              <button onClick={() => setSelectedGroup(null)} className="p-2 hover:bg-toss-lightGray rounded-full transition-colors text-toss-gray">
+                <X size={24} />
+              </button>
+            </div>
+            
+            <div className="p-8 space-y-6">
+              <div className="space-y-3">
+                {selectedGroup.members.map(member => (
+                  <div key={member.id} className="flex items-center justify-between p-4 bg-toss-lightGray/30 rounded-2xl border border-toss-border/40 group/item">
+                    <div className="flex items-center gap-4">
+                      <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center font-bold text-toss-gray">
+                        {member.name[0]}
+                      </div>
+                      <div>
+                        <p className="text-sm font-bold text-toss-black">{member.name}</p>
+                        <p className="text-[11px] text-toss-gray font-medium">{member.team}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      {member.isLeader ? (
+                        <span className="text-[10px] font-black bg-toss-blue text-white px-2 py-1 rounded-lg">조장</span>
+                      ) : (
+                        <button className="text-[10px] font-bold text-toss-gray hover:text-toss-blue opacity-0 group-hover/item:opacity-100 transition-all">조장으로 지정</button>
+                      )}
+                      <button className="p-2 text-toss-gray hover:text-red-500 transition-colors">
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              
+              <button className="w-full py-4 rounded-2xl border-2 border-dashed border-toss-border text-toss-gray font-bold text-sm hover:bg-toss-lightGray transition-all flex items-center justify-center gap-2">
+                <Plus size={18} />
+                조원 추가하기
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Room Detail Modal */}
+      {selectedRoom && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm" onClick={() => setSelectedRoom(null)}>
+          <div className="bg-white w-full max-w-2xl rounded-3xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200" onClick={(e) => e.stopPropagation()}>
+            <div className="px-8 py-6 border-b border-toss-border flex justify-between items-center">
+              <div>
+                <h2 className="text-xl font-black text-toss-black">{selectedRoom.id} 숙소 관리</h2>
+                <p className="text-sm text-toss-gray mt-1">해당 숙소에 배정된 인원을 관리합니다.</p>
+              </div>
+              <button onClick={() => setSelectedRoom(null)} className="p-2 hover:bg-toss-lightGray rounded-full transition-colors text-toss-gray">
+                <X size={24} />
+              </button>
+            </div>
+            
+            <div className="p-8 space-y-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {selectedRoom.members.map(member => (
+                  <div key={member.id} className="flex items-center justify-between p-4 bg-white border border-toss-border rounded-2xl group/item">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-full bg-toss-lightGray flex items-center justify-center font-bold text-toss-gray text-xs">
+                        {member.name[0]}
+                      </div>
+                      <p className="text-sm font-bold text-toss-black">{member.name}</p>
+                    </div>
+                    <button className="p-2 text-toss-gray hover:text-red-500 transition-colors">
+                      <Trash2 size={16} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+              <button className="w-full py-4 rounded-2xl border-2 border-dashed border-toss-border text-toss-gray font-bold text-sm hover:bg-toss-lightGray transition-all flex items-center justify-center gap-2">
+                <Plus size={18} />
+                인원 추가하기
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Participant Add Modal */}
+      {isAdding && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white w-full max-w-md rounded-3xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
+            <div className="px-8 py-6 border-b border-toss-border flex justify-between items-center">
+              <h2 className="text-xl font-black text-toss-black">참가자 등록</h2>
+              <button onClick={() => setIsAdding(false)} className="p-2 hover:bg-toss-lightGray rounded-full transition-colors text-toss-gray">
+                <X size={24} />
+              </button>
+            </div>
+            <form className="p-8 space-y-5">
+              <div className="space-y-1.5"><label className="text-xs font-black text-toss-gray px-1 italic uppercase tracking-wider">이름</label><input type="text" placeholder="실명을 입력하세요" className="w-full px-4 py-3 rounded-xl border border-toss-border focus:border-toss-blue outline-none transition-all font-bold" /></div>
+              <div className="space-y-1.5"><label className="text-xs font-black text-toss-gray px-1 italic uppercase tracking-wider">팀 선택</label><select className="w-full px-4 py-3 rounded-xl border border-toss-border focus:border-toss-blue outline-none appearance-none bg-white font-bold text-sm">{teams.map(t => <option key={t} value={t}>{t}</option>)}</select></div>
+              <div className="space-y-1.5"><label className="text-xs font-black text-toss-gray px-1 italic uppercase tracking-wider">전화번호</label><input type="tel" placeholder="010-0000-0000" className="w-full px-4 py-3 rounded-xl border border-toss-border focus:border-toss-blue outline-none transition-all font-bold" /></div>
+              <div className="pt-4 flex gap-3"><button type="button" onClick={() => setIsAdding(false)} className="flex-1 py-4 rounded-2xl font-bold text-toss-gray bg-toss-lightGray hover:bg-toss-border transition-all">취소</button><button type="submit" className="flex-[2] py-4 rounded-2xl font-bold text-white bg-toss-blue hover:bg-toss-blue/90 transition-all shadow-lg shadow-toss-blue/20">등록하기</button></div>
+            </form>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}

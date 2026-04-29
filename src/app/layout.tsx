@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import { BottomNav, GlobalHeader } from "@/components/Navigation";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://apostles-rebone.pages.dev"),
@@ -38,13 +37,7 @@ export default function RootLayout({
   return (
     <html lang="ko">
       <body className="bg-background text-toss-black antialiased selection:bg-toss-blue/20 font-sans">
-        <div className="max-w-[420px] mx-auto min-h-screen bg-background relative shadow-xl pb-24">
-          <GlobalHeader />
-          <main className="">
-            {children}
-          </main>
-          <BottomNav />
-        </div>
+        {children}
       </body>
     </html>
   );
