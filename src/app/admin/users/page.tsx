@@ -50,7 +50,31 @@ export default function AdminUsersPage() {
   const [selectedGroup, setSelectedGroup] = useState<GroupInfo | null>(null);
   const [selectedRoom, setSelectedRoom] = useState<RoomInfo | null>(null);
 
-  // ... (mock data and logic remain the same)
+  // Mock data
+  const [participants] = useState<Participant[]>([
+    { id: 1, name: "홍길동", team: "1팀", phone: "010-1234-5678", group: 21, isLeader: true, room: "101호" },
+    { id: 2, name: "김철수", team: "2팀", phone: "010-2345-6789", group: 21, isLeader: false, room: "101호" },
+    { id: 3, name: "이영희", team: "기신자팀", phone: "010-3456-7890", group: 12, isLeader: true, room: "205호" },
+    { id: 4, name: "박민준", team: "3팀", phone: "010-4567-8901", group: 5, isLeader: false, room: "302호" },
+    { id: 5, name: "최서연", team: "웰컴팀", phone: "010-5678-9012", group: 1, isLeader: true, room: "410호" },
+    { id: 6, name: "강하늘", team: "1팀", phone: "010-6789-0123", group: 21, isLeader: false, room: "101호" },
+    { id: 7, name: "윤서준", team: "4팀", phone: "010-7890-1234", group: 12, isLeader: false, room: "205호" },
+  ]);
+
+  const teams: TeamType[] = ["초신자팀", "기신자팀", "1팀", "2팀", "3팀", "4팀", "5팀", "6팀", "웰컴팀", "임원단"];
+
+  // Grouping logic for tabs
+  const groups: GroupInfo[] = Array.from(new Set(participants.map(p => p.group))).filter(Boolean).map(gId => ({
+    id: gId!,
+    members: participants.filter(p => p.group === gId).sort((a, b) => a.name.localeCompare(b.name))
+  })).sort((a, b) => a.id - b.id);
+
+  const rooms: RoomInfo[] = Array.from(new Set(participants.map(p => p.room))).filter(Boolean).map(rId => ({
+    id: rId!,
+    members: participants.filter(p => p.room === rId).sort((a, b) => a.name.localeCompare(b.name))
+  })).sort((a, b) => a.id.localeCompare(b.id));
+
+  const sortedParticipants = [...participants].sort((a, b) => a.name.localeCompare(b.name));
 
   return (
     <div className="space-y-6">
