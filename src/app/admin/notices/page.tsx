@@ -52,14 +52,14 @@ export default function AdminNoticesPage() {
   return (
     <div className="space-y-6">
       {/* Page Header */}
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
         <div>
-          <h1 className="text-2xl font-black text-toss-black">공지사항 관리</h1>
-          <p className="text-sm text-toss-gray mt-1">참석자들에게 전달할 공지사항을 등록하고 관리합니다.</p>
+          <h1 className="text-xl lg:text-2xl font-black text-toss-black">공지사항 관리</h1>
+          <p className="text-xs lg:text-sm text-toss-gray mt-1">참석자들에게 전달할 공지사항을 등록하고 관리합니다.</p>
         </div>
         <button 
           onClick={() => setIsAdding(true)}
-          className="bg-toss-blue text-white px-5 py-2.5 rounded-xl font-bold flex items-center gap-2 hover:bg-toss-blue/90 transition-all shadow-sm shadow-toss-blue/20"
+          className="bg-toss-blue text-white px-5 py-2.5 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-toss-blue/90 transition-all shadow-sm shadow-toss-blue/20 text-sm lg:text-base"
         >
           <Plus size={20} />
           새 공지 등록
@@ -67,18 +67,18 @@ export default function AdminNoticesPage() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="bg-white p-5 rounded-2xl border border-toss-border shadow-sm">
-          <p className="text-xs font-bold text-toss-gray mb-1">전체 공지</p>
-          <p className="text-xl font-black text-toss-black">24건</p>
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="bg-white p-4 lg:p-5 rounded-2xl border border-toss-border shadow-sm">
+          <p className="text-[10px] lg:text-xs font-bold text-toss-gray mb-1">전체 공지</p>
+          <p className="text-lg lg:text-xl font-black text-toss-black">24건</p>
         </div>
-        <div className="bg-white p-5 rounded-2xl border border-toss-border shadow-sm border-l-4 border-l-red-500">
-          <p className="text-xs font-bold text-red-500 mb-1">긴급 공지</p>
-          <p className="text-xl font-black text-toss-black">2건</p>
+        <div className="bg-white p-4 lg:p-5 rounded-2xl border border-toss-border shadow-sm border-l-4 border-l-red-500">
+          <p className="text-[10px] lg:text-xs font-bold text-red-500 mb-1">긴급 공지</p>
+          <p className="text-lg lg:text-xl font-black text-toss-black">2건</p>
         </div>
-        <div className="bg-white p-5 rounded-2xl border border-toss-border shadow-sm border-l-4 border-l-green-500">
-          <p className="text-xs font-bold text-green-500 mb-1">시간 관련</p>
-          <p className="text-xl font-black text-toss-black">8건</p>
+        <div className="bg-white p-4 lg:p-5 rounded-2xl border border-toss-border shadow-sm border-l-4 border-l-green-500">
+          <p className="text-[10px] lg:text-xs font-bold text-green-500 mb-1">시간 관련</p>
+          <p className="text-lg lg:text-xl font-black text-toss-black">8건</p>
         </div>
       </div>
 
@@ -158,37 +158,37 @@ export default function AdminNoticesPage() {
         </div>
 
         <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
+          <table className="w-full text-left border-collapse min-w-[600px]">
             <thead>
-              <tr className="bg-toss-lightGray/50 text-toss-gray text-xs font-bold uppercase tracking-wider">
-                <th className="px-6 py-4">유형</th>
-                <th className="px-6 py-4">제목</th>
-                <th className="px-6 py-4">등록일시</th>
-                <th className="px-6 py-4 text-right">관리</th>
+              <tr className="bg-toss-lightGray/50 text-toss-gray text-[10px] lg:text-xs font-bold uppercase tracking-wider">
+                <th className="px-4 lg:px-6 py-4">유형</th>
+                <th className="px-4 lg:px-6 py-4">제목</th>
+                <th className="px-4 lg:px-6 py-4">등록일시</th>
+                <th className="px-4 lg:px-6 py-4 text-right">관리</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-toss-border">
               {notices.map((notice) => (
                 <tr key={notice.id} className="hover:bg-toss-lightGray/30 transition-colors group">
-                  <td className="px-6 py-4">
-                    <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold border ${getTypeStyles(notice.type)}`}>
+                  <td className="px-4 lg:px-6 py-4">
+                    <div className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-[10px] font-bold border whitespace-nowrap ${getTypeStyles(notice.type)}`}>
                       {getTypeIcon(notice.type)}
                       {notice.type}
                     </div>
                   </td>
-                  <td className="px-6 py-4">
+                  <td className="px-4 lg:px-6 py-4 min-w-[200px]">
                     <p className="text-sm font-bold text-toss-black">{notice.title}</p>
-                    <p className="text-xs text-toss-gray mt-0.5 line-clamp-1">{notice.content}</p>
+                    <p className="text-[11px] text-toss-gray mt-0.5 line-clamp-1">{notice.content}</p>
                   </td>
-                  <td className="px-6 py-4 text-sm text-toss-gray">
+                  <td className="px-4 lg:px-6 py-4 text-xs lg:text-sm text-toss-gray whitespace-nowrap">
                     {notice.createdAt}
                   </td>
-                  <td className="px-6 py-4 text-right">
-                    <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <button className="p-2 text-toss-gray hover:text-toss-blue hover:bg-toss-blue/5 rounded-lg transition-all">
+                  <td className="px-4 lg:px-6 py-4 text-right">
+                    <div className="flex justify-end gap-1 sm:gap-2 sm:opacity-0 group-hover:opacity-100 transition-opacity">
+                      <button className="p-1.5 lg:p-2 text-toss-gray hover:text-toss-blue hover:bg-toss-blue/5 rounded-lg transition-all">
                         <Edit2 size={16} />
                       </button>
-                      <button className="p-2 text-toss-gray hover:text-red-500 hover:bg-red-50 rounded-lg transition-all">
+                      <button className="p-1.5 lg:p-2 text-toss-gray hover:text-red-500 hover:bg-red-50 rounded-lg transition-all">
                         <Trash2 size={16} />
                       </button>
                     </div>
