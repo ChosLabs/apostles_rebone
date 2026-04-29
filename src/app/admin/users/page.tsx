@@ -226,7 +226,7 @@ export default function AdminUsersPage() {
             >
               <div className="flex justify-between items-start mb-4">
                 <div className="w-10 h-10 lg:w-12 lg:h-12 rounded-2xl bg-green-500/10 flex items-center justify-center text-green-600 font-black text-base lg:text-lg italic">
-                  <Home size={20} lg:size={22} />
+                  <Home size={22} />
                 </div>
                 <button className="p-2 text-toss-gray hover:bg-toss-lightGray rounded-xl transition-colors">
                   <MoreVertical size={18} />

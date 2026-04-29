@@ -210,10 +210,10 @@ export default function AdminTimetablePage() {
 
                 <div className="flex sm:flex-col lg:flex-row gap-2 sm:opacity-0 group-hover:opacity-100 transition-opacity self-end sm:self-start">
                   <button className="p-2 text-toss-gray hover:text-toss-blue hover:bg-toss-blue/5 rounded-xl transition-all border border-toss-border sm:border-transparent">
-                    <Edit2 size={16} lg:size={18} />
+                    <Edit2 size={18} />
                   </button>
                   <button className="p-2 text-toss-gray hover:text-red-500 hover:bg-red-50 rounded-xl transition-all border border-toss-border sm:border-transparent">
-                    <Trash2 size={16} lg:size={18} />
+                    <Trash2 size={18} />
                   </button>
                 </div>
               </div>
