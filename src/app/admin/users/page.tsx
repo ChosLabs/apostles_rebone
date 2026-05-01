@@ -45,6 +45,8 @@ interface RoomInfo {
 
 export default function AdminUsersPage() {
   const [searchTerm, setSearchTerm] = useState("");
+  const [teamFilter, setTeamFilter] = useState("");
+  const [attendanceFilter, setAttendanceFilter] = useState("");
   const [isAdding, setIsAdding] = useState(false);
   const [isAddingGroup, setIsAddingGroup] = useState(false);
   const [isAddingRoom, setIsAddingRoom] = useState(false);
@@ -66,6 +68,14 @@ export default function AdminUsersPage() {
   const teams: TeamType[] = ["초신자팀", "기신자팀", "1팀", "2팀", "3팀", "4팀", "5팀", "6팀", "웰컴팀", "임원단"];
   const attendanceTypes: AttendanceType[] = ["A형", "B-1형", "B-2형", "C형", "D형"];
 
+  // Filtering and Sorting logic
+  const filteredParticipants = participants.filter(p => {
+    const matchesSearch = p.name.includes(searchTerm) || p.phone.includes(searchTerm);
+    const matchesTeam = teamFilter ? p.team === teamFilter : true;
+    const matchesAttendance = attendanceFilter ? p.attendanceType === attendanceFilter : true;
+    return matchesSearch && matchesTeam && matchesAttendance;
+  }).sort((a, b) => a.name.localeCompare(b.name));
+
   // Grouping logic for tabs
   const groups: GroupInfo[] = Array.from(new Set(participants.map(p => p.group))).filter(Boolean).map(gId => ({
     id: gId!,
@@ -76,8 +86,6 @@ export default function AdminUsersPage() {
     id: rId!,
     members: participants.filter(p => p.room === rId).sort((a, b) => a.name.localeCompare(b.name))
   })).sort((a, b) => a.id.localeCompare(b.id));
-
-  const sortedParticipants = [...participants].sort((a, b) => a.name.localeCompare(b.name));
 
   return (
     <div className="space-y-6">
@@ -133,10 +141,22 @@ export default function AdminUsersPage() {
       {selectedTab === "all" && (
         <div className="space-y-6 animate-in fade-in duration-300">
           <div className="flex flex-col sm:flex-row gap-3 items-center justify-between">
-            <div className="flex gap-2 w-full sm:w-auto">
-              <select className="flex-1 sm:flex-none px-4 py-2.5 bg-white border border-toss-border rounded-xl text-sm font-bold outline-none focus:border-toss-blue">
+            <div className="flex gap-2 w-full sm:w-auto overflow-x-auto no-scrollbar pb-1 sm:pb-0">
+              <select 
+                className="flex-1 sm:flex-none px-4 py-2.5 bg-white border border-toss-border rounded-xl text-sm font-bold outline-none focus:border-toss-blue whitespace-nowrap"
+                value={teamFilter}
+                onChange={(e) => setTeamFilter(e.target.value)}
+              >
                 <option value="">팀 전체</option>
                 {teams.map(t => <option key={t} value={t}>{t}</option>)}
+              </select>
+              <select 
+                className="flex-1 sm:flex-none px-4 py-2.5 bg-white border border-toss-border rounded-xl text-sm font-bold outline-none focus:border-toss-blue whitespace-nowrap"
+                value={attendanceFilter}
+                onChange={(e) => setAttendanceFilter(e.target.value)}
+              >
+                <option value="">참석구분 전체</option>
+                {attendanceTypes.map(t => <option key={t} value={t}>{t}</option>)}
               </select>
             </div>
             <div className="relative w-full sm:w-80">
@@ -165,7 +185,7 @@ export default function AdminUsersPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-toss-border">
-                  {sortedParticipants.map((user) => (
+                  {filteredParticipants.map((user) => (
                     <tr key={user.id} className="hover:bg-toss-lightGray/20 transition-colors group">
                       <td className="px-4 lg:px-6 py-4">
                         <div className="flex items-center gap-3">

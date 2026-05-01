@@ -1,16 +1,29 @@
 "use client";
 
 import { useState } from "react";
-import { ChevronLeft, Search } from "lucide-react";
+import { ChevronLeft, Search, Heart } from "lucide-react";
 import Link from "next/link";
 
 export default function GroupPrayersPage() {
   const [searchTerm, setSearchTerm] = useState("");
-  const groupPrayers = [
-    { id: 1, author: "김철수", content: "우리 21조원들 모두가 서로 깊이 알아가고 사랑하는 시간 되길 소망합니다.", time: "1시간 전" },
-    { id: 2, author: "이영희", content: "모든 일정 가운데 안전하게 지켜주시고 날씨도 주관해주세요.", time: "3시간 전" },
-    { id: 3, author: "익명", content: "조별 미션 때 우리 조가 가장 행복한 조가 되었으면 좋겠습니다!", time: "어제" },
-  ];
+  const [groupPrayers, setGroupPrayers] = useState([
+    { id: 1, author: "김철수", content: "우리 21조원들 모두가 서로 깊이 알아가고 사랑하는 시간 되길 소망합니다.", time: "1시간 전", prayerCount: 12, hasPrayed: false },
+    { id: 2, author: "이영희", content: "모든 일정 가운데 안전하게 지켜주시고 날씨도 주관해주세요.", time: "3시간 전", prayerCount: 8, hasPrayed: false },
+    { id: 3, author: "익명", content: "조별 미션 때 우리 조가 가장 행복한 조가 되었으면 좋겠습니다!", time: "어제", prayerCount: 15, hasPrayed: false },
+  ]);
+
+  const handlePray = (id: number) => {
+    setGroupPrayers(prev => prev.map(p => {
+      if (p.id === id) {
+        return {
+          ...p,
+          prayerCount: p.hasPrayed ? p.prayerCount - 1 : p.prayerCount + 1,
+          hasPrayed: !p.hasPrayed
+        };
+      }
+      return p;
+    }));
+  };
 
   const filteredPrayers = groupPrayers.filter(p => 
     p.author.includes(searchTerm) || p.content.includes(searchTerm)
@@ -47,7 +60,21 @@ export default function GroupPrayersPage() {
                 <span className="text-xs font-bold text-toss-black">{p.author}</span>
                 <span className="text-[10px] text-toss-gray">{p.time}</span>
               </div>
-              <p className="text-[14px] text-toss-gray leading-relaxed">{p.content}</p>
+              <p className="text-[14px] text-toss-gray leading-relaxed mb-3">{p.content}</p>
+              
+              <div className="flex justify-end">
+                <button 
+                  onClick={() => handlePray(p.id)}
+                  className={`flex items-center gap-1.5 text-[11px] font-bold px-3 py-1.5 rounded-lg active:scale-95 transition-all ${
+                    p.hasPrayed 
+                    ? "text-red-500 bg-red-50" 
+                    : "text-toss-blue bg-toss-blue/5"
+                  }`}
+                >
+                  <Heart size={12} fill={p.hasPrayed ? "currentColor" : "none"} />
+                  {p.hasPrayed ? "기도했습니다" : "함께 기도하기"}
+                </button>
+              </div>
             </div>
           ))
         ) : (

@@ -10,8 +10,7 @@ import {
   MapPin, 
   GripVertical,
   Calendar as CalendarIcon,
-  ChevronRight,
-  Save
+  ChevronRight
 } from "lucide-react";
 
 type Day = "DAY1" | "DAY2" | "DAY3";
@@ -55,10 +54,6 @@ export default function AdminTimetablePage() {
           <p className="text-xs lg:text-sm text-toss-gray mt-1">수련회 전체 일정을 일자별로 관리합니다.</p>
         </div>
         <div className="flex gap-2">
-          <button className="flex-1 sm:flex-none bg-white text-toss-black border border-toss-border px-4 lg:px-5 py-2 lg:py-2.5 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-toss-lightGray transition-all text-sm">
-            <Save size={18} />
-            순서 저장
-          </button>
           <button 
             onClick={() => setIsAdding(true)}
             className="flex-1 sm:flex-none bg-toss-blue text-white px-4 lg:px-5 py-2 lg:py-2.5 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-toss-blue/90 transition-all shadow-sm shadow-toss-blue/20 text-sm"
@@ -212,7 +207,7 @@ export default function AdminTimetablePage() {
                   <button className="p-2 text-toss-gray hover:text-toss-blue hover:bg-toss-blue/5 rounded-xl transition-all border border-toss-border sm:border-transparent">
                     <Edit2 size={18} />
                   </button>
-                  <button className="p-2 text-toss-gray hover:text-red-500 hover:bg-red-50 rounded-xl transition-all border border-toss-border sm:border-transparent">
+                  <button className="p-2 text-toss-gray hover:text-red-500 hover:bg-red-50 rounded-xl transition-all border border-red-100 sm:border-transparent">
                     <Trash2 size={18} />
                   </button>
                 </div>
@@ -238,8 +233,7 @@ export default function AdminTimetablePage() {
         <div>
           <h4 className="font-bold text-toss-black text-sm mb-1">일정 관리 팁</h4>
           <p className="text-xs text-toss-gray leading-relaxed">
-            왼쪽의 핸들(<GripVertical size={12} className="inline" />)을 드래그하여 일정 순서를 변경할 수 있습니다. <br />
-            저장 버튼을 누르기 전까지는 변경사항이 실제 서비스에 반영되지 않습니다.
+            왼쪽의 핸들(<GripVertical size={12} className="inline" />)을 드래그하여 일정 순서를 변경할 수 있습니다.
           </p>
         </div>
       </div>

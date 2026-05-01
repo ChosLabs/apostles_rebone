@@ -21,20 +21,20 @@ export default function AdminDashboard() {
       bgColor: "bg-toss-blue/10"
     },
     { 
-      label: "새 기도제목", 
-      value: "42개", 
+      label: "전체 공지 개수", 
+      value: "12개", 
+      change: "+2", 
+      trend: "up", 
+      icon: <Bell className="text-orange-500" />,
+      bgColor: "bg-orange-500/10"
+    },
+    { 
+      label: "전체 기도제목 개수", 
+      value: "420개", 
       change: "+5%", 
       trend: "up", 
       icon: <MessageSquare className="text-green-500" />,
       bgColor: "bg-green-500/10"
-    },
-    { 
-      label: "미확인 공지", 
-      value: "3건", 
-      change: "-2%", 
-      trend: "down", 
-      icon: <Bell className="text-orange-500" />,
-      bgColor: "bg-orange-500/10"
     },
     { 
       label: "실시간 접속", 
@@ -111,10 +111,6 @@ export default function AdminDashboard() {
             <button className="w-full bg-white text-toss-black border border-toss-border font-bold py-3 rounded-xl hover:bg-toss-lightGray transition-colors flex items-center justify-center gap-2">
               <Calendar size={18} />
               타임테이블 수정
-            </button>
-            <button className="w-full bg-white text-toss-black border border-toss-border font-bold py-3 rounded-xl hover:bg-toss-lightGray transition-colors flex items-center justify-center gap-2">
-              <Users size={18} />
-              참가자 명단 다운로드
             </button>
           </div>
         </div>

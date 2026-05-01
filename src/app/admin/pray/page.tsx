@@ -89,22 +89,18 @@ export default function AdminPrayPage() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 lg:gap-4">
         <div className="bg-white p-4 lg:p-5 rounded-2xl border border-toss-border shadow-sm">
-          <p className="text-[10px] lg:text-xs font-bold text-toss-gray mb-1">오늘 등록</p>
-          <p className="text-base lg:text-xl font-black text-toss-black">42개</p>
-        </div>
-        <div className="bg-white p-4 lg:p-5 rounded-2xl border border-toss-border shadow-sm">
-          <p className="text-[10px] lg:text-xs font-bold text-toss-gray mb-1">총 기도 횟수</p>
-          <p className="text-base lg:text-xl font-black text-toss-blue">1,240회</p>
+          <p className="text-[10px] lg:text-xs font-bold text-toss-gray mb-1">전체 기도제목 개수</p>
+          <p className="text-base lg:text-xl font-black text-toss-black">420개</p>
         </div>
         <div className="bg-white p-4 lg:p-5 rounded-2xl border border-toss-border shadow-sm">
           <p className="text-[10px] lg:text-xs font-bold text-toss-gray mb-1">익명 비율</p>
           <p className="text-base lg:text-xl font-black text-toss-black">35%</p>
         </div>
         <div className="bg-white p-4 lg:p-5 rounded-2xl border border-toss-border shadow-sm">
-          <p className="text-[10px] lg:text-xs font-bold text-toss-gray mb-1">기도왕 조</p>
-          <p className="text-base lg:text-xl font-black text-green-500">12조</p>
+          <p className="text-[10px] lg:text-xs font-bold text-toss-gray mb-1">총 기도 횟수</p>
+          <p className="text-base lg:text-xl font-black text-toss-blue">1,240회</p>
         </div>
       </div>
 

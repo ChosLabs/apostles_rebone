@@ -6,12 +6,25 @@ import Link from "next/link";
 
 export default function AllPrayersPage() {
   const [searchTerm, setSearchTerm] = useState("");
-  const allPrayers = [
-    { id: 1, author: "익명", content: "취업 준비 기간이 길어지면서 마음이 많이 지쳐있습니다. 결과와 상관없이 주님이 주시는 평안함을 누리며 끝까지 신뢰하며 나아갈 수 있도록 기도 부탁드립니다.", time: "10분 전" },
-    { id: 2, author: "박지민", content: "이번 수련회 기간 동안 모든 참석자들이 아프지 않고 건강하게 은혜 받는 시간 될 수 있도록 함께 기도해주세요!", time: "1시간 전" },
-    { id: 3, author: "김은혜", content: "오랜만에 만나는 조원들과 서먹함 없이 깊은 교제를 나눌 수 있기를 소망합니다.", time: "3시간 전" },
-    { id: 4, author: "익명", content: "모든 예배 시간마다 성령의 강력한 임재가 있기를 기도합니다.", time: "어제" },
-  ];
+  const [allPrayers, setAllPrayers] = useState([
+    { id: 1, author: "익명", content: "취업 준비 기간이 길어지면서 마음이 많이 지쳐있습니다. 결과와 상관없이 주님이 주시는 평안함을 누리며 끝까지 신뢰하며 나아갈 수 있도록 기도 부탁드립니다.", time: "10분 전", prayerCount: 42, hasPrayed: false },
+    { id: 2, author: "박지민", content: "이번 수련회 기간 동안 모든 참석자들이 아프지 않고 건강하게 은혜 받는 시간 될 수 있도록 함께 기도해주세요!", time: "1시간 전", prayerCount: 28, hasPrayed: false },
+    { id: 3, author: "김은혜", content: "오랜만에 만나는 조원들과 서먹함 없이 깊은 교제를 나눌 수 있기를 소망합니다.", time: "3시간 전", prayerCount: 15, hasPrayed: false },
+    { id: 4, author: "익명", content: "모든 예배 시간마다 성령의 강력한 임재가 있기를 기도합니다.", time: "어제", prayerCount: 56, hasPrayed: false },
+  ]);
+
+  const handlePray = (id: number) => {
+    setAllPrayers(prev => prev.map(p => {
+      if (p.id === id) {
+        return {
+          ...p,
+          prayerCount: p.hasPrayed ? p.prayerCount - 1 : p.prayerCount + 1,
+          hasPrayed: !p.hasPrayed
+        };
+      }
+      return p;
+    }));
+  };
 
   const filteredPrayers = allPrayers.filter(p => 
     p.author.includes(searchTerm) || p.content.includes(searchTerm)
@@ -48,9 +61,16 @@ export default function AllPrayersPage() {
               </div>
               <p className="text-[14px] text-toss-black leading-relaxed mb-3">{p.content}</p>
               <div className="flex justify-end">
-                <button className="flex items-center gap-1.5 text-[11px] font-bold text-toss-blue bg-toss-blue/5 px-3 py-1.5 rounded-lg active:scale-95 transition-all">
-                  <Heart size={12} fill="currentColor" />
-                  함께 기도하기
+                <button 
+                  onClick={() => handlePray(p.id)}
+                  className={`flex items-center gap-1.5 text-[11px] font-bold px-3 py-1.5 rounded-lg active:scale-95 transition-all ${
+                    p.hasPrayed 
+                    ? "text-red-500 bg-red-50" 
+                    : "text-toss-blue bg-toss-blue/5"
+                  }`}
+                >
+                  <Heart size={12} fill={p.hasPrayed ? "currentColor" : "none"} />
+                  {p.hasPrayed ? "기도했습니다" : "함께 기도하기"}
                 </button>
               </div>
             </div>

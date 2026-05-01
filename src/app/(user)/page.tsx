@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ChevronRight, Users, MessageCircle, Map, Image, ClipboardCheck, Vote, X } from "lucide-react";
+import { ChevronRight, Users, MessageCircle, Map, Image, ClipboardCheck, Vote, X, Phone } from "lucide-react";
 import Link from "next/link";
 
 export default function Home() {
@@ -15,7 +15,7 @@ export default function Home() {
 
   return (
     <div className="flex flex-col gap-6 pb-12 px-4">
-      {/* 1. 오늘의 기도제목 */}
+      {/* ... (prayer topic and countdown unchanged) */}
       <div className="toss-card !mb-0 bg-gradient-to-br from-toss-blue to-[#5d98f7] text-white border-none">
         <div className="flex justify-between items-start mb-2">
           <span className="text-[10px] font-bold bg-white/20 px-2 py-0.5 rounded-md tracking-wider">🙏 오늘의 기도제목 D-14</span>
@@ -53,7 +53,7 @@ export default function Home() {
                 <span className="text-[10px] font-bold bg-toss-blue text-white px-1.5 py-0.5 rounded italic">NEW</span>
                 <span className="text-[15px] font-bold text-toss-black">{notices[0].title}</span>
               </div>
-              <span className="text-[11px] text-toss-gray font-medium">{notices[0].time}</span>
+              <span className="text-11px] text-toss-gray font-medium">{notices[0].time}</span>
             </div>
             <p className="text-sm text-toss-gray leading-relaxed line-clamp-1">{notices[0].content}</p>
           </div>
@@ -106,12 +106,12 @@ export default function Home() {
       <section>
         <h2 className="text-[15px] font-bold text-toss-black mb-3 px-1">빠른 접근</h2>
         <div className="grid grid-cols-2 gap-3">
-          <QuickLink icon={<Users className="text-blue-500" />} label="내 조 확인" desc="조원 및 조장" />
-          <QuickLink icon={<MessageCircle className="text-green-500" />} label="조별 채팅" desc="실시간 소통" />
-          <QuickLink icon={<Map className="text-red-400" />} label="리조트 안내" desc="지도 및 식당" />
-          <QuickLink icon={<Image className="text-purple-500" />} label="포토 앨범" desc="현장 사진" />
-          <QuickLink icon={<ClipboardCheck className="text-orange-500" />} label="강의 신청" desc="선택강의" />
-          <QuickLink icon={<Vote className="text-indigo-500" />} label="실시간 투표" desc="참여하기" />
+          <QuickLink href="/group" icon={<Users className="text-blue-500" />} label="내 조 확인" desc="조원 및 조장" />
+          <QuickLink href="/resort" icon={<Map className="text-red-400" />} label="리조트 안내" desc="지도 및 식당" />
+          <QuickLink href="/more" icon={<ClipboardCheck className="text-orange-500" />} label="강의 신청" desc="선택강의" />
+          <QuickLink href="/more" icon={<Vote className="text-indigo-500" />} label="실시간 투표" desc="참여하기" />
+          <QuickLink href="/more" icon={<Image className="text-purple-500" />} label="포토 앨범" desc="현장 사진" />
+          <QuickLink href="/more" icon={<Phone className="text-green-500" />} label="비상 연락처" desc="도움이 필요할 때" />
         </div>
       </section>
 
@@ -139,17 +139,19 @@ export default function Home() {
   );
 }
 
-function QuickLink({ icon, label, desc }: { icon: React.ReactNode; label: string; desc: string }) {
+function QuickLink({ href, icon, label, desc }: { href: string; icon: React.ReactNode; label: string; desc: string }) {
   return (
-    <div className="bg-white p-4 rounded-toss shadow-sm border border-toss-border/40 flex items-center gap-3 transition-transform active:scale-[0.96] cursor-pointer">
-      <div className="bg-toss-lightGray w-10 h-10 rounded-xl flex items-center justify-center shrink-0">
-        {icon}
+    <Link href={href}>
+      <div className="bg-white p-4 rounded-toss shadow-sm border border-toss-border/40 flex items-center gap-3 transition-transform active:scale-[0.96] cursor-pointer h-full">
+        <div className="bg-toss-lightGray w-10 h-10 rounded-xl flex items-center justify-center shrink-0">
+          {icon}
+        </div>
+        <div className="flex flex-col min-w-0">
+          <p className="text-[13px] font-bold text-toss-black leading-tight truncate">{label}</p>
+          <p className="text-[10px] text-toss-gray truncate">{desc}</p>
+        </div>
       </div>
-      <div className="flex flex-col min-w-0">
-        <p className="text-[13px] font-bold text-toss-black leading-tight truncate">{label}</p>
-        <p className="text-[10px] text-toss-gray truncate">{desc}</p>
-      </div>
-    </div>
+    </Link>
   );
 }
 
