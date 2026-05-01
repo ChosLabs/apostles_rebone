@@ -12,7 +12,10 @@ import {
   LogOut,
   User,
   Menu,
-  X
+  X,
+  BookOpen,
+  Vote,
+  Image
 } from "lucide-react";
 
 export default function AdminLayout({
@@ -48,6 +51,10 @@ export default function AdminLayout({
     { name: "대시보드", icon: <LayoutDashboard size={20} />, href: "/admin" },
     { name: "공지사항 관리", icon: <Bell size={20} />, href: "/admin/notices" },
     { name: "타임테이블 관리", icon: <Calendar size={20} />, href: "/admin/timetable" },
+    { name: "강의 관리", icon: <BookOpen size={20} />, href: "/admin/lectures" },
+    { name: "투표 관리", icon: <Vote size={20} />, href: "/admin/vote" },
+    { name: "앨범 관리", icon: <Image size={20} />, href: "/admin/gallery" },
+    { name: "문의 관리", icon: <MessageSquare size={20} />, href: "/admin/inquiry" },
     { name: "기도제목 관리", icon: <MessageSquare size={20} />, href: "/admin/pray" },
     { name: "참가자 관리", icon: <Users size={20} />, href: "/admin/users" },
   ];

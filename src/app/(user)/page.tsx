@@ -108,10 +108,10 @@ export default function Home() {
         <div className="grid grid-cols-2 gap-3">
           <QuickLink href="/group" icon={<Users className="text-blue-500" />} label="내 조 확인" desc="조원 및 조장" />
           <QuickLink href="/resort" icon={<Map className="text-red-400" />} label="리조트 안내" desc="지도 및 식당" />
-          <QuickLink href="/more" icon={<ClipboardCheck className="text-orange-500" />} label="강의 신청" desc="선택강의" />
-          <QuickLink href="/more" icon={<Vote className="text-indigo-500" />} label="실시간 투표" desc="참여하기" />
-          <QuickLink href="/more" icon={<Image className="text-purple-500" />} label="포토 앨범" desc="현장 사진" />
-          <QuickLink href="/more" icon={<Phone className="text-green-500" />} label="비상 연락처" desc="도움이 필요할 때" />
+          <QuickLink href="/lectures" icon={<ClipboardCheck className="text-orange-500" />} label="강의 신청" desc="선택강의" />
+          <QuickLink href="/vote" icon={<Vote className="text-indigo-500" />} label="실시간 투표" desc="참여하기" />
+          <QuickLink href="/gallery" icon={<Image className="text-purple-500" />} label="포토 앨범" desc="현장 사진" />
+          <QuickLink href="/emergency" icon={<Phone className="text-green-500" />} label="비상 연락처" desc="도움이 필요할 때" />
         </div>
       </section>
 
