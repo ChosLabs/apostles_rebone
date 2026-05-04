@@ -27,8 +27,11 @@ function NavItem({ href, icon, label, active = false }: { href: string; icon: Re
   );
 }
 
+import { useAuth } from "@/components/providers/AuthProvider";
+
 export function GlobalHeader() {
   const pathname = usePathname();
+  const { user, firebaseUser } = useAuth();
   
   // 상세 페이지들은 각자 헤더를 가짐
   const hideGlobalHeader = ["/timetable", "/notices", "/pray/my", "/pray/group", "/pray/all"].some(path => pathname === path);
@@ -42,7 +45,7 @@ export function GlobalHeader() {
       <div className="flex gap-4 items-center">
         <Link href="/profile" className="flex items-center gap-2 cursor-pointer group bg-white border border-toss-border/50 py-1 pl-3 pr-1 rounded-full hover:border-toss-blue/20 transition-all shadow-sm">
           <span className="text-[13px] font-bold text-toss-gray group-hover:text-toss-blue transition-colors">
-            홍길동<span className="font-medium opacity-60 ml-0.5">님</span>
+            {user?.name || firebaseUser?.displayName || "게스트"}<span className="font-medium opacity-60 ml-0.5">님</span>
           </span>
           <div className="w-7 h-7 rounded-full bg-toss-lightGray flex items-center justify-center text-toss-gray/60 group-hover:text-toss-blue transition-all">
             <User size={15} />

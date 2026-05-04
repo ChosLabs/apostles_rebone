@@ -1,37 +1,114 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { 
   Plus, 
   Search, 
-  MoreVertical, 
   Trash2, 
   Edit2, 
   Bell, 
   Clock, 
   AlertCircle,
-  ChevronRight
 } from "lucide-react";
+import { db } from "@/lib/firebase/client";
+import { 
+  collection, 
+  addDoc, 
+  query, 
+  orderBy, 
+  deleteDoc, 
+  doc, 
+  updateDoc,
+  serverTimestamp,
+  onSnapshot
+} from "firebase/firestore";
+import { Notice } from "@/types/database";
 
 type NoticeType = "일반" | "시간" | "긴급";
 
-interface Notice {
-  id: number;
-  title: string;
-  content: string;
-  type: NoticeType;
-  createdAt: string;
-}
-
 export default function AdminNoticesPage() {
   const [isAdding, setIsAdding] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [notices, setNotices] = useState<Notice[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState("");
   
-  // Mock data
-  const [notices] = useState<Notice[]>([
-    { id: 1, title: "🚌 버스 배정 안내", content: "내일 출발 버스 번호를 확인하세요...", type: "긴급", createdAt: "2026-06-04 14:00" },
-    { id: 2, title: "🍽️ 1일차 식사 안내", content: "5일 점심은 12:00~13:00입니다...", type: "시간", createdAt: "2026-06-04 12:00" },
-    { id: 3, title: "📋 수련회 준비물 체크리스트", content: "성경책, 필기도구, 여벌 옷...", type: "일반", createdAt: "2026-06-03 09:00" },
-  ]);
+  // Form states
+  const [title, setTitle] = useState("");
+  const [content, setContent] = useState("");
+  const [type, setType] = useState<NoticeType>("일반");
+
+  useEffect(() => {
+    const q = query(collection(db, "notices"), orderBy("createdAt", "desc"));
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const docs = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      })) as Notice[];
+      setNotices(docs);
+      setLoading(false);
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  const handleEdit = (notice: Notice) => {
+    setEditingId(notice.id);
+    setTitle(notice.title);
+    setContent(notice.content);
+    setType(notice.type);
+    setIsAdding(true);
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!title || !content) return;
+
+    try {
+      if (editingId) {
+        await updateDoc(doc(db, "notices", editingId), {
+          title,
+          content,
+          type,
+          updatedAt: serverTimestamp(),
+        });
+      } else {
+        await addDoc(collection(db, "notices"), {
+          title,
+          content,
+          type,
+          createdAt: serverTimestamp(),
+          author: "관리자", 
+        });
+      }
+      resetForm();
+    } catch (error) {
+      console.error("Error saving notice:", error);
+      alert("저장 중 오류가 발생했습니다.");
+    }
+  };
+
+  const resetForm = () => {
+    setTitle("");
+    setContent("");
+    setType("일반");
+    setEditingId(null);
+    setIsAdding(false);
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm("정말 삭제하시겠습니까?")) return;
+    try {
+      await deleteDoc(doc(db, "notices", id));
+    } catch (error) {
+      console.error("Error deleting notice:", error);
+    }
+  };
+
+  const filteredNotices = notices.filter(n => 
+    n.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    n.content.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   const getTypeStyles = (type: NoticeType) => {
     switch (type) {
@@ -49,6 +126,18 @@ export default function AdminNoticesPage() {
     }
   };
 
+  const formatDate = (timestamp: any) => {
+    if (!timestamp) return "-";
+    const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+    return date.toLocaleString('ko-KR', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  };
+
   return (
     <div className="space-y-6">
       {/* Page Header */}
@@ -58,7 +147,7 @@ export default function AdminNoticesPage() {
           <p className="text-xs lg:text-sm text-toss-gray mt-1">참석자들에게 전달할 공지사항을 등록하고 관리합니다.</p>
         </div>
         <button 
-          onClick={() => setIsAdding(true)}
+          onClick={() => { resetForm(); setIsAdding(true); }}
           className="bg-toss-blue text-white px-5 py-2.5 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-toss-blue/90 transition-all shadow-sm shadow-toss-blue/20 text-sm lg:text-base"
         >
           <Plus size={20} />
@@ -70,44 +159,60 @@ export default function AdminNoticesPage() {
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div className="bg-white p-4 lg:p-5 rounded-2xl border border-toss-border shadow-sm">
           <p className="text-[10px] lg:text-xs font-bold text-toss-gray mb-1">전체 공지</p>
-          <p className="text-lg lg:text-xl font-black text-toss-black">24건</p>
+          <p className="text-lg lg:text-xl font-black text-toss-black">{notices.length}건</p>
         </div>
         <div className="bg-white p-4 lg:p-5 rounded-2xl border border-toss-border shadow-sm border-l-4 border-l-red-500">
           <p className="text-[10px] lg:text-xs font-bold text-red-500 mb-1">긴급 공지</p>
-          <p className="text-lg lg:text-xl font-black text-toss-black">2건</p>
+          <p className="text-lg lg:text-xl font-black text-toss-black">
+            {notices.filter(n => n.type === "긴급").length}건
+          </p>
         </div>
         <div className="bg-white p-4 lg:p-5 rounded-2xl border border-toss-border shadow-sm border-l-4 border-l-green-500">
           <p className="text-[10px] lg:text-xs font-bold text-green-500 mb-1">시간 관련</p>
-          <p className="text-lg lg:text-xl font-black text-toss-black">8건</p>
+          <p className="text-lg lg:text-xl font-black text-toss-black">
+            {notices.filter(n => n.type === "시간").length}건
+          </p>
         </div>
       </div>
 
-      {/* Notice Registration Form (Modal or Inline) */}
+      {/* Notice Registration Form */}
       {isAdding && (
         <div className="bg-white p-8 rounded-2xl border border-toss-blue shadow-lg animate-in fade-in slide-in-from-top-4 duration-300">
           <div className="flex justify-between items-center mb-6">
-            <h2 className="text-lg font-bold text-toss-black">새 공지사항 등록</h2>
-            <button onClick={() => setIsAdding(false)} className="text-toss-gray hover:text-toss-black">닫기</button>
+            <h2 className="text-lg font-bold text-toss-black">
+              {editingId ? "공지사항 수정" : "새 공지사항 등록"}
+            </h2>
+            <button onClick={resetForm} className="text-toss-gray hover:text-toss-black">닫기</button>
           </div>
           
-          <form className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-6">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <div className="space-y-2">
                 <label className="text-sm font-bold text-toss-gray px-1">제목</label>
                 <input 
                   type="text" 
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
                   placeholder="공지사항 제목을 입력하세요"
                   className="w-full px-4 py-3 rounded-xl border border-toss-border focus:border-toss-blue focus:ring-1 focus:ring-toss-blue outline-none transition-all"
+                  required
                 />
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-bold text-toss-gray px-1">분류</label>
                 <div className="flex gap-2">
-                  {(["일반", "시간", "긴급"] as NoticeType[]).map((type) => (
-                    <label key={type} className="flex-1 cursor-pointer">
-                      <input type="radio" name="type" value={type} className="sr-only peer" defaultChecked={type === "일반"} />
+                  {(["일반", "시간", "긴급"] as NoticeType[]).map((t) => (
+                    <label key={t} className="flex-1 cursor-pointer">
+                      <input 
+                        type="radio" 
+                        name="type" 
+                        value={t} 
+                        className="sr-only peer" 
+                        checked={type === t}
+                        onChange={() => setType(t)}
+                      />
                       <div className="py-3 text-center rounded-xl border border-toss-border peer-checked:border-toss-blue peer-checked:bg-toss-blue/5 peer-checked:text-toss-blue font-bold text-sm transition-all hover:bg-toss-lightGray">
-                        {type}
+                        {t}
                       </div>
                     </label>
                   ))}
@@ -119,15 +224,18 @@ export default function AdminNoticesPage() {
               <label className="text-sm font-bold text-toss-gray px-1">내용</label>
               <textarea 
                 rows={5}
+                value={content}
+                onChange={(e) => setContent(e.target.value)}
                 placeholder="공지 내용을 입력하세요. 상세 모달에서 전체 내용이 표시됩니다."
                 className="w-full px-4 py-3 rounded-xl border border-toss-border focus:border-toss-blue focus:ring-1 focus:ring-toss-blue outline-none transition-all resize-none"
+                required
               ></textarea>
             </div>
 
             <div className="flex justify-end gap-3 pt-2">
               <button 
                 type="button"
-                onClick={() => setIsAdding(false)}
+                onClick={resetForm}
                 className="px-6 py-3 rounded-xl font-bold text-toss-gray hover:bg-toss-lightGray transition-all"
               >
                 취소
@@ -136,7 +244,7 @@ export default function AdminNoticesPage() {
                 type="submit"
                 className="px-8 py-3 rounded-xl font-bold text-white bg-toss-blue hover:bg-toss-blue/90 transition-all"
               >
-                등록하기
+                {editingId ? "수정하기" : "등록하기"}
               </button>
             </div>
           </form>
@@ -151,6 +259,8 @@ export default function AdminNoticesPage() {
             <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-toss-gray" />
             <input 
               type="text" 
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="공지 제목 검색..."
               className="pl-10 pr-4 py-2 bg-toss-lightGray border-none rounded-lg text-sm focus:ring-1 focus:ring-toss-blue outline-none w-full md:w-64"
             />
@@ -168,45 +278,53 @@ export default function AdminNoticesPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-toss-border">
-              {notices.map((notice) => (
-                <tr key={notice.id} className="hover:bg-toss-lightGray/30 transition-colors group">
-                  <td className="px-4 lg:px-6 py-4">
-                    <div className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-[10px] font-bold border whitespace-nowrap ${getTypeStyles(notice.type)}`}>
-                      {getTypeIcon(notice.type)}
-                      {notice.type}
-                    </div>
-                  </td>
-                  <td className="px-4 lg:px-6 py-4 min-w-[200px]">
-                    <p className="text-sm font-bold text-toss-black">{notice.title}</p>
-                    <p className="text-[11px] text-toss-gray mt-0.5 line-clamp-1">{notice.content}</p>
-                  </td>
-                  <td className="px-4 lg:px-6 py-4 text-xs lg:text-sm text-toss-gray whitespace-nowrap">
-                    {notice.createdAt}
-                  </td>
-                  <td className="px-4 lg:px-6 py-4 text-right">
-                    <div className="flex justify-end gap-1 sm:gap-2 sm:opacity-0 group-hover:opacity-100 transition-opacity">
-                      <button className="p-1.5 lg:p-2 text-toss-gray hover:text-toss-blue hover:bg-toss-blue/5 rounded-lg transition-all">
-                        <Edit2 size={16} />
-                      </button>
-                      <button className="p-1.5 lg:p-2 text-toss-gray hover:text-red-500 hover:bg-red-50 rounded-lg transition-all">
-                        <Trash2 size={16} />
-                      </button>
-                    </div>
+              {loading ? (
+                <tr>
+                  <td colSpan={4} className="px-6 py-8 text-center text-toss-gray text-sm">로딩 중...</td>
+                </tr>
+              ) : filteredNotices.length === 0 ? (
+                <tr>
+                  <td colSpan={4} className="px-6 py-8 text-center text-toss-gray text-sm">
+                    {searchTerm ? "검색 결과가 없습니다." : "등록된 공지사항이 없습니다."}
                   </td>
                 </tr>
-              ))}
+              ) : (
+                filteredNotices.map((notice) => (
+                  <tr key={notice.id} className="hover:bg-toss-lightGray/30 transition-colors group">
+                    <td className="px-4 lg:px-6 py-4">
+                      <div className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-[10px] font-bold border whitespace-nowrap ${getTypeStyles(notice.type)}`}>
+                        {getTypeIcon(notice.type)}
+                        {notice.type}
+                      </div>
+                    </td>
+                    <td className="px-4 lg:px-6 py-4 min-w-[200px]">
+                      <p className="text-sm font-bold text-toss-black">{notice.title}</p>
+                      <p className="text-[11px] text-toss-gray mt-0.5 line-clamp-1">{notice.content}</p>
+                    </td>
+                    <td className="px-4 lg:px-6 py-4 text-xs lg:text-sm text-toss-gray whitespace-nowrap">
+                      {formatDate(notice.createdAt)}
+                    </td>
+                    <td className="px-4 lg:px-6 py-4 text-right">
+                      <div className="flex justify-end gap-1 sm:gap-2 sm:opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button 
+                          onClick={() => handleEdit(notice)}
+                          className="p-1.5 lg:p-2 text-toss-gray hover:text-toss-blue hover:bg-toss-blue/5 rounded-lg transition-all"
+                        >
+                          <Edit2 size={16} />
+                        </button>
+                        <button 
+                          onClick={() => handleDelete(notice.id)}
+                          className="p-1.5 lg:p-2 text-toss-gray hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
-        </div>
-        
-        <div className="p-4 border-t border-toss-border flex justify-center">
-          <nav className="flex items-center gap-1">
-            {[1, 2, 3].map((p) => (
-              <button key={p} className={`w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold transition-all ${p === 1 ? 'bg-toss-blue text-white' : 'text-toss-gray hover:bg-toss-lightGray'}`}>
-                {p}
-              </button>
-            ))}
-          </nav>
         </div>
       </div>
     </div>
