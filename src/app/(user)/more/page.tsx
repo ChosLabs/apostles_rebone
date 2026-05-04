@@ -1,9 +1,11 @@
 "use client";
 
+import Link from "next/link";
 import { 
-  ClipboardList, BookOpen, Users, Map, Bus, FileText, 
+  ClipboardCheck, BookOpen, Users, Map, Bus, FileText, 
   Music, Image, MessageCircle, BarChart3, Gift, Phone, 
-  Calendar, Heart, ChevronRight, Settings, LogOut, User
+  Calendar, Heart, ChevronRight, Settings, LogOut, User, Vote,
+  HelpCircle
 } from "lucide-react";
 
 type MenuItem = {
@@ -14,19 +16,18 @@ type MenuItem = {
   href: string;
 };
 
-const menuItems: MenuItem[] = [
-  { icon: <Phone />, label: "비상 연락처", desc: "스태프 · 의료팀", color: "text-rose-500", href: "/more" },
-  { icon: <Gift />, label: "경품 추첨", desc: "스탬프 · SNS 이벤트", color: "text-red-400", href: "/more" },
-  { icon: <Users />, label: "내 조 확인", desc: "조원 명단 · 조장 연락처", color: "text-indigo-500", href: "/group" },
-  { icon: <MessageCircle />, label: "조별 채팅", desc: "조원과 소통", color: "text-yellow-500", href: "/more" },
-  { icon: <Map />, label: "리조트 안내", desc: "컨벤션센터 · 숙소 · 식당 맵", color: "text-green-500", href: "/resort" },
-  { icon: <BookOpen />, label: "선택강의 신청", desc: "20개 강의 중 택 1", color: "text-purple-500", href: "/more" },
-  { icon: <Image />, label: "포토 앨범", desc: "현장 사진 공유", color: "text-emerald-500", href: "/more" },
-  { icon: <BarChart3 />, label: "Slido 투표", desc: "실시간 투표 · Q&A", color: "text-cyan-500", href: "/more" },
-  { icon: <Bus />, label: "버스 배정", desc: "출발 버스 번호 확인", color: "text-orange-500", href: "/more" },
-  { icon: <FileText />, label: "성경공부 자료", desc: "GBS 자료 다운로드", color: "text-blue-400", href: "/more" },
-  { icon: <Calendar />, label: "40일 팔로업", desc: "수련회 후 40일 플랜", color: "text-amber-500", href: "/more" },
-  { icon: <Heart />, label: "결단카드", desc: "나의 결단 기록 · 파트너", color: "text-red-500", href: "/more" },
+const allMenuItems: MenuItem[] = [
+  { icon: <Users className="text-blue-500" />, label: "내 조 확인", desc: "조원 및 조장", color: "text-blue-500", href: "/group" },
+  { icon: <Map className="text-red-400" />, label: "리조트 안내", desc: "지도 및 식당", color: "text-red-400", href: "/resort" },
+  { icon: <ClipboardCheck className="text-orange-500" />, label: "강의 신청", desc: "선택강의", color: "text-orange-500", href: "/lectures" },
+  { icon: <Vote className="text-indigo-500" />, label: "실시간 투표", desc: "참여하기", color: "text-indigo-500", href: "/vote" },
+  { icon: <Image className="text-purple-500" />, label: "포토 앨범", desc: "현장 사진", color: "text-purple-500", href: "/gallery" },
+  { icon: <Phone className="text-green-500" />, label: "비상 연락처", desc: "도움이 필요할 때", color: "text-green-500", href: "/emergency" },
+  { icon: <Gift className="text-rose-400" />, label: "경품 추첨", desc: "스탬프 · SNS 이벤트", color: "text-rose-400", href: "/more" },
+  { icon: <Bus className="text-orange-400" />, label: "버스 배정", desc: "출발 버스 번호 확인", color: "text-orange-400", href: "/more" },
+  { icon: <FileText className="text-blue-400" />, label: "성경공부 자료", desc: "GBS 자료 다운로드", color: "text-blue-400", href: "/more" },
+  { icon: <Calendar className="text-amber-500" />, label: "40일 팔로업", desc: "수련회 후 40일 플랜", color: "text-amber-500", href: "/more" },
+  { icon: <Heart className="text-red-500" />, label: "결단카드", desc: "나의 결단 기록 · 파트너", color: "text-red-500", href: "/more" },
 ];
 
 export default function MorePage() {
@@ -59,19 +60,17 @@ export default function MorePage() {
       <div className="flex flex-col gap-3">
         <h3 className="text-xs font-bold text-toss-gray px-1 uppercase tracking-wider">전체 메뉴</h3>
         <div className="grid grid-cols-2 gap-3">
-          {menuItems.map((item, idx) => (
+          {allMenuItems.map((item, idx) => (
             <Link href={item.href} key={idx}>
-              <div 
-                className="bg-white p-3 rounded-toss shadow-[0_2px_8px_rgba(0,0,0,0.04)] border border-toss-border/40 active:scale-[0.96] transition-all cursor-pointer group flex items-center gap-3 h-full"
-              >
-                <div className={`w-9 h-9 rounded-xl bg-toss-lightGray flex items-center justify-center shrink-0 group-hover:bg-toss-blue/5 transition-colors ${item.color}`}>
-                  <div className="[&>svg]:w-5 [&>svg]:h-5">
+              <div className="bg-white p-4 rounded-toss shadow-sm border border-toss-border/40 flex items-center gap-3 transition-transform active:scale-[0.96] cursor-pointer h-full">
+                <div className="bg-toss-lightGray w-10 h-10 rounded-xl flex items-center justify-center shrink-0">
+                  <div className={item.color}>
                     {item.icon}
                   </div>
                 </div>
                 <div className="flex flex-col min-w-0">
-                  <h4 className="text-[13px] font-bold text-toss-black mb-0.5 leading-tight truncate">{item.label}</h4>
-                  <p className="text-[10px] text-toss-gray leading-tight truncate">{item.desc}</p>
+                  <p className="text-[13px] font-bold text-toss-black leading-tight truncate">{item.label}</p>
+                  <p className="text-[10px] text-toss-gray truncate">{item.desc}</p>
                 </div>
               </div>
             </Link>
@@ -80,12 +79,25 @@ export default function MorePage() {
       </div>
 
       {/* 3. 푸터 섹션 */}
-      <div className="flex flex-col gap-4 mt-2">
+      <div className="flex flex-col gap-3 mt-2">
+        <Link href="/inquiry" className="flex items-center justify-between w-full p-5 bg-white border border-toss-border/40 rounded-2xl active:scale-[0.98] transition-all group">
+          <div className="flex items-center gap-4">
+            <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center text-toss-blue">
+              <HelpCircle size={22} />
+            </div>
+            <div>
+              <p className="text-[15px] font-bold text-toss-black">문의하기</p>
+              <p className="text-xs text-toss-gray">궁금한 점이나 불편한 사항을 남겨주세요</p>
+            </div>
+          </div>
+          <ChevronRight size={20} className="text-toss-gray/30 group-hover:text-toss-blue transition-colors" />
+        </Link>
+
         <button className="flex items-center justify-center gap-2 w-full py-4 bg-toss-lightGray/50 text-toss-gray text-sm font-bold rounded-2xl hover:bg-toss-lightGray transition-colors">
           <LogOut size={18} />
           로그아웃
         </button>
-        <div className="text-center">
+        <div className="text-center mt-2">
           <p className="text-[10px] text-toss-gray/50 uppercase tracking-widest font-bold">2026 Apostles Summer Retreat</p>
           <p className="text-[10px] text-toss-gray/30 mt-1">Version 1.0.0 (Build 260605)</p>
         </div>

@@ -1,4 +1,5 @@
 import React from "react";
+import Link from "next/link";
 import { 
   Users, 
   MessageSquare, 
@@ -7,7 +8,10 @@ import {
   ArrowUpRight,
   ArrowDownRight,
   Clock,
-  Calendar
+  Calendar,
+  BookOpen,
+  Vote,
+  Image
 } from "lucide-react";
 
 export default function AdminDashboard() {
@@ -108,6 +112,22 @@ export default function AdminDashboard() {
               <Bell size={18} />
               긴급 공지 등록
             </button>
+            <Link href="/admin/lectures" className="w-full bg-white text-toss-black border border-toss-border font-bold py-3 rounded-xl hover:bg-toss-lightGray transition-colors flex items-center justify-center gap-2">
+              <BookOpen size={18} />
+              강의 관리
+            </Link>
+            <Link href="/admin/vote" className="w-full bg-white text-toss-black border border-toss-border font-bold py-3 rounded-xl hover:bg-toss-lightGray transition-colors flex items-center justify-center gap-2">
+              <Vote size={18} />
+              투표 관리
+            </Link>
+            <Link href="/admin/gallery" className="w-full bg-white text-toss-black border border-toss-border font-bold py-3 rounded-xl hover:bg-toss-lightGray transition-colors flex items-center justify-center gap-2">
+              <Image size={18} />
+              앨범 관리
+            </Link>
+            <Link href="/admin/inquiry" className="w-full bg-white text-toss-black border border-toss-border font-bold py-3 rounded-xl hover:bg-toss-lightGray transition-colors flex items-center justify-center gap-2">
+              <MessageSquare size={18} />
+              문의 관리
+            </Link>
             <button className="w-full bg-white text-toss-black border border-toss-border font-bold py-3 rounded-xl hover:bg-toss-lightGray transition-colors flex items-center justify-center gap-2">
               <Calendar size={18} />
               타임테이블 수정
