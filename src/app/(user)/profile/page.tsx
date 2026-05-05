@@ -26,7 +26,8 @@ export default function MyProfilePage() {
     team: "1팀",
     group: 21,
     room: "101호",
-    attendanceType: "A형"
+    attendanceType: "A형",
+    birthYear: "01"
   };
 
   return (
@@ -73,6 +74,7 @@ export default function MyProfilePage() {
           </h3>
           <div className="grid grid-cols-2 gap-y-6">
             <InfoItem icon={<Users size={18} />} label="소속 팀" value={userData.team} />
+            <InfoItem icon={<Users size={18} />} label="또래" value={`${userData.birthYear}또래`} />
             <InfoItem icon={<Users size={18} />} label="배정 조" value={`${userData.group}조`} />
             <InfoItem icon={<Home size={18} />} label="배정 숙소" value={userData.room} />
             <InfoItem icon={<Tag size={18} />} label="참석 구분" value={userData.attendanceType} />

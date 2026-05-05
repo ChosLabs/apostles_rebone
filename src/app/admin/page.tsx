@@ -1,4 +1,6 @@
-import React from "react";
+"use client";
+
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { 
   Users, 
@@ -11,14 +13,39 @@ import {
   Calendar,
   BookOpen,
   Vote,
-  Image
+  Image,
+  Loader2
 } from "lucide-react";
+import { collection, onSnapshot } from "firebase/firestore";
+import { db } from "@/lib/firebase/client";
 
 export default function AdminDashboard() {
+  const [counts, setCounts] = useState({
+    participants: 0,
+    notices: 0,
+    prayers: 420 // Still mocked as requested/expected
+  });
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const unsubParticipants = onSnapshot(collection(db, "participants"), (snap) => {
+      setCounts(prev => ({ ...prev, participants: snap.size }));
+    });
+    const unsubNotices = onSnapshot(collection(db, "notices"), (snap) => {
+      setCounts(prev => ({ ...prev, notices: snap.size }));
+      setLoading(false);
+    });
+
+    return () => {
+      unsubParticipants();
+      unsubNotices();
+    };
+  }, []);
+
   const stats = [
     { 
       label: "전체 참가자", 
-      value: "1,240명", 
+      value: `${counts.participants}명`, 
       change: "+12%", 
       trend: "up", 
       icon: <Users className="text-toss-blue" />,
@@ -26,7 +53,7 @@ export default function AdminDashboard() {
     },
     { 
       label: "전체 공지 개수", 
-      value: "12개", 
+      value: `${counts.notices}개`, 
       change: "+2", 
       trend: "up", 
       icon: <Bell className="text-orange-500" />,
@@ -49,6 +76,14 @@ export default function AdminDashboard() {
       bgColor: "bg-purple-500/10"
     },
   ];
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <Loader2 className="animate-spin text-toss-blue" size={40} />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8">

@@ -23,6 +23,12 @@ import {
   onSnapshot
 } from "firebase/firestore";
 import { Notice } from "@/types/database";
+import { clsx, type ClassValue } from "clsx";
+import { twMerge } from "tailwind-merge";
+
+function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs));
+}
 
 type NoticeType = "일반" | "시간" | "긴급";
 
@@ -32,6 +38,7 @@ export default function AdminNoticesPage() {
   const [notices, setNotices] = useState<Notice[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
   // Form states
   const [title, setTitle] = useState("");
@@ -64,6 +71,7 @@ export default function AdminNoticesPage() {
     e.preventDefault();
     if (!title || !content) return;
 
+    setIsSubmitting(true);
     try {
       if (editingId) {
         await updateDoc(doc(db, "notices", editingId), {
@@ -72,6 +80,7 @@ export default function AdminNoticesPage() {
           type,
           updatedAt: serverTimestamp(),
         });
+        alert("수정되었습니다.");
       } else {
         await addDoc(collection(db, "notices"), {
           title,
@@ -80,11 +89,14 @@ export default function AdminNoticesPage() {
           createdAt: serverTimestamp(),
           author: "관리자", 
         });
+        alert("등록되었습니다.");
       }
       resetForm();
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error saving notice:", error);
-      alert("저장 중 오류가 발생했습니다.");
+      alert(`저장 실패: ${error.message}`);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -242,9 +254,10 @@ export default function AdminNoticesPage() {
               </button>
               <button 
                 type="submit"
-                className="px-8 py-3 rounded-xl font-bold text-white bg-toss-blue hover:bg-toss-blue/90 transition-all"
+                disabled={isSubmitting}
+                className="px-8 py-3 rounded-xl font-bold text-white bg-toss-blue hover:bg-toss-blue/90 transition-all disabled:opacity-50"
               >
-                {editingId ? "수정하기" : "등록하기"}
+                {isSubmitting ? "처리 중..." : (editingId ? "수정하기" : "등록하기")}
               </button>
             </div>
           </form>
@@ -292,7 +305,7 @@ export default function AdminNoticesPage() {
                 filteredNotices.map((notice) => (
                   <tr key={notice.id} className="hover:bg-toss-lightGray/30 transition-colors group">
                     <td className="px-4 lg:px-6 py-4">
-                      <div className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-[10px] font-bold border whitespace-nowrap ${getTypeStyles(notice.type)}`}>
+                      <div className={cn("inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-[10px] font-bold border whitespace-nowrap", getTypeStyles(notice.type))}>
                         {getTypeIcon(notice.type)}
                         {notice.type}
                       </div>

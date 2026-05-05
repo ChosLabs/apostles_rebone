@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { BookOpen, MapPin, User, ChevronRight, CheckCircle2, Trash2, ArrowLeft } from "lucide-react";
+import { BookOpen, MapPin, User, ChevronRight, CheckCircle2, Trash2, ArrowLeft, Star } from "lucide-react";
 import Link from "next/link";
+import { clsx } from "clsx";
 
 interface Lecture {
   id: number;
@@ -24,6 +25,7 @@ const MOCK_LECTURES: Lecture[] = [
 export default function LecturesPage() {
   const [activeTab, setActiveTab] = useState<"all" | "my">("all");
   const [myLectures, setMyLectures] = useState<number[]>([]);
+  const [favorites, setFavorites] = useState<number[]>([]);
 
   const handleApply = (id: number) => {
     if (myLectures.includes(id)) return;
@@ -36,6 +38,23 @@ export default function LecturesPage() {
       setMyLectures(myLectures.filter(lectureId => lectureId !== id));
     }
   };
+
+  const toggleFavorite = (id: number, e: React.MouseEvent) => {
+    e.stopPropagation();
+    e.preventDefault();
+    if (favorites.includes(id)) {
+      setFavorites(favorites.filter(favId => favId !== id));
+    } else {
+      setFavorites([...favorites, id]);
+    }
+  };
+
+  // Sort lectures: Favorites first
+  const sortedLectures = [...MOCK_LECTURES].sort((a, b) => {
+    const aFav = favorites.includes(a.id) ? 1 : 0;
+    const bFav = favorites.includes(b.id) ? 1 : 0;
+    return bFav - aFav;
+  });
 
   return (
     <div className="flex flex-col min-h-screen bg-background pb-20">
@@ -63,13 +82,32 @@ export default function LecturesPage() {
 
       <main className="p-4 flex flex-col gap-3">
         {activeTab === "all" ? (
-          MOCK_LECTURES.map((lecture) => (
-            <div key={lecture.id} className="bg-white rounded-toss p-5 shadow-sm border border-toss-border/40">
-              <div className="flex justify-between items-start mb-2">
+          sortedLectures.map((lecture) => (
+            <div key={lecture.id} className="bg-white rounded-toss p-5 shadow-sm border border-toss-border/40 relative">
+              <button 
+                onClick={(e) => toggleFavorite(lecture.id, e)}
+                className="absolute top-4 right-4 p-2 rounded-full hover:bg-toss-lightGray transition-all z-10"
+              >
+                <Star 
+                  size={22} 
+                  className={clsx(
+                    "transition-all",
+                    favorites.includes(lecture.id) ? "fill-yellow-400 text-yellow-400" : "text-toss-gray/30"
+                  )} 
+                />
+              </button>
+
+              <div className="flex justify-between items-start mb-2 pr-8">
                 <h3 className="text-[17px] font-bold text-toss-black leading-tight">{lecture.title}</h3>
-                <span className={`text-[11px] font-bold px-2 py-1 rounded-md ${lecture.current >= lecture.capacity ? 'bg-red-50 text-red-500' : 'bg-blue-50 text-toss-blue'}`}>
+              </div>
+              
+              <div className="flex items-center gap-2 mb-4">
+                <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${lecture.current >= lecture.capacity ? 'bg-red-50 text-red-500' : 'bg-blue-50 text-toss-blue'}`}>
                   {lecture.current >= lecture.capacity ? '마감' : `여유 ${lecture.capacity - lecture.current}`}
                 </span>
+                {favorites.includes(lecture.id) && (
+                  <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-yellow-50 text-yellow-600">관심 강의</span>
+                )}
               </div>
               
               <div className="flex flex-col gap-1.5 mb-4">

@@ -1,16 +1,33 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ChevronLeft, X, Megaphone } from "lucide-react";
 import Link from "next/link";
+import { db } from "@/lib/firebase/client";
+import { collection, query, orderBy, onSnapshot } from "firebase/firestore";
 
 import { Notice } from "@/types/database";
 
 export default function NoticesList({ initialNotices }: { initialNotices: Notice[] }) {
+  const [notices, setNotices] = useState<Notice[]>(initialNotices);
   const [selectedNotice, setSelectedNotice] = useState<Notice | null>(null);
+
+  useEffect(() => {
+    const q = query(collection(db, "notices"), orderBy("createdAt", "desc"));
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const updatedNotices = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      })) as Notice[];
+      setNotices(updatedNotices);
+    });
+
+    return () => unsubscribe();
+  }, []);
 
   const formatDate = (timestamp: any) => {
     if (!timestamp) return "-";
+    // Handle both ISO string (from SSR) and Firestore Timestamp (from real-time)
     const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
     const now = new Date();
     const diff = now.getTime() - date.getTime();
@@ -35,11 +52,11 @@ export default function NoticesList({ initialNotices }: { initialNotices: Notice
 
       <main className="max-w-[420px] mx-auto p-4">
         <div className="bg-white rounded-toss overflow-hidden shadow-[0_2px_8px_rgba(0,0,0,0.04)] border border-toss-border/40">
-          {initialNotices.map((notice, idx) => (
+          {notices.map((notice, idx) => (
             <div 
               key={notice.id}
               className={`p-5 flex flex-col gap-1 active:bg-toss-lightGray transition-colors cursor-pointer ${
-                idx !== initialNotices.length - 1 ? 'border-b border-toss-border/40' : ''
+                idx !== notices.length - 1 ? 'border-b border-toss-border/40' : ''
               }`}
               onClick={() => setSelectedNotice(notice)}
             >

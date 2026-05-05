@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { 
   Plus, 
   Search, 
@@ -10,34 +10,112 @@ import {
   MapPin, 
   GripVertical,
   Calendar as CalendarIcon,
-  ChevronRight
+  Loader2
 } from "lucide-react";
+import { 
+  getTimetable, 
+  addTimetableItem, 
+  updateTimetableItem, 
+  deleteTimetableItem 
+} from "@/lib/services/timetableService";
+import { TimetableItem } from "@/types/database";
 
-type Day = "DAY1" | "DAY2" | "DAY3";
-
-interface ScheduleItem {
-  id: number;
-  time: string;
-  title: string;
-  description: string;
-  location: string;
-  day: Day;
-}
+type DayStr = "DAY1" | "DAY2" | "DAY3";
 
 export default function AdminTimetablePage() {
-  const [activeDay, setActiveDay] = useState<Day>("DAY1");
+  const [activeDay, setActiveDay] = useState<DayStr>("DAY1");
+  const [schedules, setSchedules] = useState<TimetableItem[]>([]);
+  const [loading, setLoading] = useState(true);
   const [isAdding, setIsAdding] = useState(false);
+  const [editingItem, setEditingItem] = useState<TimetableItem | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Mock data based on README
-  const [schedules, setSchedules] = useState<ScheduleItem[]>([
-    { id: 1, day: "DAY1", time: "08:00", title: "WAVE 1 본진 출발", description: "버스 12~13대, 500명", location: "본당 앞" },
-    { id: 2, day: "DAY1", time: "12:00", title: "도착 · 체크인 · 점심", description: "로비 체크인 → 식당", location: "리조트 로비/식당" },
-    { id: 3, day: "DAY1", time: "13:20", title: "개회예배 + OT", description: "RE:BONE 티저 · 주제안내 · 조편성", location: "그랜드볼룸" },
-    { id: 4, day: "DAY2", time: "09:00", title: "찬양 + 성경강해", description: "엡 4:22-24 강해", location: "대강당" },
-    { id: 5, day: "DAY3", time: "15:30", title: "파송예배", description: "Re:bond — 공동체를 다시 묶음", location: "본당" },
-  ]);
+  // Form states
+  const [formData, setFormData] = useState({
+    day: 1,
+    time: "",
+    title: "",
+    location: "",
+    description: ""
+  });
 
-  const filteredSchedules = schedules.filter(s => s.day === activeDay).sort((a, b) => a.time.localeCompare(b.time));
+  const dayToNum = (day: DayStr) => parseInt(day.replace("DAY", ""));
+  const numToDay = (num: number): DayStr => `DAY${num}` as DayStr;
+
+  useEffect(() => {
+    fetchSchedules();
+  }, []);
+
+  useEffect(() => {
+    if (editingItem) {
+      setFormData({
+        day: editingItem.day,
+        time: editingItem.time,
+        title: editingItem.title,
+        location: editingItem.location || "",
+        description: editingItem.description || ""
+      });
+    } else {
+      setFormData({
+        day: dayToNum(activeDay),
+        time: "",
+        title: "",
+        location: "",
+        description: ""
+      });
+    }
+  }, [editingItem, activeDay]);
+
+  const fetchSchedules = async () => {
+    try {
+      setLoading(true);
+      const data = await getTimetable();
+      setSchedules(data);
+    } catch (error) {
+      console.error("Failed to fetch schedules:", error);
+      alert("데이터를 불러오는 데 실패했습니다.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!formData.time || !formData.title) {
+      alert("시간과 타이틀은 필수입니다.");
+      return;
+    }
+
+    try {
+      setIsSubmitting(true);
+      if (editingItem) {
+        await updateTimetableItem(editingItem.id, formData);
+      } else {
+        await addTimetableItem(formData);
+      }
+      await fetchSchedules();
+      setIsAdding(false);
+      setEditingItem(null);
+    } catch (error) {
+      console.error("Failed to save schedule:", error);
+      alert("저장에 실패했습니다.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleDelete = async (id: string, title: string) => {
+    if (!confirm(`'${title}' 일정을 삭제하시겠습니까?`)) return;
+    try {
+      await deleteTimetableItem(id);
+      setSchedules(prev => prev.filter(s => s.id !== id));
+    } catch (error) {
+      console.error("Failed to delete schedule:", error);
+      alert("삭제에 실패했습니다.");
+    }
+  };
+
+  const filteredSchedules = schedules.filter(s => numToDay(s.day) === activeDay).sort((a, b) => a.time.localeCompare(b.time));
 
   const dayInfo = {
     DAY1: "6/5 금",
@@ -55,7 +133,7 @@ export default function AdminTimetablePage() {
         </div>
         <div className="flex gap-2">
           <button 
-            onClick={() => setIsAdding(true)}
+            onClick={() => { setEditingItem(null); setIsAdding(true); }}
             className="flex-1 sm:flex-none bg-toss-blue text-white px-4 lg:px-5 py-2 lg:py-2.5 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-toss-blue/90 transition-all shadow-sm shadow-toss-blue/20 text-sm"
           >
             <Plus size={20} />
@@ -66,7 +144,7 @@ export default function AdminTimetablePage() {
 
       {/* Day Tabs */}
       <div className="flex p-1 bg-toss-lightGray rounded-2xl w-full sm:w-fit overflow-x-auto no-scrollbar">
-        {(["DAY1", "DAY2", "DAY3"] as Day[]).map((day) => (
+        {(["DAY1", "DAY2", "DAY3"] as DayStr[]).map((day) => (
           <button
             key={day}
             onClick={() => setActiveDay(day)}
@@ -81,28 +159,31 @@ export default function AdminTimetablePage() {
         ))}
       </div>
 
-      {/* Add Schedule Modal */}
-      {isAdding && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-200" onClick={() => setIsAdding(false)}>
+      {/* Add/Edit Schedule Modal */}
+      {(isAdding || editingItem) && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-200" onClick={() => { setIsAdding(false); setEditingItem(null); }}>
           <div className="bg-white w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200 flex flex-col max-h-[90vh]" onClick={(e) => e.stopPropagation()}>
             <div className="px-6 lg:px-8 py-4 lg:py-6 border-b border-toss-border flex justify-between items-center shrink-0">
-              <h2 className="text-lg lg:text-xl font-black text-toss-black">새 일정 추가</h2>
-              <button onClick={() => setIsAdding(false)} className="p-2 hover:bg-toss-lightGray rounded-full transition-colors text-toss-gray">
+              <h2 className="text-lg lg:text-xl font-black text-toss-black">
+                {editingItem ? "일정 수정" : "새 일정 추가"}
+              </h2>
+              <button onClick={() => { setIsAdding(false); setEditingItem(null); }} className="p-2 hover:bg-toss-lightGray rounded-full transition-colors text-toss-gray">
                 <Plus size={24} className="rotate-45" />
               </button>
             </div>
             
-            <form className="p-6 lg:p-8 space-y-4 lg:space-y-5 overflow-y-auto">
+            <form className="p-6 lg:p-8 space-y-4 lg:space-y-5 overflow-y-auto" onSubmit={handleSubmit}>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-1.5">
                   <label className="text-[10px] lg:text-xs font-bold text-toss-gray px-1 uppercase tracking-wider">일자</label>
                   <select 
                     className="w-full px-4 py-2.5 lg:py-3 rounded-xl border border-toss-border focus:border-toss-blue outline-none transition-all appearance-none bg-white font-bold text-sm"
-                    defaultValue={activeDay}
+                    value={formData.day}
+                    onChange={e => setFormData(prev => ({ ...prev, day: parseInt(e.target.value) }))}
                   >
-                    <option value="DAY1">DAY 1 (6/5 금)</option>
-                    <option value="DAY2">DAY 2 (6/6 토)</option>
-                    <option value="DAY3">DAY 3 (6/7 일)</option>
+                    <option value={1}>DAY 1 (6/5 금)</option>
+                    <option value={2}>DAY 2 (6/6 토)</option>
+                    <option value={3}>DAY 3 (6/7 일)</option>
                   </select>
                 </div>
                 <div className="space-y-1.5">
@@ -112,6 +193,8 @@ export default function AdminTimetablePage() {
                     <input 
                       type="time" 
                       className="w-full pl-11 pr-4 py-2.5 lg:py-3 rounded-xl border border-toss-border focus:border-toss-blue outline-none transition-all font-bold text-sm"
+                      value={formData.time}
+                      onChange={e => setFormData(prev => ({ ...prev, time: e.target.value }))}
                     />
                   </div>
                 </div>
@@ -123,6 +206,8 @@ export default function AdminTimetablePage() {
                   type="text" 
                   placeholder="예: 개회예배 + OT"
                   className="w-full px-4 py-2.5 lg:py-3 rounded-xl border border-toss-border focus:border-toss-blue outline-none transition-all font-bold text-sm lg:text-base"
+                  value={formData.title}
+                  onChange={e => setFormData(prev => ({ ...prev, title: e.target.value }))}
                 />
               </div>
 
@@ -134,6 +219,8 @@ export default function AdminTimetablePage() {
                     type="text" 
                     placeholder="예: 그랜드볼룸, 식당 등"
                     className="w-full pl-11 pr-4 py-2.5 lg:py-3 rounded-xl border border-toss-border focus:border-toss-blue outline-none transition-all text-sm font-medium"
+                    value={formData.location}
+                    onChange={e => setFormData(prev => ({ ...prev, location: e.target.value }))}
                   />
                 </div>
               </div>
@@ -144,22 +231,27 @@ export default function AdminTimetablePage() {
                   rows={3}
                   placeholder="프로그램에 대한 설명을 입력하세요"
                   className="w-full px-4 py-2.5 lg:py-3 rounded-xl border border-toss-border focus:border-toss-blue outline-none transition-all resize-none text-sm leading-relaxed"
+                  value={formData.description}
+                  onChange={e => setFormData(prev => ({ ...prev, description: e.target.value }))}
                 ></textarea>
               </div>
 
               <div className="flex gap-3 pt-4">
                 <button 
                   type="button"
-                  onClick={() => setIsAdding(false)}
+                  onClick={() => { setIsAdding(false); setEditingItem(null); }}
                   className="flex-1 py-3 lg:py-4 rounded-2xl font-bold text-toss-gray bg-toss-lightGray hover:bg-toss-border transition-all text-sm lg:text-base"
+                  disabled={isSubmitting}
                 >
                   취소
                 </button>
                 <button 
                   type="submit"
-                  className="flex-[2] py-3 lg:py-4 rounded-2xl font-bold text-white bg-toss-blue hover:bg-toss-blue/90 transition-all shadow-lg shadow-toss-blue/20 text-sm lg:text-base"
+                  className="flex-[2] py-3 lg:py-4 rounded-2xl font-bold text-white bg-toss-blue hover:bg-toss-blue/90 transition-all shadow-lg shadow-toss-blue/20 text-sm lg:text-base flex items-center justify-center gap-2"
+                  disabled={isSubmitting}
                 >
-                  일정 등록하기
+                  {isSubmitting && <Loader2 className="animate-spin" size={20} />}
+                  {editingItem ? "일정 수정하기" : "일정 등록하기"}
                 </button>
               </div>
             </form>
@@ -180,7 +272,12 @@ export default function AdminTimetablePage() {
         </div>
 
         <div className="divide-y divide-toss-border">
-          {filteredSchedules.length > 0 ? (
+          {loading ? (
+            <div className="py-20 text-center">
+              <Loader2 className="animate-spin text-toss-blue mx-auto" size={32} />
+              <p className="text-sm font-bold text-toss-gray mt-2">일정을 불러오는 중...</p>
+            </div>
+          ) : filteredSchedules.length > 0 ? (
             filteredSchedules.map((item) => (
               <div key={item.id} className="p-4 lg:p-6 flex flex-col sm:flex-row items-start gap-4 lg:gap-6 hover:bg-toss-lightGray/30 transition-colors group relative">
                 <div className="hidden sm:block pt-1 cursor-move text-toss-border group-hover:text-toss-gray transition-colors">
@@ -204,10 +301,16 @@ export default function AdminTimetablePage() {
                 </div>
 
                 <div className="flex sm:flex-col lg:flex-row gap-2 sm:opacity-0 group-hover:opacity-100 transition-opacity self-end sm:self-start">
-                  <button className="p-2 text-toss-gray hover:text-toss-blue hover:bg-toss-blue/5 rounded-xl transition-all border border-toss-border sm:border-transparent">
+                  <button 
+                    onClick={() => setEditingItem(item)}
+                    className="p-2 text-toss-gray hover:text-toss-blue hover:bg-toss-blue/5 rounded-xl transition-all border border-toss-border sm:border-transparent"
+                  >
                     <Edit2 size={18} />
                   </button>
-                  <button className="p-2 text-toss-gray hover:text-red-500 hover:bg-red-50 rounded-xl transition-all border border-red-100 sm:border-transparent">
+                  <button 
+                    onClick={() => handleDelete(item.id, item.title)}
+                    className="p-2 text-toss-gray hover:text-red-500 hover:bg-red-50 rounded-xl transition-all border border-red-100 sm:border-transparent"
+                  >
                     <Trash2 size={18} />
                   </button>
                 </div>
@@ -219,7 +322,7 @@ export default function AdminTimetablePage() {
                 <CalendarIcon size={24} className="text-toss-gray/40" />
               </div>
               <p className="text-toss-gray font-bold">등록된 일정이 없습니다.</p>
-              <button className="text-toss-blue font-bold text-sm mt-2 hover:underline">새 일정 추가하기</button>
+              <button onClick={() => setIsAdding(true)} className="text-toss-blue font-bold text-sm mt-2 hover:underline">새 일정 추가하기</button>
             </div>
           )}
         </div>

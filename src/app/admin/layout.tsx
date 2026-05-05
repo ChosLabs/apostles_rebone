@@ -11,6 +11,7 @@ import {
   Users, 
   LogOut,
   User,
+  Home,
   Menu,
   X,
   BookOpen,
@@ -56,7 +57,9 @@ export default function AdminLayout({
     { name: "앨범 관리", icon: <Image size={20} />, href: "/admin/gallery" },
     { name: "문의 관리", icon: <MessageSquare size={20} />, href: "/admin/inquiry" },
     { name: "기도제목 관리", icon: <MessageSquare size={20} />, href: "/admin/pray" },
-    { name: "참가자 관리", icon: <Users size={20} />, href: "/admin/users" },
+    { name: "참가자 관리", icon: <User size={20} />, href: "/admin/users" },
+    { name: "조 관리", icon: <Users size={20} />, href: "/admin/groups" },
+    { name: "숙소 관리", icon: <Home size={20} />, href: "/admin/accommodations" },
   ];
 
   const SidebarContent = () => (

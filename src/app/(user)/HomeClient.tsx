@@ -1,13 +1,49 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ChevronRight, Users, MessageCircle, Map, Image, ClipboardCheck, Vote, X, Phone } from "lucide-react";
 import Link from "next/link";
+import { clsx } from "clsx";
+import { db } from "@/lib/firebase/client";
+import { collection, query, orderBy, limit, onSnapshot } from "firebase/firestore";
 
-import { Notice } from "@/types/database";
+import { Notice, TimetableItem } from "@/types/database";
 
-export default function Home({ initialNotices }: { initialNotices: Notice[] }) {
+export default function Home({ 
+  initialNotices, 
+  initialTimetable 
+}: { 
+  initialNotices: Notice[], 
+  initialTimetable: TimetableItem[] 
+}) {
+  const [notices, setNotices] = useState<Notice[]>(initialNotices);
+  const [timetable, setTimetable] = useState<TimetableItem[]>(initialTimetable);
   const [selectedNotice, setSelectedNotice] = useState<Notice | null>(null);
+
+  useEffect(() => {
+    const noticesQ = query(collection(db, "notices"), orderBy("createdAt", "desc"), limit(10));
+    const unsubscribeNotices = onSnapshot(noticesQ, (snapshot) => {
+      const updatedNotices = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      })) as Notice[];
+      if (updatedNotices.length > 0) setNotices(updatedNotices);
+    });
+
+    const timetableQ = query(collection(db, "timetable"), orderBy("day", "asc"), orderBy("time", "asc"));
+    const unsubscribeTimetable = onSnapshot(timetableQ, (snapshot) => {
+      const updatedTimetable = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      })) as TimetableItem[];
+      setTimetable(updatedTimetable);
+    });
+
+    return () => {
+      unsubscribeNotices();
+      unsubscribeTimetable();
+    };
+  }, []);
 
   const formatDate = (timestamp: any) => {
     if (!timestamp) return "-";
@@ -15,11 +51,27 @@ export default function Home({ initialNotices }: { initialNotices: Notice[] }) {
     const now = new Date();
     const diff = now.getTime() - date.getTime();
     const minutes = Math.floor(diff / 60000);
+    if (minutes < 1) return "방금 전";
     if (minutes < 60) return `${minutes}분 전`;
     const hours = Math.floor(minutes / 60);
     if (hours < 24) return `${hours}시간 전`;
     return date.toLocaleDateString();
   };
+
+  // Logic to find current and next programs
+  const getPrograms = () => {
+    if (timetable.length === 0) return { now: null, next: null };
+    
+    // For demo/retreat purpose, we'd normally use new Date()
+    // But since dates are in the future, let's find the first two if "before"
+    // or implement real logic if needed.
+    return {
+      now: timetable[0],
+      next: timetable[1] || null
+    };
+  };
+
+  const { now: currentProgram, next: nextProgram } = getPrograms();
 
   return (
     <div className="flex flex-col gap-6 pb-12 px-4">
@@ -52,30 +104,49 @@ export default function Home({ initialNotices }: { initialNotices: Notice[] }) {
           <Link href="/notices" className="text-xs text-toss-gray flex items-center hover:text-toss-blue transition-colors">더보기 <ChevronRight size={14} /></Link>
         </div>
         <div className="flex flex-col gap-2">
-          {initialNotices.length > 0 ? (
+          {notices.length > 0 ? (
             <>
               <div 
-                className="bg-white p-5 rounded-toss shadow-sm border border-toss-blue/10 border-l-4 border-l-toss-blue active:scale-[0.98] transition-all cursor-pointer"
-                onClick={() => setSelectedNotice(initialNotices[0])}
+                className={clsx(
+                  "p-5 rounded-toss shadow-sm border-l-4 active:scale-[0.98] transition-all cursor-pointer",
+                  notices[0].type === "긴급" 
+                    ? "bg-red-50 border-red-500 border-y-red-100 border-r-red-100" 
+                    : notices[0].type === "시간"
+                    ? "bg-green-50 border-green-500 border-y-green-100 border-r-green-100"
+                    : "bg-white border-toss-blue border-y-toss-blue/10 border-r-toss-blue/10"
+                )}
+                onClick={() => setSelectedNotice(notices[0])}
               >
                 <div className="flex justify-between items-start mb-2">
                   <div className="flex items-center gap-2">
-                    {initialNotices[0].type === "긴급" && <span className="text-[10px] font-bold bg-toss-blue text-white px-1.5 py-0.5 rounded italic">URGENT</span>}
-                    <span className="text-[15px] font-bold text-toss-black">{initialNotices[0].title}</span>
+                    {notices[0].type === "긴급" ? (
+                      <span className="text-[10px] font-bold bg-red-500 text-white px-1.5 py-0.5 rounded italic">URGENT</span>
+                    ) : notices[0].type === "시간" ? (
+                      <span className="text-[10px] font-bold bg-green-500 text-white px-1.5 py-0.5 rounded italic">TIME</span>
+                    ) : (
+                      <span className="text-[10px] font-bold bg-toss-blue text-white px-1.5 py-0.5 rounded italic">NEW</span>
+                    )}
+                    <span className={clsx(
+                      "text-[15px] font-bold",
+                      notices[0].type === "긴급" ? "text-red-900" : notices[0].type === "시간" ? "text-green-900" : "text-toss-black"
+                    )}>{notices[0].title}</span>
                   </div>
-                  <span className="text-11px] text-toss-gray font-medium">{formatDate(initialNotices[0].createdAt)}</span>
+                  <span className="text-[11px] text-toss-gray font-medium">{formatDate(notices[0].createdAt)}</span>
                 </div>
-                <p className="text-sm text-toss-gray leading-relaxed line-clamp-1">{initialNotices[0].content}</p>
+                <p className={clsx(
+                  "text-sm leading-relaxed line-clamp-1",
+                  notices[0].type === "긴급" ? "text-red-700" : notices[0].type === "시간" ? "text-green-700" : "text-toss-gray"
+                )}>{notices[0].content}</p>
               </div>
               <div className="bg-white rounded-toss overflow-hidden shadow-sm border border-toss-border/40">
-                {initialNotices.slice(1, 3).map((notice, idx) => (
+                {notices.slice(1, 3).map((notice, idx) => (
                   <NoticeItem 
                     key={notice.id}
                     title={notice.title}
                     time={formatDate(notice.createdAt)}
                     content={notice.content}
-                    urgent={notice.type === "긴급"}
-                    border={idx !== Math.min(initialNotices.length - 1, 2) - 1}
+                    type={notice.type}
+                    border={idx !== Math.min(notices.length - 1, 2) - 1}
                     onClick={() => setSelectedNotice(notice)}
                   />
                 ))}
@@ -95,27 +166,35 @@ export default function Home({ initialNotices }: { initialNotices: Notice[] }) {
           <h2 className="text-[15px] font-bold text-toss-black">진행 중인 프로그램</h2>
           <Link href="/timetable" className="text-xs text-toss-gray flex items-center hover:text-toss-blue transition-colors">전체보기 <ChevronRight size={14} /></Link>
         </div>
-        <Link href="/timetable" className="flex flex-col gap-2">
-          <div className="bg-white p-5 rounded-toss shadow-sm border border-toss-blue/10 flex justify-between items-center active:scale-[0.98] transition-all">
-            <div className="flex flex-col gap-1">
-              <div className="flex items-center gap-1.5">
-                <span className="w-1.5 h-1.5 bg-toss-blue rounded-full animate-pulse"></span>
-                <span className="text-[10px] font-bold text-toss-blue uppercase tracking-wider">NOW</span>
+        {currentProgram ? (
+          <Link href="/timetable" className="flex flex-col gap-2">
+            <div className="bg-white p-5 rounded-toss shadow-sm border border-toss-blue/10 flex justify-between items-center active:scale-[0.98] transition-all">
+              <div className="flex flex-col gap-1">
+                <div className="flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 bg-toss-blue rounded-full animate-pulse"></span>
+                  <span className="text-[10px] font-bold text-toss-blue uppercase tracking-wider">NOW</span>
+                </div>
+                <p className="text-[16px] font-bold text-toss-black">{currentProgram.title}</p>
+                <p className="text-[12px] text-toss-gray">{currentProgram.time} · {currentProgram.location}</p>
               </div>
-              <p className="text-[16px] font-bold text-toss-black">개회예배 + OT</p>
-              <p className="text-[12px] text-toss-gray">13:20 - 14:05 · 그랜드볼룸</p>
+              <span className="text-[10px] bg-toss-blue text-white px-2.5 py-1 rounded-lg font-bold shadow-sm shadow-toss-blue/20">진행중</span>
             </div>
-            <span className="text-[10px] bg-toss-blue text-white px-2.5 py-1 rounded-lg font-bold shadow-sm shadow-toss-blue/20">진행중</span>
+            {nextProgram && (
+              <div className="bg-white/60 p-5 rounded-toss border border-toss-border/40 flex justify-between items-center active:scale-[0.98] transition-all">
+                <div className="flex flex-col gap-1">
+                  <span className="text-[10px] font-bold text-toss-gray/60 uppercase tracking-wider">NEXT</span>
+                  <p className="text-[15px] font-bold text-toss-gray">{nextProgram.title}</p>
+                  <p className="text-[12px] text-toss-gray/40">{nextProgram.time} · {nextProgram.location}</p>
+                </div>
+                <ChevronRight size={16} className="text-toss-gray/30" />
+              </div>
+            )}
+          </Link>
+        ) : (
+          <div className="bg-white p-8 rounded-toss text-center border border-toss-border/40 text-toss-gray text-sm">
+            등록된 일정이 없습니다.
           </div>
-          <div className="bg-white/60 p-5 rounded-toss border border-toss-border/40 flex justify-between items-center active:scale-[0.98] transition-all">
-            <div className="flex flex-col gap-1">
-              <span className="text-[10px] font-bold text-toss-gray/60 uppercase tracking-wider">NEXT</span>
-              <p className="text-[15px] font-bold text-toss-gray">조모임 #1 · 첫만남</p>
-              <p className="text-[12px] text-toss-gray/40">14:05 - 17:30 · 대강당</p>
-            </div>
-            <ChevronRight size={16} className="text-toss-gray/30" />
-          </div>
-        </Link>
+        )}
       </section>
 
       {/* 5. Quick Access */}
@@ -124,10 +203,10 @@ export default function Home({ initialNotices }: { initialNotices: Notice[] }) {
         <div className="grid grid-cols-2 gap-3">
           <QuickLink href="/group" icon={<Users className="text-blue-500" />} label="내 조 확인" desc="조원 및 조장" />
           <QuickLink href="/resort" icon={<Map className="text-red-400" />} label="리조트 안내" desc="지도 및 식당" />
-          <QuickLink href="/more" icon={<ClipboardCheck className="text-orange-500" />} label="강의 신청" desc="선택강의" />
-          <QuickLink href="/more" icon={<Vote className="text-indigo-500" />} label="실시간 투표" desc="참여하기" />
-          <QuickLink href="/more" icon={<Image className="text-purple-500" />} label="포토 앨범" desc="현장 사진" />
-          <QuickLink href="/more" icon={<Phone className="text-green-500" />} label="비상 연락처" desc="도움이 필요할 때" />
+          <QuickLink href="/lectures" icon={<ClipboardCheck className="text-orange-500" />} label="강의 신청" desc="선택강의" />
+          <QuickLink href="/vote" icon={<Vote className="text-indigo-500" />} label="실시간 투표" desc="참여하기" />
+          <QuickLink href="/gallery" icon={<Image className="text-purple-500" />} label="포토 앨범" desc="현장 사진" />
+          <QuickLink href="/emergency" icon={<Phone className="text-green-500" />} label="비상 연락처" desc="도움이 필요할 때" />
         </div>
       </section>
 
@@ -171,12 +250,23 @@ function QuickLink({ href, icon, label, desc }: { href: string; icon: React.Reac
   );
 }
 
-function NoticeItem({ title, time, content, urgent = false, border = true, onClick }: { title: string; time: string; content: string; urgent?: boolean; border?: boolean, onClick: () => void }) {
+function NoticeItem({ title, time, content, type = "일반", border = true, onClick }: { title: string; time: string; content: string; type?: string; border?: boolean, onClick: () => void }) {
   return (
-    <div className={`p-4 flex flex-col gap-1 active:bg-toss-lightGray transition-colors cursor-pointer ${border ? 'border-b border-toss-border/40' : ''}`} onClick={onClick}>
+    <div 
+      className={clsx(
+        "p-4 flex flex-col gap-1 active:bg-toss-lightGray transition-colors cursor-pointer",
+        border && "border-b border-toss-border/40",
+        type === "긴급" ? "bg-red-50/30" : type === "시간" ? "bg-green-50/30" : ""
+      )} 
+      onClick={onClick}
+    >
       <div className="flex justify-between items-center">
-        <div className="flex items-center gap-2 text-[14px] font-bold text-toss-black">
-          {urgent && <span className="w-1 h-1 bg-red-500 rounded-full"></span>}
+        <div className={clsx(
+          "flex items-center gap-2 text-[14px] font-bold",
+          type === "긴급" ? "text-red-700" : type === "시간" ? "text-green-700" : "text-toss-black"
+        )}>
+          {type === "긴급" && <span className="w-1.5 h-1.5 bg-red-500 rounded-full"></span>}
+          {type === "시간" && <span className="w-1.5 h-1.5 bg-green-500 rounded-full"></span>}
           {title}
         </div>
         <span className="text-[11px] text-toss-gray font-medium">{time}</span>
