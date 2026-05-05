@@ -1,31 +1,9 @@
 "use client";
 
-import { ArrowLeft, ShieldAlert, HeartPulse, UserCircle2, MessageCircle } from "lucide-react";
+import { ArrowLeft, ShieldAlert } from "lucide-react";
 import Link from "next/link";
 
-const CONTACTS = [
-  {
-    category: "🚨 비상 상황 (24시간)",
-    items: [
-      { name: "진행팀 상황실", role: "총괄 관리", phone: "010-1234-5678", icon: <ShieldAlert className="text-red-500" /> },
-      { name: "의료 지원팀", role: "응급 처치 및 약 투여", phone: "010-8765-4321", icon: <HeartPulse className="text-rose-500" /> },
-    ]
-  },
-  {
-    category: "👨‍🏫 스태프 연락처",
-    items: [
-      { name: "김철수 전도사", role: "행정 총괄", phone: "010-1111-2222", icon: <UserCircle2 className="text-blue-500" /> },
-      { name: "이영희 간사", role: "조별 활동 지원", phone: "010-3333-4444", icon: <UserCircle2 className="text-toss-blue" /> },
-    ]
-  },
-  {
-    category: "🏨 리조트 시설",
-    items: [
-      { name: "프론트 데스크", role: "객실 및 시설 문의", phone: "033-123-4567", icon: <MessageCircle className="text-amber-500" /> },
-      { name: "의무실 (리조트)", role: "야간 응급 상황", phone: "033-123-4568", icon: <HeartPulse className="text-rose-400" /> },
-    ]
-  }
-];
+const CONTACTS: { category: string; items: { name: string; role: string; phone: string; icon: any }[] }[] = [];
 
 export default function EmergencyPage() {
   const handleCall = (phone: string) => {

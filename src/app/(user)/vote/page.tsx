@@ -1,41 +1,43 @@
 "use client";
 
-import { useState } from "react";
-import { Vote, ArrowLeft, Check, Users } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Vote, ArrowLeft, Check, Users, Loader2 } from "lucide-react";
 import Link from "next/link";
-
-interface PollOption {
-  id: number;
-  label: string;
-  votes: number;
-}
-
-const MOCK_POLL = {
-  id: 1,
-  question: "가장 기대되는 수련회 프로그램은 무엇인가요?",
-  description: "여러분의 소중한 한 표를 행사해주세요! 결과는 실시간으로 반영됩니다.",
-  options: [
-    { id: 1, label: "개회예배 및 찬양", votes: 124 },
-    { id: 2, label: "조별 GBS 시간", votes: 85 },
-    { id: 3, label: "저녁 집회", votes: 210 },
-    { id: 4, label: "야외 액티비티", votes: 156 },
-  ]
-};
+import { useAuth } from "@/components/providers/AuthProvider";
+import { subscribeActivePoll, castVote } from "@/lib/services/pollService";
+import { Poll } from "@/types/database";
 
 export default function VotePage() {
-  const [votedId, setVotedId] = useState<number | null>(null);
-  const [poll, setPoll] = useState(MOCK_POLL);
+  const { user } = useAuth();
+  const [poll, setPoll] = useState<Poll | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [isVoting, setIsVoting] = useState(false);
 
-  const totalVotes = poll.options.reduce((acc, curr) => acc + curr.votes, 0) + (votedId ? 0 : 0); // Logic simplified for mock
-
-  const handleVote = (id: number) => {
-    if (votedId) return;
-    setVotedId(id);
-    // Simulate updating votes
-    setPoll({
-      ...poll,
-      options: poll.options.map(opt => opt.id === id ? { ...opt, votes: opt.votes + 1 } : opt)
+  useEffect(() => {
+    const unsub = subscribeActivePoll((p) => {
+      setPoll(p);
+      setLoading(false);
     });
+    return unsub;
+  }, []);
+
+  const myVote = user && poll ? poll.votes?.[user.uid] ?? null : null;
+  const totalVotes = poll ? Object.keys(poll.votes ?? {}).length : 0;
+
+  const getVoteCount = (optionId: string) =>
+    poll ? Object.values(poll.votes ?? {}).filter((v) => v === optionId).length : 0;
+
+  const handleVote = async (optionId: string) => {
+    if (!user || !poll || myVote || isVoting) return;
+    try {
+      setIsVoting(true);
+      await castVote(poll.id, user.uid, optionId);
+    } catch (e) {
+      console.error(e);
+      alert("투표 처리 중 오류가 발생했습니다.");
+    } finally {
+      setIsVoting(false);
+    }
   };
 
   return (
@@ -48,76 +50,104 @@ export default function VotePage() {
       </header>
 
       <main className="p-4 flex flex-col gap-6">
-        <div className="bg-white rounded-toss p-6 shadow-sm border border-toss-border/40">
-          <div className="w-12 h-12 bg-indigo-50 text-indigo-500 rounded-2xl flex items-center justify-center mb-4">
-            <Vote size={28} />
+        {loading ? (
+          <div className="flex justify-center py-20">
+            <Loader2 className="animate-spin text-toss-blue" size={32} />
           </div>
-          <h2 className="text-xl font-bold text-toss-black mb-2">{poll.question}</h2>
-          <p className="text-sm text-toss-gray leading-relaxed mb-6">
-            {poll.description}
-          </p>
-
-          <div className="flex flex-col gap-3">
-            {poll.options.map((option) => {
-              const percentage = totalVotes === 0 ? 0 : Math.round((option.votes / totalVotes) * 100);
-              const isWinner = votedId && option.votes === Math.max(...poll.options.map(o => o.votes));
-
-              return (
-                <button
-                  key={option.id}
-                  disabled={votedId !== null}
-                  onClick={() => handleVote(option.id)}
-                  className={`relative overflow-hidden rounded-xl border-2 transition-all group ${
-                    votedId === option.id 
-                    ? "border-toss-blue bg-toss-blue/5" 
-                    : votedId !== null 
-                      ? "border-toss-border/40 bg-white opacity-80" 
-                      : "border-toss-border/40 bg-white hover:border-toss-blue/40"
-                  }`}
-                >
-                  {/* Progress Bar Background */}
-                  {votedId !== null && (
-                    <div 
-                      className={`absolute inset-0 transition-all duration-1000 ease-out ${isWinner ? 'bg-toss-blue/10' : 'bg-toss-lightGray/50'}`} 
-                      style={{ width: `${percentage}%` }}
-                    />
-                  )}
-
-                  <div className="relative z-10 p-4 flex justify-between items-center">
-                    <div className="flex items-center gap-3">
-                      {votedId === option.id && <Check size={18} className="text-toss-blue shrink-0" />}
-                      <span className={`text-[15px] font-bold ${votedId === option.id ? 'text-toss-blue' : 'text-toss-black'}`}>
-                        {option.label}
-                      </span>
-                    </div>
-                    {votedId !== null && (
-                      <span className={`text-sm font-bold ${votedId === option.id ? 'text-toss-blue' : 'text-toss-gray'}`}>
-                        {percentage}%
-                      </span>
-                    )}
-                  </div>
-                </button>
-              );
-            })}
-          </div>
-
-          {votedId && (
-            <div className="mt-8 flex items-center justify-center gap-2 text-xs text-toss-gray font-medium animate-in fade-in zoom-in-95 duration-500">
-              <Users size={14} />
-              현재 {totalVotes}명이 참여했습니다
+        ) : !poll ? (
+          <div className="bg-white rounded-toss p-12 shadow-sm border border-toss-border/40 flex flex-col items-center gap-4 text-center">
+            <div className="w-16 h-16 bg-indigo-50 rounded-2xl flex items-center justify-center">
+              <Vote size={32} className="text-indigo-400" />
             </div>
-          )}
-        </div>
-
-        {!votedId && (
-          <div className="bg-blue-50/50 p-4 rounded-xl border border-toss-blue/10 flex items-start gap-3">
-            <div className="bg-toss-blue/10 p-1.5 rounded-lg text-toss-blue mt-0.5">
-              <Check size={14} />
-            </div>
-            <p className="text-[13px] text-toss-blue/80 leading-relaxed font-medium">
-              투표는 1인 1회만 가능하며, 투표 후에는 수정이 불가능합니다.
-            </p>
+            <p className="text-base font-bold text-toss-black">진행 중인 투표가 없습니다</p>
+            <p className="text-sm text-toss-gray">운영진이 투표를 시작하면 여기에 표시됩니다.</p>
           </div>
+        ) : (
+          <>
+            <div className="bg-white rounded-toss p-6 shadow-sm border border-toss-border/40">
+              <div className="w-12 h-12 bg-indigo-50 text-indigo-500 rounded-2xl flex items-center justify-center mb-4">
+                <Vote size={28} />
+              </div>
+              <h2 className="text-xl font-bold text-toss-black mb-2">{poll.question}</h2>
+              {poll.description && (
+                <p className="text-sm text-toss-gray leading-relaxed mb-6">{poll.description}</p>
+              )}
+
+              <div className="flex flex-col gap-3 mb-6">
+                {poll.options.map((option) => {
+                  const count = getVoteCount(option.id);
+                  const percentage = totalVotes === 0 ? 0 : Math.round((count / totalVotes) * 100);
+                  const isMyVote = myVote === option.id;
+                  const isWinner =
+                    !!myVote &&
+                    count === Math.max(...poll.options.map((o) => getVoteCount(o.id)));
+
+                  return (
+                    <button
+                      key={option.id}
+                      disabled={!!myVote || isVoting}
+                      onClick={() => handleVote(option.id)}
+                      className={`relative overflow-hidden rounded-xl border-2 transition-all group ${
+                        isMyVote
+                          ? "border-toss-blue bg-toss-blue/5"
+                          : myVote
+                          ? "border-toss-border/40 bg-white opacity-80"
+                          : "border-toss-border/40 bg-white hover:border-toss-blue/40"
+                      }`}
+                    >
+                      {myVote && (
+                        <div
+                          className={`absolute inset-0 transition-all duration-1000 ease-out ${
+                            isWinner ? "bg-toss-blue/10" : "bg-toss-lightGray/50"
+                          }`}
+                          style={{ width: `${percentage}%` }}
+                        />
+                      )}
+                      <div className="relative z-10 p-4 flex justify-between items-center">
+                        <div className="flex items-center gap-3">
+                          {isMyVote && <Check size={18} className="text-toss-blue shrink-0" />}
+                          <span
+                            className={`text-[15px] font-bold ${
+                              isMyVote ? "text-toss-blue" : "text-toss-black"
+                            }`}
+                          >
+                            {option.label}
+                          </span>
+                        </div>
+                        {myVote && (
+                          <span
+                            className={`text-sm font-bold ${
+                              isMyVote ? "text-toss-blue" : "text-toss-gray"
+                            }`}
+                          >
+                            {percentage}%
+                          </span>
+                        )}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+
+              {myVote && (
+                <div className="flex items-center justify-center gap-2 text-xs text-toss-gray font-medium animate-in fade-in zoom-in-95 duration-500">
+                  <Users size={14} />
+                  현재 {totalVotes}명이 참여했습니다
+                </div>
+              )}
+            </div>
+
+            {!myVote && (
+              <div className="bg-blue-50/50 p-4 rounded-xl border border-toss-blue/10 flex items-start gap-3">
+                <div className="bg-toss-blue/10 p-1.5 rounded-lg text-toss-blue mt-0.5">
+                  <Check size={14} />
+                </div>
+                <p className="text-[13px] text-toss-blue/80 leading-relaxed font-medium">
+                  투표는 1인 1회만 가능하며, 투표 후에는 수정이 불가능합니다.
+                </p>
+              </div>
+            )}
+          </>
         )}
       </main>
     </div>

@@ -14,28 +14,9 @@ interface Inquiry {
   answeredAt?: string;
 }
 
-const MOCK_INQUIRIES: Inquiry[] = [
-  {
-    id: 1,
-    title: "숙소 에어컨 리모컨이 안 보여요",
-    content: "302호인데 에어컨 리모컨이 침대 근처에도 없고 서랍에도 없네요. 확인 부탁드립니다.",
-    status: "answered",
-    createdAt: "2026.05.02 10:30",
-    answer: "안녕하세요, 참가자님. 리모컨은 TV 아래 선반 바구니 안에 비치되어 있습니다. 혹시 확인해 보시고 그래도 없으면 프론트로 다시 연락 부탁드립니다.",
-    answeredAt: "2026.05.02 10:45"
-  },
-  {
-    id: 2,
-    title: "셔틀버스 시간표 문의",
-    content: "내일 오전 셔틀버스 첫 차 시간이 어떻게 되나요?",
-    status: "pending",
-    createdAt: "2026.05.02 14:20"
-  }
-];
-
 export default function InquiryPage() {
   const [activeTab, setActiveTab] = useState<"list" | "form">("list");
-  const [inquiries, setInquiries] = useState<Inquiry[]>(MOCK_INQUIRIES);
+  const [inquiries, setInquiries] = useState<Inquiry[]>([]);
   const [selectedInquiry, setSelectedInquiry] = useState<Inquiry | null>(null);
   
   const [newTitle, setNewTitle] = useState("");

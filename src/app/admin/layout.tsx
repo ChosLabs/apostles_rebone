@@ -3,12 +3,12 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { 
-  LayoutDashboard, 
-  Bell, 
-  Calendar, 
-  MessageSquare, 
-  Users, 
+import {
+  LayoutDashboard,
+  Bell,
+  Calendar,
+  MessageSquare,
+  Users,
   LogOut,
   User,
   Home,
@@ -16,14 +16,20 @@ import {
   X,
   BookOpen,
   Vote,
-  Image
+  Image,
+  MapPin,
+  Ticket,
+  Heart
 } from "lucide-react";
+import { useAuth } from "@/components/providers/AuthProvider";
+import { logout } from "@/lib/services/authService";
 
 export default function AdminLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const { user } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const pathname = usePathname();
@@ -50,13 +56,16 @@ export default function AdminLayout({
 
   const menuItems = [
     { name: "대시보드", icon: <LayoutDashboard size={20} />, href: "/admin" },
+    { name: "오늘의 기도제목 관리", icon: <Heart size={20} />, href: "/admin/daily-prayers" },
     { name: "공지사항 관리", icon: <Bell size={20} />, href: "/admin/notices" },
     { name: "타임테이블 관리", icon: <Calendar size={20} />, href: "/admin/timetable" },
     { name: "강의 관리", icon: <BookOpen size={20} />, href: "/admin/lectures" },
     { name: "투표 관리", icon: <Vote size={20} />, href: "/admin/vote" },
-    { name: "앨범 관리", icon: <Image size={20} />, href: "/admin/gallery" },
+    { name: "파송교회 관리", icon: <MapPin size={20} />, href: "/admin/dispatched-church" },
+    { name: "추첨 관리", icon: <Ticket size={20} />, href: "/admin/lucky-draw" },
     { name: "문의 관리", icon: <MessageSquare size={20} />, href: "/admin/inquiry" },
     { name: "기도제목 관리", icon: <MessageSquare size={20} />, href: "/admin/pray" },
+    { name: "포토앨범 관리", icon: <Image size={20} />, href: "/admin/gallery" },
     { name: "참가자 관리", icon: <User size={20} />, href: "/admin/users" },
     { name: "조 관리", icon: <Users size={20} />, href: "/admin/groups" },
     { name: "숙소 관리", icon: <Home size={20} />, href: "/admin/accommodations" },
@@ -105,7 +114,10 @@ export default function AdminLayout({
       </nav>
 
       <div className="p-4 border-t border-white/10">
-        <button className="flex items-center gap-3 px-3 py-3 w-full text-white/60 hover:text-white transition-colors">
+        <button
+          onClick={logout}
+          className="flex items-center gap-3 px-3 py-3 w-full text-white/60 hover:text-white transition-colors"
+        >
           <LogOut size={20} />
           <span className={`font-bold text-sm transition-opacity ${!sidebarOpen && "lg:opacity-0 lg:w-0 overflow-hidden"}`}>
             로그아웃
@@ -158,8 +170,8 @@ export default function AdminLayout({
             <div className="h-6 w-px bg-toss-border mx-1 lg:mx-2"></div>
             <div className="flex items-center gap-2 lg:gap-3 cursor-pointer group">
               <div className="text-right hidden sm:block">
-                <p className="text-sm font-bold text-toss-black leading-none">관리자</p>
-                <p className="text-[10px] lg:text-[11px] text-toss-gray mt-1">superadmin@test.com</p>
+                <p className="text-sm font-bold text-toss-black leading-none">{user?.name || "관리자"}</p>
+                <p className="text-[10px] lg:text-[11px] text-toss-gray mt-1">관리자 계정</p>
               </div>
               <div className="w-8 h-8 lg:w-10 lg:h-10 rounded-full bg-toss-lightGray flex items-center justify-center text-toss-gray">
                 <User size={18} className="lg:size-5" />

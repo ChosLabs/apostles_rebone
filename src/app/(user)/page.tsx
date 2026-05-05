@@ -1,13 +1,21 @@
 import { getNotices } from "@/lib/services/noticeService";
 import { getTimetable } from "@/lib/services/timetableService";
+import { getDailyPrayerByDateServer } from "@/lib/services/dailyPrayerService.server";
 import HomeClient from "./HomeClient";
 
 export const revalidate = 60; // ISR
 
 export default async function HomePage() {
-  const [notices, timetable] = await Promise.all([
+  const today = new Date().toISOString().split('T')[0];
+  const dDayDate = new Date("2026-06-05");
+  const now = new Date();
+  const diffTime = dDayDate.getTime() - now.getTime();
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+  const [notices, timetable, todayPrayer] = await Promise.all([
     getNotices(),
-    getTimetable()
+    getTimetable(),
+    getDailyPrayerByDateServer(today)
   ]);
   
   // Convert timestamps to plain strings for all date fields
@@ -27,5 +35,12 @@ export default async function HomePage() {
     return data;
   });
 
-  return <HomeClient initialNotices={serializedNotices} initialTimetable={serializedTimetable} />;
+  return (
+    <HomeClient 
+      initialNotices={serializedNotices} 
+      initialTimetable={serializedTimetable} 
+      todayPrayer={todayPrayer ? JSON.parse(JSON.stringify(todayPrayer)) : null}
+      dDay={diffDays}
+    />
+  );
 }

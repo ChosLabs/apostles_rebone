@@ -1,11 +1,13 @@
 "use client";
 
 import Link from "next/link";
+import { logout } from "@/lib/services/authService";
+import { useAuth } from "@/components/providers/AuthProvider";
 import { 
-  ClipboardCheck, BookOpen, Users, Map, Bus, FileText, 
-  Music, Image, MessageCircle, BarChart3, Gift, Phone, 
+  ClipboardCheck, Users, Map, Bus, FileText, 
+  Image, Zap, Phone, 
   Calendar, Heart, ChevronRight, Settings, LogOut, User, Vote,
-  HelpCircle
+  HelpCircle, MapPin
 } from "lucide-react";
 
 type MenuItem = {
@@ -14,16 +16,18 @@ type MenuItem = {
   desc: string;
   color: string;
   href: string;
+  target?: string;
 };
 
 const allMenuItems: MenuItem[] = [
-  { icon: <Users className="text-blue-500" />, label: "내 조 확인", desc: "조원 및 조장", color: "text-blue-500", href: "/group" },
+  { icon: <Users className="text-blue-500" />, label: "우리 조", desc: "조원 및 조장", color: "text-blue-500", href: "/group" },
   { icon: <Map className="text-red-400" />, label: "리조트 안내", desc: "지도 및 식당", color: "text-red-400", href: "/resort" },
   { icon: <ClipboardCheck className="text-orange-500" />, label: "강의 신청", desc: "선택강의", color: "text-orange-500", href: "/lectures" },
+  { icon: <MapPin className="text-purple-500" />, label: "파송교회", desc: "나의 파송지 확인", color: "text-purple-500", href: "/dispatched-church" },
   { icon: <Vote className="text-indigo-500" />, label: "실시간 투표", desc: "참여하기", color: "text-indigo-500", href: "/vote" },
-  { icon: <Image className="text-purple-500" />, label: "포토 앨범", desc: "현장 사진", color: "text-purple-500", href: "/gallery" },
+  { icon: <Zap className="text-rose-400" />, label: "실시간 추첨", desc: "추첨 확인하기", color: "text-rose-400", href: "/lucky-draw" },
+  { icon: <Image className="text-blue-600" />, label: "포토앨범", desc: "수련회 사진첩", color: "text-blue-600", href: "/gallery" },
   { icon: <Phone className="text-green-500" />, label: "비상 연락처", desc: "도움이 필요할 때", color: "text-green-500", href: "/emergency" },
-  { icon: <Gift className="text-rose-400" />, label: "경품 추첨", desc: "스탬프 · SNS 이벤트", color: "text-rose-400", href: "/more" },
   { icon: <Bus className="text-orange-400" />, label: "버스 배정", desc: "출발 버스 번호 확인", color: "text-orange-400", href: "/more" },
   { icon: <FileText className="text-blue-400" />, label: "성경공부 자료", desc: "GBS 자료 다운로드", color: "text-blue-400", href: "/more" },
   { icon: <Calendar className="text-amber-500" />, label: "40일 팔로업", desc: "수련회 후 40일 플랜", color: "text-amber-500", href: "/more" },
@@ -31,19 +35,23 @@ const allMenuItems: MenuItem[] = [
 ];
 
 export default function MorePage() {
+  const { user } = useAuth();
+
   return (
     <div className="flex flex-col gap-6 pb-8 px-4">
       {/* 1. 프로필 요약 섹션 */}
       <Link href="/profile">
-        <div className="bg-white rounded-toss p-5 shadow-[0_2px_8px_rgba(0,0,0,0.04)] border border-toss-border/40 mt-2 flex justify-between items-center group cursor-pointer active:scale-[0.98] transition-all">
+        <div className="bg-white rounded-toss p-5 shadow-[0_2px_8_rgba(0,0,0,0.04)] border border-toss-border/40 mt-2 flex justify-between items-center group cursor-pointer active:scale-[0.98] transition-all">
           <div className="flex items-center gap-4">
             <div className="w-14 h-14 rounded-full bg-toss-lightGray border border-toss-border/40 flex items-center justify-center text-toss-gray/40 group-hover:text-toss-blue group-hover:bg-toss-blue/5 transition-all">
               <User size={28} />
             </div>
             <div>
               <div className="flex items-center gap-2 mb-0.5">
-                <h2 className="text-lg font-bold text-toss-black flex items-center">홍길동<span className="font-medium text-toss-gray ml-0.5">님</span></h2>
-                <span className="text-[10px] font-bold bg-toss-blue/10 text-toss-blue px-1.5 py-0.5 rounded-md">21조</span>
+                <h2 className="text-lg font-bold text-toss-black flex items-center">{user?.name || "참가자"}<span className="font-medium text-toss-gray ml-0.5">님</span></h2>
+                {user?.group && (
+                  <span className="text-[10px] font-bold bg-toss-blue/10 text-toss-blue px-1.5 py-0.5 rounded-md">{user.group}조</span>
+                )}
               </div>
               <p className="text-xs text-toss-gray flex items-center gap-1">
                 내 프로필 보기 <ChevronRight size={14} className="opacity-40" />
@@ -61,7 +69,7 @@ export default function MorePage() {
         <h3 className="text-xs font-bold text-toss-gray px-1 uppercase tracking-wider">전체 메뉴</h3>
         <div className="grid grid-cols-2 gap-3">
           {allMenuItems.map((item, idx) => (
-            <Link href={item.href} key={idx}>
+            <Link href={item.href} key={idx} target={item.target}>
               <div className="bg-white p-4 rounded-toss shadow-sm border border-toss-border/40 flex items-center gap-3 transition-transform active:scale-[0.96] cursor-pointer h-full">
                 <div className="bg-toss-lightGray w-10 h-10 rounded-xl flex items-center justify-center shrink-0">
                   <div className={item.color}>
@@ -93,7 +101,10 @@ export default function MorePage() {
           <ChevronRight size={20} className="text-toss-gray/30 group-hover:text-toss-blue transition-colors" />
         </Link>
 
-        <button className="flex items-center justify-center gap-2 w-full py-4 bg-toss-lightGray/50 text-toss-gray text-sm font-bold rounded-2xl hover:bg-toss-lightGray transition-colors">
+        <button 
+          onClick={() => logout()}
+          className="flex items-center justify-center gap-2 w-full py-4 bg-toss-lightGray/50 text-toss-gray text-sm font-bold rounded-2xl hover:bg-toss-lightGray transition-colors"
+        >
           <LogOut size={18} />
           로그아웃
         </button>

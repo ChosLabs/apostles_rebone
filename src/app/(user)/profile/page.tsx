@@ -15,20 +15,14 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@/components/providers/AuthProvider";
+import { logout } from "@/lib/services/authService";
 
 export default function MyProfilePage() {
   const router = useRouter();
+  const { user } = useAuth();
 
-  // Mock user data
-  const userData = {
-    name: "홍길동",
-    phone: "010-1234-5678",
-    team: "1팀",
-    group: 21,
-    room: "101호",
-    attendanceType: "A형",
-    birthYear: "01"
-  };
+  if (!user) return null;
 
   return (
     <div className="min-h-screen bg-[#f8f9fa] pb-20">
@@ -56,10 +50,12 @@ export default function MyProfilePage() {
           </div>
           <div>
             <h2 className="text-2xl font-black text-toss-black flex items-center gap-2">
-              {userData.name}
-              <span className="text-xs bg-toss-blue/10 text-toss-blue px-2 py-0.5 rounded-lg font-bold">참가자</span>
+              {user.name}
+              <span className="text-xs bg-toss-blue/10 text-toss-blue px-2 py-0.5 rounded-lg font-bold">
+                {user.role === 'admin' ? '관리자' : '참가자'}
+              </span>
             </h2>
-            <p className="text-sm text-toss-gray font-medium mt-1">{userData.phone}</p>
+            <p className="text-sm text-toss-gray font-medium mt-1">{user.phone || "-"}</p>
           </div>
         </div>
       </div>
@@ -73,11 +69,11 @@ export default function MyProfilePage() {
             수련회 배정 정보
           </h3>
           <div className="grid grid-cols-2 gap-y-6">
-            <InfoItem icon={<Users size={18} />} label="소속 팀" value={userData.team} />
-            <InfoItem icon={<Users size={18} />} label="또래" value={`${userData.birthYear}또래`} />
-            <InfoItem icon={<Users size={18} />} label="배정 조" value={`${userData.group}조`} />
-            <InfoItem icon={<Home size={18} />} label="배정 숙소" value={userData.room} />
-            <InfoItem icon={<Tag size={18} />} label="참석 구분" value={userData.attendanceType} />
+            <InfoItem icon={<Users size={18} />} label="소속 팀" value={user.team || "미배정"} />
+            <InfoItem icon={<Users size={18} />} label="또래" value={user.birthYear ? `${user.birthYear}또래` : "미배정"} />
+            <InfoItem icon={<Users size={18} />} label="배정 조" value={user.group ? `${user.group}조` : "미배정"} />
+            <InfoItem icon={<Home size={18} />} label="배정 숙소" value={user.room || "미배정"} />
+            <InfoItem icon={<Tag size={18} />} label="참석 구분" value={user.attendanceType || "미배정"} />
           </div>
         </section>
 
@@ -89,6 +85,7 @@ export default function MyProfilePage() {
             icon={<LogOut size={18} />} 
             label="로그아웃" 
             danger 
+            onClick={() => logout()}
           />
         </div>
 
@@ -114,9 +111,12 @@ function InfoItem({ icon, label, value }: { icon: React.ReactNode; label: string
   );
 }
 
-function MenuLink({ icon, label, danger = false }: { icon: React.ReactNode; label: string; danger?: boolean }) {
+function MenuLink({ icon, label, danger = false, onClick }: { icon: React.ReactNode; label: string; danger?: boolean; onClick?: () => void }) {
   return (
-    <button className="w-full px-6 py-5 flex items-center justify-between hover:bg-toss-lightGray/30 transition-colors border-b border-toss-border/30 last:border-0">
+    <button 
+      onClick={onClick}
+      className="w-full px-6 py-5 flex items-center justify-between hover:bg-toss-lightGray/30 transition-colors border-b border-toss-border/30 last:border-0"
+    >
       <div className="flex items-center gap-4">
         <div className={`p-2 rounded-xl ${danger ? 'bg-red-50 text-red-500' : 'bg-toss-lightGray/50 text-toss-gray'}`}>
           {icon}

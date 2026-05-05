@@ -34,6 +34,8 @@ export default function AdminTimetablePage() {
   const [formData, setFormData] = useState({
     day: 1,
     time: "",
+    endTime: "",
+    type: "etc" as import("@/types/database").TimetableType,
     title: "",
     location: "",
     description: ""
@@ -51,6 +53,8 @@ export default function AdminTimetablePage() {
       setFormData({
         day: editingItem.day,
         time: editingItem.time,
+        endTime: editingItem.endTime || "",
+        type: editingItem.type || "etc",
         title: editingItem.title,
         location: editingItem.location || "",
         description: editingItem.description || ""
@@ -59,6 +63,8 @@ export default function AdminTimetablePage() {
       setFormData({
         day: dayToNum(activeDay),
         time: "",
+        endTime: "",
+        type: "etc",
         title: "",
         location: "",
         description: ""
@@ -176,7 +182,7 @@ export default function AdminTimetablePage() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-1.5">
                   <label className="text-[10px] lg:text-xs font-bold text-toss-gray px-1 uppercase tracking-wider">일자</label>
-                  <select 
+                  <select
                     className="w-full px-4 py-2.5 lg:py-3 rounded-xl border border-toss-border focus:border-toss-blue outline-none transition-all appearance-none bg-white font-bold text-sm"
                     value={formData.day}
                     onChange={e => setFormData(prev => ({ ...prev, day: parseInt(e.target.value) }))}
@@ -187,14 +193,47 @@ export default function AdminTimetablePage() {
                   </select>
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-[10px] lg:text-xs font-bold text-toss-gray px-1 uppercase tracking-wider">시간</label>
+                  <label className="text-[10px] lg:text-xs font-bold text-toss-gray px-1 uppercase tracking-wider">구분</label>
+                  <select
+                    className="w-full px-4 py-2.5 lg:py-3 rounded-xl border border-toss-border focus:border-toss-blue outline-none transition-all appearance-none bg-white font-bold text-sm"
+                    value={formData.type}
+                    onChange={e => setFormData(prev => ({ ...prev, type: e.target.value as import("@/types/database").TimetableType }))}
+                  >
+                    <option value="worship">예배</option>
+                    <option value="pray">기도</option>
+                    <option value="group">소그룹</option>
+                    <option value="meal">식사</option>
+                    <option value="special">특별</option>
+                    <option value="select">선택강의</option>
+                    <option value="calling">콜링존</option>
+                    <option value="move">이동</option>
+                    <option value="setup">세팅</option>
+                    <option value="etc">기타</option>
+                  </select>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <label className="text-[10px] lg:text-xs font-bold text-toss-gray px-1 uppercase tracking-wider">시작 시간</label>
                   <div className="relative">
                     <Clock size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-toss-gray" />
-                    <input 
-                      type="time" 
+                    <input
+                      type="time"
                       className="w-full pl-11 pr-4 py-2.5 lg:py-3 rounded-xl border border-toss-border focus:border-toss-blue outline-none transition-all font-bold text-sm"
                       value={formData.time}
                       onChange={e => setFormData(prev => ({ ...prev, time: e.target.value }))}
+                    />
+                  </div>
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-[10px] lg:text-xs font-bold text-toss-gray px-1 uppercase tracking-wider">종료 시간</label>
+                  <div className="relative">
+                    <Clock size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-toss-gray" />
+                    <input
+                      type="time"
+                      className="w-full pl-11 pr-4 py-2.5 lg:py-3 rounded-xl border border-toss-border focus:border-toss-blue outline-none transition-all font-bold text-sm"
+                      value={formData.endTime}
+                      onChange={e => setFormData(prev => ({ ...prev, endTime: e.target.value }))}
                     />
                   </div>
                 </div>

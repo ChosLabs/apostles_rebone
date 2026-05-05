@@ -42,6 +42,8 @@ export interface PrayerRequest {
   id: string;
   userId: string;
   userName: string;
+  userTeam?: string;
+  userBirthYear?: string;
   group: string;
   content: string;
   type: 'all' | 'group';
@@ -49,13 +51,17 @@ export interface PrayerRequest {
   createdAt: any;
 }
 
+export type TimetableType = "worship" | "group" | "meal" | "move" | "select" | "calling" | "special" | "setup" | "pray" | "etc";
+
 export interface TimetableItem {
   id: string;
   day: number; // 1, 2, 3...
   time: string; // "09:00"
+  endTime?: string; // "10:00"
   title: string;
   location?: string;
   description?: string;
+  type?: TimetableType;
 }
 
 export interface Group {
@@ -63,10 +69,79 @@ export interface Group {
   groupNumber: number;
   leaderId?: string;
   memberIds: string[];
+  nickname?: string;
+  slogan?: string;
 }
 
 export interface Room {
   id: string; // Room name or doc ID
   name: string;
   memberIds: string[];
+}
+
+export interface DispatchedChurch {
+  id: string;
+  name: string;
+  address: string;
+  worshipTime: string;
+  activities: string;
+  assignedGroups: number[]; // Array of group numbers (조 번호)
+}
+
+export interface LuckyDraw {
+  id: string;
+  title: string;
+  targetTeams: string[];
+  targetGroups: number[];
+  winnerCount: number;
+  status: 'pending' | 'drawing' | 'completed';
+  winners: LuckyDrawWinner[];
+  createdAt: any;
+}
+
+export interface LuckyDrawWinner {
+  userId: string;
+  userName: string;
+  userTeam: string;
+  userGroup: number;
+}
+
+export interface Poll {
+  id: string;
+  question: string;
+  description?: string;
+  options: Array<{ id: string; label: string }>;
+  votes: Record<string, string>; // { [userId]: optionId }
+  isActive: boolean;
+  createdAt: any;
+}
+
+export interface Lecture {
+  id: string;
+  title: string;
+  lecturer: string;
+  location: string;
+  description: string;
+  capacity: number;
+  applicantIds: string[]; // participant UIDs who applied
+  createdAt: any;
+}
+
+export interface GalleryLink {
+  id: string;
+  title: string;
+  url: string;
+  description?: string;
+  isActive: boolean;
+  createdAt: any;
+  updatedAt: any;
+}
+
+export interface DailyPrayer {
+  id: string; // Format: YYYY-MM-DD
+  date: string; // Format: YYYY-MM-DD
+  dDay: number; // Days remaining until D-Day
+  title: string;
+  content: string;
+  updatedAt: any;
 }

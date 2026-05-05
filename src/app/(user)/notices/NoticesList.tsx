@@ -35,7 +35,7 @@ export default function NoticesList({ initialNotices }: { initialNotices: Notice
     if (minutes < 60) return `${minutes}분 전`;
     const hours = Math.floor(minutes / 60);
     if (hours < 24) return `${hours}시간 전`;
-    return date.toLocaleDateString();
+    return `${date.getFullYear()}. ${date.getMonth() + 1}. ${date.getDate()}.`;
   };
 
   return (

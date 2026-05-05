@@ -1,8 +1,37 @@
+# 의존성 및 빌드 결과물
 node_modules/
 .next/
 out/
 build/
+dist/
+
+# 운영체제 관련 임시 파일
 .DS_Store
+Thumbs.db
+
+# 환경 변수 및 비밀 키 (매우 중요)
 *.pem
+.env
 .env*.local
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Firebase 관련
+.firebase/
+firebase-debug.log*
+firestore-debug.log*
+pubsub-debug.log*
+ui-debug.log*
+functions/node_modules/
+functions/lib/
+
+# 로그 파일
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# 기타 도구
 .vercel
+.turbo

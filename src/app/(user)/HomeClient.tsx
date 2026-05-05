@@ -1,20 +1,24 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { ChevronRight, Users, MessageCircle, Map, Image, ClipboardCheck, Vote, X, Phone } from "lucide-react";
+import { ChevronRight, Users, MessageCircle, Map, Image, ClipboardCheck, Vote, X, Phone, MapPin, Zap } from "lucide-react";
 import Link from "next/link";
 import { clsx } from "clsx";
 import { db } from "@/lib/firebase/client";
 import { collection, query, orderBy, limit, onSnapshot } from "firebase/firestore";
 
-import { Notice, TimetableItem } from "@/types/database";
+import { Notice, TimetableItem, DailyPrayer } from "@/types/database";
 
 export default function Home({ 
   initialNotices, 
-  initialTimetable 
+  initialTimetable,
+  todayPrayer,
+  dDay
 }: { 
   initialNotices: Notice[], 
-  initialTimetable: TimetableItem[] 
+  initialTimetable: TimetableItem[],
+  todayPrayer: DailyPrayer | null,
+  dDay: number
 }) {
   const [notices, setNotices] = useState<Notice[]>(initialNotices);
   const [timetable, setTimetable] = useState<TimetableItem[]>(initialTimetable);
@@ -55,7 +59,7 @@ export default function Home({
     if (minutes < 60) return `${minutes}분 전`;
     const hours = Math.floor(minutes / 60);
     if (hours < 24) return `${hours}시간 전`;
-    return date.toLocaleDateString();
+    return `${date.getFullYear()}. ${date.getMonth() + 1}. ${date.getDate()}.`;
   };
 
   // Logic to find current and next programs
@@ -78,11 +82,11 @@ export default function Home({
       {/* 1. 오늘의 기도제목 */}
       <div className="toss-card !mb-0 bg-gradient-to-br from-toss-blue to-[#5d98f7] text-white border-none">
         <div className="flex justify-between items-start mb-2">
-          <span className="text-[10px] font-bold bg-white/20 px-2 py-0.5 rounded-md tracking-wider">🙏 오늘의 기도제목 D-14</span>
+          <span className="text-[10px] font-bold bg-white/20 px-2 py-0.5 rounded-md tracking-wider">🙏 오늘의 기도제목 D-{dDay > 0 ? dDay : 'DAY'}</span>
         </div>
-        <h3 className="text-[17px] font-bold mb-1">참석자들의 마음 준비를 위해</h3>
+        <h3 className="text-[17px] font-bold mb-1">{todayPrayer?.title || "수련회를 위한 마음 준비"}</h3>
         <p className="text-[13px] text-white/80 leading-relaxed">
-          600명의 참석자 한 사람 한 사람이 기대와 갈망을 품고 올 수 있도록 기도해주세요.
+          {todayPrayer?.content || "참석자 한 사람 한 사람이 기대와 갈망을 품고 올 수 있도록 기도해주세요."}
         </p>
       </div>
 
@@ -90,10 +94,10 @@ export default function Home({
       <div className="toss-card !mb-0 flex justify-between items-center border border-toss-border/40">
         <div>
           <p className="text-[11px] text-toss-gray font-bold uppercase tracking-wider mb-0.5">Retreat Countdown</p>
-          <p className="text-[15px] font-bold">시작까지 <span className="text-toss-blue italic">D-14</span></p>
+          <p className="text-[15px] font-bold">시작까지 <span className="text-toss-blue italic">D-{dDay > 0 ? dDay : 'DAY'}</span></p>
         </div>
         <div className="bg-toss-lightGray px-4 py-2 rounded-2xl font-mono font-black text-xl text-toss-blue">
-          14:24:55
+          {dDay > 0 ? `${dDay} DAYS` : "READY"}
         </div>
       </div>
 
@@ -201,11 +205,13 @@ export default function Home({
       <section>
         <h2 className="text-[15px] font-bold text-toss-black mb-3 px-1">빠른 접근</h2>
         <div className="grid grid-cols-2 gap-3">
-          <QuickLink href="/group" icon={<Users className="text-blue-500" />} label="내 조 확인" desc="조원 및 조장" />
+          <QuickLink href="/group" icon={<Users className="text-blue-500" />} label="우리 조" desc="조원 및 조장" />
           <QuickLink href="/resort" icon={<Map className="text-red-400" />} label="리조트 안내" desc="지도 및 식당" />
           <QuickLink href="/lectures" icon={<ClipboardCheck className="text-orange-500" />} label="강의 신청" desc="선택강의" />
+          <QuickLink href="/dispatched-church" icon={<MapPin className="text-purple-500" />} label="파송교회" desc="나의 파송지 확인" />
           <QuickLink href="/vote" icon={<Vote className="text-indigo-500" />} label="실시간 투표" desc="참여하기" />
-          <QuickLink href="/gallery" icon={<Image className="text-purple-500" />} label="포토 앨범" desc="현장 사진" />
+          <QuickLink href="/lucky-draw" icon={<Zap className="text-rose-400" />} label="실시간 추첨" desc="추첨 확인하기" />
+          <QuickLink href="/gallery" icon={<Image className="text-blue-600" />} label="포토앨범" desc="수련회 사진첩" />
           <QuickLink href="/emergency" icon={<Phone className="text-green-500" />} label="비상 연락처" desc="도움이 필요할 때" />
         </div>
       </section>
