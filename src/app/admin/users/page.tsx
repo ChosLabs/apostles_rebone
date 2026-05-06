@@ -102,10 +102,9 @@ export default function AdminUsersPage() {
       if (editingParticipant) {
         await updateParticipant(editingParticipant.id, submissionData);
       } else {
-        await addParticipant({
-          ...submissionData,
-          isLeader: false,
-        });
+        await addParticipant(
+          { ...submissionData, isLeader: false } as Omit<Participant, "id" | "createdAt" | "updatedAt">
+        );
       }
       await fetchParticipants();
       setIsAdding(false);

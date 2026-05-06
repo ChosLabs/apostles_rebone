@@ -32,10 +32,10 @@ export const login = async (name: string, phoneLast4: string): Promise<User | nu
 
   let foundParticipant: Participant | null = null;
   querySnapshot.forEach((doc) => {
-    const data = doc.data() as Participant;
+    const data = doc.data() as Omit<Participant, "id">;
     // Check if phone ends with phoneLast4
     if (data.phone.replace(/-/g, "").endsWith(phoneLast4)) {
-      foundParticipant = { id: doc.id, ...data };
+      foundParticipant = { id: doc.id, ...data } as Participant;
     }
   });
 
