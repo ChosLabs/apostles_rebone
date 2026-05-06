@@ -1,15 +1,16 @@
-import { 
-  collection, 
-  getDocs, 
-  doc, 
-  getDoc, 
-  addDoc, 
-  updateDoc, 
-  deleteDoc, 
-  query, 
-  orderBy, 
+import {
+  collection,
+  getDocs,
+  doc,
+  getDoc,
+  addDoc,
+  updateDoc,
+  deleteDoc,
+  query,
+  orderBy,
   serverTimestamp,
-  where
+  where,
+  deleteField
 } from "firebase/firestore";
 import { db } from "../firebase/client";
 import { Participant, TeamType, AttendanceType } from "@/types/database";
@@ -36,10 +37,11 @@ export async function addParticipant(data: Omit<Participant, "id" | "createdAt" 
 
 export async function updateParticipant(id: string, data: Partial<Omit<Participant, "id" | "createdAt" | "updatedAt">>): Promise<void> {
   const docRef = doc(db, COLLECTION_NAME, id);
-  await updateDoc(docRef, {
-    ...data,
-    updatedAt: serverTimestamp(),
-  });
+  const sanitized: Record<string, unknown> = { updatedAt: serverTimestamp() };
+  for (const [key, value] of Object.entries(data)) {
+    sanitized[key] = value === undefined ? deleteField() : value;
+  }
+  await updateDoc(docRef, sanitized);
 }
 
 export async function deleteParticipant(id: string): Promise<void> {

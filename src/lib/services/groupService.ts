@@ -7,8 +7,20 @@ import {
   doc,
   setDoc,
   onSnapshot,
+  orderBy,
 } from "firebase/firestore";
 import { Group, Participant } from "@/types/database";
+
+export async function getGroups(): Promise<Group[]> {
+  const q = query(collection(db, "groups"), orderBy("groupNumber", "asc"));
+  const snapshot = await getDocs(q);
+  return snapshot.docs.map(d => ({ id: d.id, ...d.data() })) as Group[];
+}
+
+export async function addGroup(groupNumber: number): Promise<void> {
+  const docRef = doc(db, "groups", groupNumber.toString());
+  await setDoc(docRef, { groupNumber, memberIds: [] }, { merge: true });
+}
 
 export function subscribeGroup(groupNumber: number, callback: (group: Group | null) => void) {
   const docRef = doc(db, "groups", groupNumber.toString());

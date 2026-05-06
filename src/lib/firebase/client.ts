@@ -1,37 +1,25 @@
 import { initializeApp, getApps, getApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
-import { getFirestore, initializeFirestore, CACHE_SIZE_UNLIMITED } from "firebase/firestore";
-import { getAnalytics, isSupported } from "firebase/analytics";
+import { getFirestore, initializeFirestore, setLogLevel } from "firebase/firestore";
 import { firebaseConfig } from "./config";
 
-// Initialize Firebase
-const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
+// Firebase SDK 12.x logs a harmless "GRPC error has no .code" on startup in
+// environments where gRPC is unavailable (e.g. WSL2). forceLongPolling handles
+// the actual fallback; only suppress debug/info noise, keep errors visible.
+setLogLevel("error");
+
+const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
 const auth = getAuth(app);
 
-// Use initializeFirestore with long polling to prevent GRPC errors in SSR/Next.js
-let db;
-if (getApps().length > 0) {
-  // If app is already initialized, try to get existing db or initialize it
-  try {
-    db = initializeFirestore(app, {
-      experimentalForceLongPolling: true,
-    });
-  } catch (e) {
-    // If initializeFirestore fails because it's already been called, fallback to getFirestore
-    db = getFirestore(app);
-  }
-} else {
+// initializeFirestore must only be called once per app instance.
+// On hot-reload the app persists, so we fall back to getFirestore.
+let db: ReturnType<typeof getFirestore>;
+try {
+  db = initializeFirestore(app, {
+    experimentalForceLongPolling: true,
+  });
+} catch {
   db = getFirestore(app);
 }
 
-// Initialize Analytics conditionally (only in browser)
-let analytics = null;
-if (typeof window !== "undefined") {
-  isSupported().then((supported) => {
-    if (supported) {
-      analytics = getAnalytics(app);
-    }
-  });
-}
-
-export { app, auth, db, analytics };
+export { app, auth, db };

@@ -60,7 +60,7 @@ export default function LoginPage() {
               <User className="absolute left-4 top-1/2 -translate-y-1/2 text-toss-gray group-focus-within:text-toss-blue transition-colors" size={20} />
               <input 
                 type="text" 
-                placeholder="이름 (어드민: admin)"
+                placeholder="이름"
                 className="w-full pl-12 pr-4 py-4 rounded-2xl bg-white border border-toss-border focus:border-toss-blue outline-none transition-all font-bold placeholder:text-toss-gray/30 shadow-sm"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
@@ -73,7 +73,7 @@ export default function LoginPage() {
               <KeyRound className="absolute left-4 top-1/2 -translate-y-1/2 text-toss-gray group-focus-within:text-toss-blue transition-colors" size={20} />
               <input 
                 type="password" 
-                placeholder="전화번호 뒷 4자리 (어드민: 2585)"
+                placeholder="전화번호 뒷 4자리"
                 className="w-full pl-12 pr-4 py-4 rounded-2xl bg-white border border-toss-border focus:border-toss-blue outline-none transition-all font-bold placeholder:text-toss-gray/30 shadow-sm"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -105,8 +105,7 @@ export default function LoginPage() {
 
         <div className="pt-8 text-center animate-in fade-in duration-1000 delay-500">
           <p className="text-[11px] text-toss-gray/40 font-medium leading-relaxed">
-            수련회 신청 시 등록한 정보로 로그인해 주세요. <br />
-            문제가 있다면 운영국에 문의해 주세요.
+            수련회 신청 시 등록한 정보로 로그인해 주세요.
           </p>
         </div>
       </div>

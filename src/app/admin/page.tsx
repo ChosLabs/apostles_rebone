@@ -2,79 +2,115 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { 
-  Users, 
-  MessageSquare, 
-  Bell, 
-  TrendingUp,
-  ArrowUpRight,
-  ArrowDownRight,
+import {
+  Users,
+  MessageSquare,
+  Bell,
+  BookOpen,
   Clock,
   Calendar,
-  BookOpen,
   Vote,
   Image,
   Loader2,
   MapPin
 } from "lucide-react";
-import { collection, onSnapshot } from "firebase/firestore";
+import { collection, onSnapshot, query, orderBy, limit } from "firebase/firestore";
 import { db } from "@/lib/firebase/client";
+import { PrayerRequest } from "@/types/database";
+
+function formatRelativeTime(timestamp: any): string {
+  if (!timestamp) return "방금 전";
+  const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+  const diff = Date.now() - date.getTime();
+  const minutes = Math.floor(diff / 60000);
+  if (minutes < 1) return "방금 전";
+  if (minutes < 60) return `${minutes}분 전`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours}시간 전`;
+  const days = Math.floor(hours / 24);
+  return `${days}일 전`;
+}
 
 export default function AdminDashboard() {
   const [counts, setCounts] = useState({
     participants: 0,
     notices: 0,
-    prayers: 420 // Still mocked as requested/expected
+    prayers: 0,
+    lectures: 0,
   });
+  const [recentPrayers, setRecentPrayers] = useState<PrayerRequest[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let resolvedCount = 0;
+    const markResolved = () => {
+      resolvedCount++;
+      if (resolvedCount >= 4) setLoading(false);
+    };
+
     const unsubParticipants = onSnapshot(collection(db, "participants"), (snap) => {
       setCounts(prev => ({ ...prev, participants: snap.size }));
+      markResolved();
     });
     const unsubNotices = onSnapshot(collection(db, "notices"), (snap) => {
       setCounts(prev => ({ ...prev, notices: snap.size }));
-      setLoading(false);
+      markResolved();
+    });
+    const unsubPrayers = onSnapshot(collection(db, "prayers"), (snap) => {
+      setCounts(prev => ({ ...prev, prayers: snap.size }));
+      markResolved();
+    });
+    const unsubLectures = onSnapshot(collection(db, "lectures"), (snap) => {
+      setCounts(prev => ({ ...prev, lectures: snap.size }));
+      markResolved();
+    });
+
+    const recentQ = query(
+      collection(db, "prayers"),
+      orderBy("createdAt", "desc"),
+      limit(5)
+    );
+    const unsubRecent = onSnapshot(recentQ, (snap) => {
+      setRecentPrayers(snap.docs.map(d => ({ id: d.id, ...d.data() } as PrayerRequest)));
     });
 
     return () => {
       unsubParticipants();
       unsubNotices();
+      unsubPrayers();
+      unsubLectures();
+      unsubRecent();
     };
   }, []);
 
   const stats = [
-    { 
-      label: "전체 참가자", 
-      value: `${counts.participants}명`, 
-      change: "+12%", 
-      trend: "up", 
+    {
+      label: "전체 참가자",
+      value: `${counts.participants}명`,
       icon: <Users className="text-toss-blue" />,
-      bgColor: "bg-toss-blue/10"
+      bgColor: "bg-toss-blue/10",
+      href: "/admin/users",
     },
-    { 
-      label: "전체 공지 개수", 
-      value: `${counts.notices}개`, 
-      change: "+2", 
-      trend: "up", 
+    {
+      label: "전체 공지",
+      value: `${counts.notices}개`,
       icon: <Bell className="text-orange-500" />,
-      bgColor: "bg-orange-500/10"
+      bgColor: "bg-orange-500/10",
+      href: "/admin/notices",
     },
-    { 
-      label: "전체 기도제목 개수", 
-      value: "420개", 
-      change: "+5%", 
-      trend: "up", 
+    {
+      label: "전체 기도제목",
+      value: `${counts.prayers}개`,
       icon: <MessageSquare className="text-green-500" />,
-      bgColor: "bg-green-500/10"
+      bgColor: "bg-green-500/10",
+      href: "/admin/pray",
     },
-    { 
-      label: "실시간 접속", 
-      value: "156명", 
-      change: "+18%", 
-      trend: "up", 
-      icon: <TrendingUp className="text-purple-500" />,
-      bgColor: "bg-purple-500/10"
+    {
+      label: "전체 강의",
+      value: `${counts.lectures}개`,
+      icon: <BookOpen className="text-purple-500" />,
+      bgColor: "bg-purple-500/10",
+      href: "/admin/lectures",
     },
   ];
 
@@ -91,50 +127,50 @@ export default function AdminDashboard() {
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {stats.map((stat) => (
-          <div key={stat.label} className="bg-white p-6 rounded-2xl shadow-sm border border-toss-border hover:shadow-md transition-shadow">
+          <Link key={stat.label} href={stat.href} className="bg-white p-6 rounded-2xl shadow-sm border border-toss-border hover:shadow-md transition-shadow">
             <div className="flex justify-between items-start mb-4">
               <div className={`${stat.bgColor} p-3 rounded-xl`}>
                 {stat.icon}
-              </div>
-              <div className={`flex items-center gap-1 text-xs font-bold ${stat.trend === 'up' ? 'text-green-500' : 'text-red-500'}`}>
-                {stat.change}
-                {stat.trend === 'up' ? <ArrowUpRight size={14} /> : <ArrowDownRight size={14} />}
               </div>
             </div>
             <div>
               <p className="text-sm font-medium text-toss-gray">{stat.label}</p>
               <h3 className="text-2xl font-black text-toss-black mt-1">{stat.value}</h3>
             </div>
-          </div>
+          </Link>
         ))}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Recent Activities */}
+        {/* Recent Prayers */}
         <div className="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-toss-border overflow-hidden">
           <div className="p-6 border-b border-toss-border flex justify-between items-center">
-            <h3 className="font-bold text-toss-black">최근 활동</h3>
-            <button className="text-sm text-toss-blue font-bold hover:underline">전체보기</button>
+            <h3 className="font-bold text-toss-black">최근 기도제목</h3>
+            <Link href="/admin/pray" className="text-sm text-toss-blue font-bold hover:underline">전체보기</Link>
           </div>
           <div className="divide-y divide-toss-border">
-            {[1, 2, 3, 4, 5].map((i) => (
-              <div key={i} className="p-6 flex items-center gap-4 hover:bg-toss-lightGray/30 transition-colors">
-                <div className="w-10 h-10 rounded-full bg-toss-lightGray flex items-center justify-center shrink-0">
-                  <Clock size={18} className="text-toss-gray" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-bold text-toss-black truncate">
-                    새로운 기도제목이 등록되었습니다.
-                  </p>
-                  <p className="text-xs text-toss-gray mt-1">
-                    방금 전 · <span className="font-medium">익명의 참석자</span>
-                  </p>
-                </div>
-                <button className="px-3 py-1.5 text-xs font-bold text-toss-gray border border-toss-border rounded-lg hover:bg-white transition-colors">
-                  상세보기
-                </button>
+            {recentPrayers.length === 0 ? (
+              <div className="p-12 text-center text-toss-gray text-sm">
+                등록된 기도제목이 없습니다.
               </div>
-            ))}
+            ) : (
+              recentPrayers.map((prayer) => (
+                <div key={prayer.id} className="p-6 flex items-center gap-4 hover:bg-toss-lightGray/30 transition-colors">
+                  <div className="w-10 h-10 rounded-full bg-toss-lightGray flex items-center justify-center shrink-0">
+                    <Clock size={18} className="text-toss-gray" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-bold text-toss-black truncate">
+                      {prayer.content}
+                    </p>
+                    <p className="text-xs text-toss-gray mt-1">
+                      {formatRelativeTime(prayer.createdAt)} · <span className="font-medium">{prayer.userName}</span>
+                      {prayer.userTeam && <span className="ml-1 text-toss-blue/70">{prayer.userTeam}</span>}
+                    </p>
+                  </div>
+                </div>
+              ))
+            )}
           </div>
         </div>
 
@@ -144,10 +180,10 @@ export default function AdminDashboard() {
             <h3 className="font-bold text-toss-black">빠른 작업</h3>
           </div>
           <div className="p-6 space-y-3">
-            <button className="w-full bg-toss-blue text-white font-bold py-3 rounded-xl hover:bg-toss-blue/90 transition-colors flex items-center justify-center gap-2">
+            <Link href="/admin/notices" className="w-full bg-toss-blue text-white font-bold py-3 rounded-xl hover:bg-toss-blue/90 transition-colors flex items-center justify-center gap-2">
               <Bell size={18} />
               긴급 공지 등록
-            </button>
+            </Link>
             <Link href="/admin/lectures" className="w-full bg-white text-toss-black border border-toss-border font-bold py-3 rounded-xl hover:bg-toss-lightGray transition-colors flex items-center justify-center gap-2">
               <BookOpen size={18} />
               강의 관리
@@ -164,10 +200,10 @@ export default function AdminDashboard() {
               <MessageSquare size={18} />
               문의 관리
             </Link>
-            <button className="w-full bg-white text-toss-black border border-toss-border font-bold py-3 rounded-xl hover:bg-toss-lightGray transition-colors flex items-center justify-center gap-2">
+            <Link href="/admin/timetable" className="w-full bg-white text-toss-black border border-toss-border font-bold py-3 rounded-xl hover:bg-toss-lightGray transition-colors flex items-center justify-center gap-2">
               <Calendar size={18} />
               타임테이블 수정
-            </button>
+            </Link>
           </div>
         </div>
       </div>

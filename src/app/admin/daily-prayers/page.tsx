@@ -40,6 +40,11 @@ export default function AdminDailyPrayers() {
     fetchData();
   }, []);
 
+  const getKSTDateString = (date: Date) => {
+    const kst = new Date(date.getTime() + 9 * 60 * 60 * 1000);
+    return kst.toISOString().split('T')[0];
+  };
+
   const generateDateList = () => {
     const list = [];
     for (let i = 30; i >= 1; i--) {
@@ -122,7 +127,7 @@ export default function AdminDailyPrayers() {
       <div className="grid gap-4">
         {dateList.map((item) => {
           const prayer = prayers[item.id] || {};
-          const isToday = new Date().toISOString().split('T')[0] === item.id;
+          const isToday = getKSTDateString(new Date()) === item.id;
 
           return (
             <div 

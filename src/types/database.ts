@@ -137,6 +137,30 @@ export interface GalleryLink {
   updatedAt: any;
 }
 
+export interface CallingZoneConfig {
+  booths: {
+    [boothId: string]: { code: string };
+  };
+}
+
+export interface CallingStamp {
+  userId: string;
+  userName: string;
+  userTeam?: string;
+  stamps: string[];
+  completedAt?: any;
+  updatedAt: any;
+}
+
+export interface EmergencyContact {
+  id: string;
+  name: string;
+  role: string;
+  phone: string;
+  description?: string;
+  order: number;
+}
+
 export interface DailyPrayer {
   id: string; // Format: YYYY-MM-DD
   date: string; // Format: YYYY-MM-DD

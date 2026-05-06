@@ -19,7 +19,9 @@ import {
   Image,
   MapPin,
   Ticket,
-  Heart
+  Heart,
+  Phone,
+  Stamp
 } from "lucide-react";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { logout } from "@/lib/services/authService";
@@ -56,19 +58,21 @@ export default function AdminLayout({
 
   const menuItems = [
     { name: "대시보드", icon: <LayoutDashboard size={20} />, href: "/admin" },
-    { name: "오늘의 기도제목 관리", icon: <Heart size={20} />, href: "/admin/daily-prayers" },
-    { name: "공지사항 관리", icon: <Bell size={20} />, href: "/admin/notices" },
-    { name: "타임테이블 관리", icon: <Calendar size={20} />, href: "/admin/timetable" },
-    { name: "강의 관리", icon: <BookOpen size={20} />, href: "/admin/lectures" },
-    { name: "투표 관리", icon: <Vote size={20} />, href: "/admin/vote" },
-    { name: "파송교회 관리", icon: <MapPin size={20} />, href: "/admin/dispatched-church" },
-    { name: "추첨 관리", icon: <Ticket size={20} />, href: "/admin/lucky-draw" },
-    { name: "문의 관리", icon: <MessageSquare size={20} />, href: "/admin/inquiry" },
-    { name: "기도제목 관리", icon: <MessageSquare size={20} />, href: "/admin/pray" },
-    { name: "포토앨범 관리", icon: <Image size={20} />, href: "/admin/gallery" },
     { name: "참가자 관리", icon: <User size={20} />, href: "/admin/users" },
     { name: "조 관리", icon: <Users size={20} />, href: "/admin/groups" },
     { name: "숙소 관리", icon: <Home size={20} />, href: "/admin/accommodations" },
+    { name: "공지사항 관리", icon: <Bell size={20} />, href: "/admin/notices" },
+    { name: "타임테이블 관리", icon: <Calendar size={20} />, href: "/admin/timetable" },
+    { name: "문의 관리", icon: <MessageSquare size={20} />, href: "/admin/inquiry" },
+    { name: "기도제목 관리", icon: <MessageSquare size={20} />, href: "/admin/pray" },
+    { name: "오늘의 기도제목 관리", icon: <Heart size={20} />, href: "/admin/daily-prayers" },
+    { name: "강의 관리", icon: <BookOpen size={20} />, href: "/admin/lectures" },
+    { name: "파송교회 관리", icon: <MapPin size={20} />, href: "/admin/dispatched-church" },
+    { name: "콜링존 관리", icon: <Stamp size={20} />, href: "/admin/calling-zone" },
+    { name: "추첨 관리", icon: <Ticket size={20} />, href: "/admin/lucky-draw" },
+    { name: "투표 관리", icon: <Vote size={20} />, href: "/admin/vote" },
+    { name: "비상연락처 관리", icon: <Phone size={20} />, href: "/admin/emergency-contacts" },
+    { name: "포토앨범 관리", icon: <Image size={20} />, href: "/admin/gallery" },
   ];
 
   const SidebarContent = () => (
@@ -91,14 +95,14 @@ export default function AdminLayout({
         </button>
       </div>
 
-      <nav className="flex-1 px-3 py-4 space-y-1">
+      <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto admin-nav-scroll">
         {menuItems.map((item) => {
           const isActive = pathname === item.href;
           return (
             <Link
               key={item.name}
               href={item.href}
-              className={`flex items-center gap-3 px-3 py-3 rounded-xl transition-colors ${
+              className={`flex items-center gap-3 px-3 py-2 rounded-xl transition-colors ${
                 isActive 
                   ? "bg-toss-blue text-white" 
                   : "text-white/60 hover:bg-white/5 hover:text-white"

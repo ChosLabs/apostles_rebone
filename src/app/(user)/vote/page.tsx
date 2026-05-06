@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { Vote, ArrowLeft, Check, Users, Loader2 } from "lucide-react";
+import { useState, useEffect, useCallback } from "react";
+import { Vote, ArrowLeft, Check, Users, Loader2, RefreshCw } from "lucide-react";
 import Link from "next/link";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { subscribeActivePoll, castVote } from "@/lib/services/pollService";
@@ -12,14 +12,19 @@ export default function VotePage() {
   const [poll, setPoll] = useState<Poll | null>(null);
   const [loading, setLoading] = useState(true);
   const [isVoting, setIsVoting] = useState(false);
+  const [subKey, setSubKey] = useState(0);
 
   useEffect(() => {
-    const unsub = subscribeActivePoll((p) => {
-      setPoll(p);
-      setLoading(false);
-    });
+    setLoading(true);
+    const unsub = subscribeActivePoll(
+      (p) => {
+        setPoll(p);
+        setLoading(false);
+      },
+      () => setLoading(false)
+    );
     return unsub;
-  }, []);
+  }, [subKey]);
 
   const myVote = user && poll ? poll.votes?.[user.uid] ?? null : null;
   const totalVotes = poll ? Object.keys(poll.votes ?? {}).length : 0;
@@ -46,7 +51,14 @@ export default function VotePage() {
         <Link href="/" className="p-1 -ml-1 hover:bg-toss-lightGray rounded-full transition-colors">
           <ArrowLeft size={24} className="text-toss-black" />
         </Link>
-        <h1 className="text-lg font-bold text-toss-black">실시간 투표</h1>
+        <h1 className="text-lg font-bold text-toss-black flex-1">실시간 투표</h1>
+        <button
+          onClick={() => setSubKey((k) => k + 1)}
+          className="p-2 hover:bg-toss-lightGray rounded-full transition-colors text-toss-gray"
+          aria-label="새로고침"
+        >
+          <RefreshCw size={18} />
+        </button>
       </header>
 
       <main className="p-4 flex flex-col gap-6">

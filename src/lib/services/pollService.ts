@@ -15,16 +15,27 @@ import { Poll } from "@/types/database";
 
 const COL = "polls";
 
-export function subscribeActivePoll(callback: (poll: Poll | null) => void) {
+export function subscribeActivePoll(
+  callback: (poll: Poll | null) => void,
+  onError?: (err: Error) => void
+) {
   const q = query(collection(db, COL), where("isActive", "==", true));
-  return onSnapshot(q, (snap) => {
-    if (snap.empty) {
+  return onSnapshot(
+    q,
+    (snap) => {
+      if (snap.empty) {
+        callback(null);
+      } else {
+        const d = snap.docs[0];
+        callback({ id: d.id, ...d.data() } as Poll);
+      }
+    },
+    (err) => {
+      console.error("subscribeActivePoll error:", err);
       callback(null);
-    } else {
-      const d = snap.docs[0];
-      callback({ id: d.id, ...d.data() } as Poll);
+      onError?.(err);
     }
-  });
+  );
 }
 
 export function subscribePolls(callback: (polls: Poll[]) => void) {

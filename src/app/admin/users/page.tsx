@@ -89,11 +89,15 @@ export default function AdminUsersPage() {
 
     try {
       setIsSubmitting(true);
-      const submissionData = {
-        ...formData,
-        group: formData.group ? Number(formData.group) : undefined,
-        room: formData.room || undefined
-      };
+      const submissionData: Record<string, unknown> = { ...formData };
+      if (formData.group) {
+        submissionData.group = Number(formData.group);
+      } else {
+        delete submissionData.group;
+      }
+      if (!formData.room) {
+        delete submissionData.room;
+      }
 
       if (editingParticipant) {
         await updateParticipant(editingParticipant.id, submissionData);

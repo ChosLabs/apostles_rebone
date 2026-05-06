@@ -1,21 +1,21 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { 
-  Plus, 
-  MoreVertical, 
-  ChevronRight, 
-  UserCheck, 
-  Trash2, 
+import {
+  Plus,
+  ChevronRight,
+  UserCheck,
+  Trash2,
   X,
   Loader2,
-  Search
+  Search,
 } from "lucide-react";
-import { 
-  getParticipants, 
-  updateParticipant 
+import {
+  getParticipants,
+  updateParticipant,
 } from "@/lib/services/participantService";
-import { Participant, TeamType, AttendanceType } from "@/types/database";
+import { getGroups, addGroup } from "@/lib/services/groupService";
+import { Participant } from "@/types/database";
 
 interface GroupInfo {
   id: number;
@@ -24,29 +24,41 @@ interface GroupInfo {
 
 export default function AdminGroupsPage() {
   const [participants, setParticipants] = useState<Participant[]>([]);
+  const [groupNumbers, setGroupNumbers] = useState<number[]>([]);
   const [loading, setLoading] = useState(true);
   const [isAddingGroup, setIsAddingGroup] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedGroup, setSelectedGroup] = useState<GroupInfo | null>(null);
   const [isAddingMember, setIsAddingMember] = useState(false);
+  const [memberSearch, setMemberSearch] = useState("");
   const [newGroupNumber, setNewGroupNumber] = useState("");
 
   useEffect(() => {
-    fetchParticipants();
+    fetchData();
   }, []);
 
-  const fetchParticipants = async () => {
+  const fetchData = async () => {
     try {
       setLoading(true);
-      const data = await getParticipants();
+      const [data, firestoreGroups] = await Promise.all([
+        getParticipants(),
+        getGroups(),
+      ]);
       setParticipants(data);
-      
-      // Update selectedGroup if it exists
+      const nums = Array.from(
+        new Set([
+          ...firestoreGroups.map(g => g.groupNumber),
+          ...data.filter(p => p.group != null).map(p => p.group as number),
+        ])
+      ).sort((a, b) => a - b);
+      setGroupNumbers(nums);
+
       if (selectedGroup) {
         const updatedMembers = data.filter(p => p.group === selectedGroup.id);
         setSelectedGroup({ id: selectedGroup.id, members: updatedMembers });
       }
     } catch (error) {
-      console.error("Failed to fetch participants:", error);
+      console.error("Failed to fetch data:", error);
       alert("데이터를 불러오는 데 실패했습니다.");
     } finally {
       setLoading(false);
@@ -55,15 +67,12 @@ export default function AdminGroupsPage() {
 
   const handleSetLeader = async (participantId: string, groupId: number) => {
     try {
-      // 1. Unset existing leader in the same group
       const currentLeader = participants.find(p => p.group === groupId && p.isLeader);
       if (currentLeader) {
         await updateParticipant(currentLeader.id, { isLeader: false });
       }
-      
-      // 2. Set new leader
       await updateParticipant(participantId, { isLeader: true });
-      await fetchParticipants();
+      await fetchData();
     } catch (error) {
       console.error("Failed to set leader:", error);
       alert("조장 지정에 실패했습니다.");
@@ -74,7 +83,7 @@ export default function AdminGroupsPage() {
     if (!confirm("이 참가자를 조에서 제외하시겠습니까?")) return;
     try {
       await updateParticipant(participantId, { group: undefined, isLeader: false });
-      await fetchParticipants();
+      await fetchData();
     } catch (error) {
       console.error("Failed to remove from group:", error);
       alert("조원 제외에 실패했습니다.");
@@ -85,23 +94,26 @@ export default function AdminGroupsPage() {
     e.preventDefault();
     const gNum = parseInt(newGroupNumber);
     if (isNaN(gNum)) return;
-    
-    // In this simple implementation, "creating a group" just means it will show up if participants are assigned to it.
-    // We don't have a separate groups collection yet.
-    // If we want to "create" an empty group, we might need a separate collection.
-    // For now, let's just close the modal.
-    setIsAddingGroup(false);
-    setNewGroupNumber("");
-    alert("조 번호를 생성했습니다. 참가자 관리에서 해당 조를 배정해주세요.");
+    try {
+      setIsSubmitting(true);
+      await addGroup(gNum);
+      setNewGroupNumber("");
+      setIsAddingGroup(false);
+      await fetchData();
+    } catch (error) {
+      console.error("Failed to add group:", error);
+      alert("조 생성에 실패했습니다.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
-  // Grouping logic
-  const groups: GroupInfo[] = Array.from(new Set(participants.map(p => p.group))).filter((g): g is number => g !== undefined && g !== null).map(gId => ({
-    id: gId,
-    members: participants.filter(p => p.group === gId).sort((a, b) => a.name.localeCompare(b.name))
-  })).sort((a, b) => a.id - b.id);
+  const groups: GroupInfo[] = groupNumbers.map(id => ({
+    id,
+    members: participants.filter(p => p.group === id).sort((a, b) => a.name.localeCompare(b.name)),
+  }));
 
-  const unassignedParticipants = participants.filter(p => p.group === undefined || p.group === null);
+  const unassignedParticipants = participants.filter(p => p.group == null);
 
   return (
     <div className="space-y-6">
@@ -111,7 +123,7 @@ export default function AdminGroupsPage() {
           <h1 className="text-xl lg:text-2xl font-black text-toss-black">조 관리</h1>
           <p className="text-xs lg:text-sm text-toss-gray mt-1">참가자들의 조 편성을 관리하고 조장을 지정합니다.</p>
         </div>
-        <button 
+        <button
           onClick={() => setIsAddingGroup(true)}
           className="whitespace-nowrap bg-toss-blue text-white px-5 py-2.5 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-toss-blue/90 transition-all shadow-sm shadow-toss-blue/20 text-sm"
         >
@@ -141,8 +153,8 @@ export default function AdminGroupsPage() {
               ) : groups.map((group) => {
                 const leader = group.members.find(m => m.isLeader);
                 return (
-                  <tr 
-                    key={group.id} 
+                  <tr
+                    key={group.id}
                     className="hover:bg-toss-lightGray/20 transition-colors group cursor-pointer"
                     onClick={() => setSelectedGroup(group)}
                   >
@@ -176,7 +188,7 @@ export default function AdminGroupsPage() {
               {!loading && groups.length === 0 && (
                 <tr>
                   <td colSpan={4} className="px-6 py-12 text-center text-toss-gray font-medium">
-                    등록된 조가 없습니다. 참가자 관리에서 조를 배정해 주세요.
+                    생성된 조가 없습니다. 새 조 생성 버튼을 눌러 조를 만들어 주세요.
                   </td>
                 </tr>
               )}
@@ -198,7 +210,7 @@ export default function AdminGroupsPage() {
                 <X size={24} />
               </button>
             </div>
-            
+
             <div className="p-6 lg:p-8 space-y-6 overflow-y-auto">
               <div className="space-y-3">
                 {selectedGroup.members.map(member => (
@@ -216,14 +228,14 @@ export default function AdminGroupsPage() {
                       {member.isLeader ? (
                         <span className="text-[9px] lg:text-[10px] font-black bg-toss-blue text-white px-2 py-1 rounded-lg">조장</span>
                       ) : (
-                        <button 
+                        <button
                           onClick={() => handleSetLeader(member.id, selectedGroup.id)}
                           className="text-[9px] lg:text-[10px] font-bold text-toss-gray hover:text-toss-blue sm:opacity-0 group-hover/item:opacity-100 transition-all"
                         >
                           조장지정
                         </button>
                       )}
-                      <button 
+                      <button
                         onClick={() => handleRemoveFromGroup(member.id)}
                         className="p-1.5 lg:p-2 text-toss-gray hover:text-red-500 transition-colors"
                       >
@@ -236,8 +248,8 @@ export default function AdminGroupsPage() {
                   <p className="text-center py-8 text-toss-gray text-sm font-medium">조원이 없습니다.</p>
                 )}
               </div>
-              
-              <button 
+
+              <button
                 onClick={() => setIsAddingMember(true)}
                 className="w-full py-3 lg:py-4 rounded-2xl border-2 border-dashed border-toss-border text-toss-gray font-bold text-sm hover:bg-toss-lightGray transition-all flex items-center justify-center gap-2"
               >
@@ -250,43 +262,66 @@ export default function AdminGroupsPage() {
       )}
 
       {/* Add Member Modal */}
-      {isAddingMember && selectedGroup && (
-        <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm" onClick={() => setIsAddingMember(false)}>
-          <div className="bg-white w-full max-w-md rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[80vh]" onClick={(e) => e.stopPropagation()}>
-            <div className="px-6 py-4 border-b border-toss-border flex justify-between items-center">
-              <h2 className="text-lg font-black text-toss-black">{selectedGroup.id}조 조원 추가</h2>
-              <button onClick={() => setIsAddingMember(false)} className="p-2 hover:bg-toss-lightGray rounded-full transition-colors text-toss-gray">
-                <X size={24} />
-              </button>
-            </div>
-            <div className="p-4 overflow-y-auto space-y-2">
-              <p className="text-xs font-bold text-toss-gray px-2 mb-2">미배정 참가자 목록</p>
-              {unassignedParticipants.length === 0 ? (
-                <p className="text-center py-8 text-toss-gray text-sm">미배정 참가자가 없습니다.</p>
-              ) : unassignedParticipants.map(p => (
-                <button
-                  key={p.id}
-                  onClick={async () => {
-                    await updateParticipant(p.id, { group: selectedGroup.id });
-                    await fetchParticipants();
-                    setIsAddingMember(false);
-                  }}
-                  className="w-full flex items-center justify-between p-3 hover:bg-toss-lightGray/50 rounded-xl transition-colors group"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-toss-lightGray flex items-center justify-center text-xs font-bold">{p.name[0]}</div>
-                    <div className="text-left">
-                      <p className="text-sm font-bold text-toss-black">{p.name}</p>
-                      <p className="text-[10px] text-toss-gray">{p.team}</p>
-                    </div>
-                  </div>
-                  <Plus size={16} className="text-toss-blue opacity-0 group-hover:opacity-100 transition-opacity" />
+      {isAddingMember && selectedGroup && (() => {
+        const filtered = unassignedParticipants.filter(p =>
+          p.name.includes(memberSearch.trim())
+        );
+        const closeMemberModal = () => { setIsAddingMember(false); setMemberSearch(""); };
+        return (
+          <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm" onClick={closeMemberModal}>
+            <div className="bg-white w-full max-w-md rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[80vh]" onClick={(e) => e.stopPropagation()}>
+              <div className="px-6 py-4 border-b border-toss-border flex justify-between items-center shrink-0">
+                <h2 className="text-lg font-black text-toss-black">{selectedGroup.id}조 조원 추가</h2>
+                <button onClick={closeMemberModal} className="p-2 hover:bg-toss-lightGray rounded-full transition-colors text-toss-gray">
+                  <X size={24} />
                 </button>
-              ))}
+              </div>
+              <div className="px-4 pt-4 shrink-0">
+                <div className="relative">
+                  <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-toss-gray/50" />
+                  <input
+                    type="text"
+                    placeholder="이름 검색"
+                    value={memberSearch}
+                    onChange={e => setMemberSearch(e.target.value)}
+                    className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-toss-border focus:border-toss-blue outline-none transition-all text-sm font-medium"
+                    autoFocus
+                  />
+                </div>
+              </div>
+              <div className="p-4 overflow-y-auto space-y-2">
+                <p className="text-xs font-bold text-toss-gray px-2 mb-2">미배정 참가자 목록</p>
+                {unassignedParticipants.length === 0 && (
+                  <p className="text-center py-8 text-toss-gray text-sm">미배정 참가자가 없습니다.</p>
+                )}
+                {unassignedParticipants.length > 0 && filtered.length === 0 && (
+                  <p className="text-center py-8 text-toss-gray text-sm">검색 결과가 없습니다.</p>
+                )}
+                {filtered.map(p => (
+                  <button
+                    key={p.id}
+                    onClick={async () => {
+                      await updateParticipant(p.id, { group: selectedGroup.id });
+                      await fetchData();
+                      closeMemberModal();
+                    }}
+                    className="w-full flex items-center justify-between p-3 hover:bg-toss-lightGray/50 rounded-xl transition-colors group"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-full bg-toss-lightGray flex items-center justify-center text-xs font-bold">{p.name[0]}</div>
+                      <div className="text-left">
+                        <p className="text-sm font-bold text-toss-black">{p.name}</p>
+                        <p className="text-[10px] text-toss-gray">{p.team}</p>
+                      </div>
+                    </div>
+                    <Plus size={16} className="text-toss-blue opacity-0 group-hover:opacity-100 transition-opacity" />
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       {/* Group Add Modal */}
       {isAddingGroup && (
@@ -301,19 +336,21 @@ export default function AdminGroupsPage() {
             <form className="p-6 lg:p-8 space-y-4 lg:space-y-5" onSubmit={handleAddGroup}>
               <div className="space-y-1.5">
                 <label className="text-[10px] lg:text-xs font-black text-toss-gray px-1 italic uppercase tracking-wider">조 번호</label>
-                <input 
-                  type="number" 
+                <input
+                  type="number"
                   placeholder="예: 22"
                   className="w-full px-4 py-2.5 lg:py-3 rounded-xl border border-toss-border focus:border-toss-blue outline-none transition-all font-bold text-sm lg:text-base"
                   value={newGroupNumber}
                   onChange={e => setNewGroupNumber(e.target.value)}
                   required
+                  autoFocus
                 />
               </div>
-              <p className="text-[10px] lg:text-xs text-toss-gray px-1">조 생성 후 해당 조에 참가자를 배정할 수 있습니다.</p>
               <div className="pt-4 flex gap-3">
                 <button type="button" onClick={() => setIsAddingGroup(false)} className="flex-1 py-3 lg:py-4 rounded-2xl font-bold text-toss-gray bg-toss-lightGray hover:bg-toss-border transition-all text-sm lg:text-base">취소</button>
-                <button type="submit" className="flex-[2] py-3 lg:py-4 rounded-2xl font-bold text-white bg-toss-blue hover:bg-toss-blue/90 transition-all shadow-lg shadow-toss-blue/20 text-sm lg:text-base">생성하기</button>
+                <button type="submit" disabled={isSubmitting} className="flex-[2] py-3 lg:py-4 rounded-2xl font-bold text-white bg-toss-blue hover:bg-toss-blue/90 transition-all shadow-lg shadow-toss-blue/20 text-sm lg:text-base disabled:opacity-60">
+                  {isSubmitting ? <Loader2 className="animate-spin mx-auto" size={20} /> : "생성하기"}
+                </button>
               </div>
             </form>
           </div>

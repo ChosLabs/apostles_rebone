@@ -1,16 +1,15 @@
 "use client";
 
 import React from "react";
-import { 
-  User, 
-  Phone, 
-  Users, 
-  Home, 
-  Tag, 
-  LogOut, 
+import {
+  User,
+  Phone,
+  Users,
+  Home,
+  Tag,
+  LogOut,
   ChevronRight,
   ShieldCheck,
-  CreditCard,
   Settings
 } from "lucide-react";
 import Link from "next/link";
@@ -79,12 +78,10 @@ export default function MyProfilePage() {
 
         {/* Action List */}
         <div className="bg-white rounded-3xl overflow-hidden shadow-sm border border-toss-border/30">
-          <MenuLink icon={<CreditCard size={18} />} label="회비 납부 확인" />
-          <MenuLink icon={<Settings size={18} />} label="알림 설정" />
-          <MenuLink 
-            icon={<LogOut size={18} />} 
-            label="로그아웃" 
-            danger 
+          <MenuLink
+            icon={<LogOut size={18} />}
+            label="로그아웃"
+            danger
             onClick={() => logout()}
           />
         </div>

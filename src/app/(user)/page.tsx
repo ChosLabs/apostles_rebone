@@ -3,10 +3,16 @@ import { getTimetable } from "@/lib/services/timetableService";
 import { getDailyPrayerByDateServer } from "@/lib/services/dailyPrayerService.server";
 import HomeClient from "./HomeClient";
 
-export const revalidate = 60; // ISR
+export const revalidate = 0; // always fresh for daily prayer accuracy
+
+function getKSTDateString() {
+  const now = new Date();
+  const kst = new Date(now.getTime() + 9 * 60 * 60 * 1000);
+  return kst.toISOString().split('T')[0];
+}
 
 export default async function HomePage() {
-  const today = new Date().toISOString().split('T')[0];
+  const today = getKSTDateString();
   const dDayDate = new Date("2026-06-05");
   const now = new Date();
   const diffTime = dDayDate.getTime() - now.getTime();
