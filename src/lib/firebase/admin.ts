@@ -1,16 +1,29 @@
 import * as admin from "firebase-admin";
 
-if (!admin.apps.length) {
-  admin.initializeApp({
+function getApp(): admin.app.App {
+  if (admin.apps.length) return admin.app();
+  return admin.initializeApp({
     credential: admin.credential.cert({
       projectId: process.env.FIREBASE_PROJECT_ID,
       clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-      privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, "\n").replace(/^"(.*)"$/, "$1"),
+      privateKey: process.env.FIREBASE_PRIVATE_KEY
+        ?.replace(/\\n/g, "\n")
+        .replace(/^"(.*)"$/, "$1"),
     }),
   });
 }
 
-const adminDb = admin.firestore();
-const adminAuth = admin.auth();
+// Lazy proxies — Firebase Admin is not initialized until the first method call.
+// This prevents build-time failures when env vars are not available.
+function lazyProxy<T extends object>(factory: () => T): T {
+  return new Proxy({} as T, {
+    get(_, prop: string | symbol) {
+      const instance = factory();
+      const val = Reflect.get(instance, prop);
+      return typeof val === "function" ? (val as Function).bind(instance) : val;
+    },
+  });
+}
 
-export { adminDb, adminAuth };
+export const adminDb = lazyProxy(() => getApp().firestore());
+export const adminAuth = lazyProxy(() => getApp().auth());

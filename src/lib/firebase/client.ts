@@ -1,5 +1,4 @@
 import { initializeApp, getApps, getApp } from "firebase/app";
-import { getAuth } from "firebase/auth";
 import { getFirestore, initializeFirestore, setLogLevel } from "firebase/firestore";
 import { firebaseConfig } from "./config";
 
@@ -9,7 +8,6 @@ import { firebaseConfig } from "./config";
 setLogLevel("error");
 
 const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
-const auth = getAuth(app);
 
 // initializeFirestore must only be called once per app instance.
 // On hot-reload the app persists, so we fall back to getFirestore.
@@ -22,4 +20,4 @@ try {
   db = getFirestore(app);
 }
 
-export { app, auth, db };
+export { app, db };
