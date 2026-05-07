@@ -1,5 +1,5 @@
 import { getNotices } from "@/lib/services/noticeService";
-import { getTimetable } from "@/lib/services/timetableService";
+import { getTimetableServer } from "@/lib/services/timetableService.server";
 import { getDailyPrayerByDateServer } from "@/lib/services/dailyPrayerService.server";
 import HomeClient from "./HomeClient";
 
@@ -18,22 +18,22 @@ export default async function HomePage() {
   const diffDays = Math.ceil((dDayDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
 
   let notices: Awaited<ReturnType<typeof getNotices>> = [];
-  let timetable: Awaited<ReturnType<typeof getTimetable>> = [];
+  let timetable: Awaited<ReturnType<typeof getTimetableServer>> = [];
   let todayPrayer = null;
 
   try {
     [notices, timetable, todayPrayer] = await Promise.all([
       getNotices(),
-      getTimetable(),
+      getTimetableServer(),
       getDailyPrayerByDateServer(today),
     ]);
   } catch {
     // Admin SDK credentials not available at build time.
     // HomeClient real-time listeners will load data on the client.
     try {
-      timetable = await getTimetable();
+      timetable = await getTimetableServer();
     } catch {
-      // timetable uses client SDK but may also fail — handled client-side.
+      // handled client-side.
     }
   }
 
@@ -53,7 +53,7 @@ export default async function HomePage() {
     return data;
   });
 
-  const serializedTimetable = timetable.map((item) => ({ ...item }));
+  const serializedTimetable = timetable.map((item) => JSON.parse(JSON.stringify(item)));
 
   return (
     <HomeClient
