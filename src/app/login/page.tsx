@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { login } from "@/lib/services/authService";
 import { useAuth } from "@/components/providers/AuthProvider";
@@ -44,10 +45,15 @@ export default function LoginPage() {
     <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6 pb-20">
       <div className="w-full max-w-[360px] space-y-12">
         {/* Logo Section */}
-        <div className="text-center space-y-3">
-          <h1 className="text-4xl font-black text-toss-blue italic tracking-tighter animate-in fade-in slide-in-from-bottom-4 duration-700">
-            Re:본
-          </h1>
+        <div className="text-center space-y-3 animate-in fade-in slide-in-from-bottom-4 duration-700">
+          <Image
+            src="/rebon_logo_blue.png"
+            alt="Re:본 로고"
+            width={220}
+            height={220}
+            className="mx-auto"
+            priority
+          />
           <p className="text-[15px] font-bold text-toss-gray/60 tracking-tight animate-in fade-in slide-in-from-bottom-4 duration-700 delay-100">
             2026 Apostles Summer Retreat
           </p>
