@@ -67,7 +67,7 @@ export default function AdminLayout({
     { name: "기도제목 관리", icon: <MessageSquare size={20} />, href: "/admin/pray" },
     { name: "오늘의 기도제목 관리", icon: <Heart size={20} />, href: "/admin/daily-prayers" },
     { name: "강의 관리", icon: <BookOpen size={20} />, href: "/admin/lectures" },
-    { name: "파송교회 관리", icon: <MapPin size={20} />, href: "/admin/dispatched-church" },
+    { name: "아웃리치 관리", icon: <MapPin size={20} />, href: "/admin/dispatched-church" },
     { name: "콜링존 관리", icon: <Stamp size={20} />, href: "/admin/calling-zone" },
     { name: "추첨 관리", icon: <Ticket size={20} />, href: "/admin/lucky-draw" },
     { name: "투표 관리", icon: <Vote size={20} />, href: "/admin/vote" },

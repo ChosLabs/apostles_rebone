@@ -178,7 +178,7 @@ export default function AdminDashboard() {
             </Link>
             <Link href="/admin/dispatched-church" className="w-full bg-white text-toss-black border border-toss-border font-bold py-3 rounded-xl hover:bg-toss-lightGray transition-colors flex items-center justify-center gap-2">
               <MapPin size={18} />
-              파송교회 관리
+              아웃리치 관리
             </Link>
             <Link href="/admin/inquiry" className="w-full bg-white text-toss-black border border-toss-border font-bold py-3 rounded-xl hover:bg-toss-lightGray transition-colors flex items-center justify-center gap-2">
               <MessageSquare size={18} />

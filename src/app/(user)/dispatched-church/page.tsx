@@ -33,7 +33,7 @@ export default function DispatchedChurchPage() {
         <Link href="/" className="p-1 -ml-1 hover:bg-toss-lightGray rounded-full transition-colors">
           <ArrowLeft size={24} className="text-toss-black" />
         </Link>
-        <h1 className="text-lg font-bold text-toss-black">파송교회 확인</h1>
+        <h1 className="text-lg font-bold text-toss-black">아웃리치 확인</h1>
       </header>
 
       {loading ? (
@@ -68,19 +68,19 @@ export default function DispatchedChurchPage() {
           ) : (
             <div className="bg-white p-8 rounded-toss text-center border border-toss-border/40 text-toss-gray text-sm">
               {userGroup
-                ? "배정된 파송교회가 없습니다. 관리자에게 문의해주세요."
+                ? "배정된 아웃리치가 없습니다. 관리자에게 문의해주세요."
                 : "조 배정이 필요합니다. 관리자에게 문의해주세요."}
             </div>
           )}
 
           <div className="px-1 mt-4">
             <h2 className="text-[15px] font-bold text-toss-black mb-1">전체 파송지 현황</h2>
-            <p className="text-xs text-toss-gray mb-4">이번 수련회에서 함께 섬기는 파송교회 목록입니다.</p>
+            <p className="text-xs text-toss-gray mb-4">이번 수련회에서 함께 섬기는 아웃리치 목록입니다.</p>
           </div>
 
           {churches.length === 0 ? (
             <div className="bg-white p-8 rounded-toss text-center border border-toss-border/40 text-toss-gray text-sm">
-              등록된 파송교회가 없습니다.
+              등록된 아웃리치가 없습니다.
             </div>
           ) : (
             <div className="flex flex-col gap-4">

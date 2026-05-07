@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Coffee, Heart, Palette, Zap, Save, Loader2, CheckCircle2, Users, Key } from "lucide-react";
+import { Globe, Briefcase, Users, Mic2, Sparkles, Save, Loader2, CheckCircle2, Users2, Key } from "lucide-react";
 import {
   subscribeCallingZoneConfig,
   subscribeAllCallingStamps,
@@ -9,22 +9,24 @@ import {
 } from "@/lib/services/callingZoneService";
 import { CallingZoneConfig, CallingStamp } from "@/types/database";
 
-type BoothMeta = {
+type ZoneMeta = {
   id: string;
+  letter: string;
   name: string;
   icon: React.ReactNode;
   color: string;
   bg: string;
 };
 
-const BOOTHS: BoothMeta[] = [
-  { id: "comfort",    name: "Comfort Zone", icon: <Coffee size={20} />,  color: "#FF8A65", bg: "rgba(255,138,101,0.1)" },
-  { id: "prayer",     name: "Prayer Zone",  icon: <Heart size={20} />,   color: "#3182f6", bg: "rgba(49,130,246,0.1)" },
-  { id: "experience", name: "체험 부스",     icon: <Palette size={20} />, color: "#4CAF50", bg: "rgba(76,175,80,0.1)" },
-  { id: "activity",   name: "Activity Zone",icon: <Zap size={20} />,     color: "#9C6ADE", bg: "rgba(156,106,222,0.1)" },
+const ZONES: ZoneMeta[] = [
+  { id: "zone-a", letter: "A", name: "Mission & Global",      icon: <Globe size={18} />,     color: "#F97316", bg: "rgba(249,115,22,0.1)" },
+  { id: "zone-b", letter: "B", name: "Life & Vocation",       icon: <Briefcase size={18} />, color: "#3182f6", bg: "rgba(49,130,246,0.1)" },
+  { id: "zone-c", letter: "C", name: "Community & Re:bond",   icon: <Users size={18} />,     color: "#16A34A", bg: "rgba(22,163,74,0.1)" },
+  { id: "zone-d", letter: "D", name: "Confession & Story",    icon: <Mic2 size={18} />,      color: "#7C3AED", bg: "rgba(124,58,237,0.1)" },
+  { id: "zone-e", letter: "E", name: "Prayer & Healing",      icon: <Sparkles size={18} />,  color: "#B45309", bg: "rgba(180,83,9,0.1)" },
 ];
 
-const ALL_BOOTH_IDS = BOOTHS.map((b) => b.id);
+const ALL_ZONE_IDS = ZONES.map((z) => z.id);
 
 export default function AdminCallingZonePage() {
   const [config, setConfig] = useState<CallingZoneConfig | null>(null);
@@ -37,44 +39,31 @@ export default function AdminCallingZonePage() {
     const unsubConfig = subscribeCallingZoneConfig((cfg) => {
       setConfig(cfg);
       const initial: Record<string, string> = {};
-      BOOTHS.forEach((b) => {
-        initial[b.id] = cfg.booths[b.id]?.code ?? "";
-      });
+      ZONES.forEach((z) => { initial[z.id] = cfg.booths[z.id]?.code ?? ""; });
       setCodes(initial);
       setLoading(false);
     });
-
     const unsubStamps = subscribeAllCallingStamps(setAllStamps);
-
-    return () => {
-      unsubConfig();
-      unsubStamps();
-    };
+    return () => { unsubConfig(); unsubStamps(); };
   }, []);
 
-  const handleSaveCode = async (boothId: string) => {
-    const code = codes[boothId]?.trim();
-    if (!code || code.length !== 4) {
-      alert("4자리 코드를 입력해주세요.");
-      return;
-    }
+  const handleSaveCode = async (zoneId: string) => {
+    const code = codes[zoneId]?.trim();
+    if (!code || code.length !== 4) { alert("4자리 코드를 입력해주세요."); return; }
     try {
-      setSavingId(boothId);
-      await updateBoothCode(boothId, code);
-    } catch (e) {
+      setSavingId(zoneId);
+      await updateBoothCode(zoneId, code);
+    } catch {
       alert("저장에 실패했습니다.");
     } finally {
       setSavingId(null);
     }
   };
 
-  const completedAll = allStamps.filter((s) =>
-    ALL_BOOTH_IDS.every((id) => s.stamps?.includes(id))
-  );
-
-  const stampCountPerBooth = BOOTHS.map((b) => ({
-    ...b,
-    count: allStamps.filter((s) => s.stamps?.includes(b.id)).length,
+  const completedAll = allStamps.filter((s) => ALL_ZONE_IDS.every((id) => s.stamps?.includes(id)));
+  const stampCountPerZone = ZONES.map((z) => ({
+    ...z,
+    count: allStamps.filter((s) => s.stamps?.includes(z.id)).length,
   }));
 
   if (loading) {
@@ -89,19 +78,19 @@ export default function AdminCallingZonePage() {
     <div className="flex flex-col gap-8">
       <div>
         <h1 className="text-2xl font-black text-toss-black">콜링존 관리</h1>
-        <p className="text-sm text-toss-gray mt-1">4대 부스 스탬프 코드를 관리하고 완료 참가자 명단을 확인합니다.</p>
+        <p className="text-sm text-toss-gray mt-1">5개 존 스탬프 코드를 관리하고 완료 참가자 명단을 확인합니다.</p>
       </div>
 
       {/* 현황 요약 */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        {stampCountPerBooth.map((b) => (
-          <div key={b.id} className="bg-white p-5 rounded-3xl shadow-sm border border-toss-border flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl flex items-center justify-center shrink-0" style={{ backgroundColor: b.bg, color: b.color }}>
-              {b.icon}
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
+        {stampCountPerZone.map((z) => (
+          <div key={z.id} className="bg-white p-4 rounded-3xl shadow-sm border border-toss-border flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 font-black text-base" style={{ backgroundColor: z.bg, color: z.color }}>
+              {z.letter}
             </div>
-            <div>
-              <p className="text-[11px] font-bold text-toss-gray">{b.name}</p>
-              <p className="text-xl font-black text-toss-black">{b.count}명</p>
+            <div className="min-w-0">
+              <p className="text-[10px] font-bold text-toss-gray truncate">{z.name}</p>
+              <p className="text-xl font-black text-toss-black">{z.count}명</p>
             </div>
           </div>
         ))}
@@ -112,40 +101,31 @@ export default function AdminCallingZonePage() {
         <div className="bg-white rounded-3xl shadow-sm border border-toss-border overflow-hidden">
           <div className="px-6 py-5 border-b border-toss-border flex items-center gap-2">
             <Key size={18} className="text-toss-blue" />
-            <h2 className="font-bold text-toss-black">부스별 스탬프 코드</h2>
+            <h2 className="font-bold text-toss-black">존별 스탬프 코드</h2>
           </div>
           <div className="p-6 space-y-4">
-            {BOOTHS.map((booth) => (
-              <div key={booth.id} className="flex items-center gap-3">
-                <div
-                  className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
-                  style={{ backgroundColor: booth.bg, color: booth.color }}
-                >
-                  {booth.icon}
+            {ZONES.map((zone) => (
+              <div key={zone.id} className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 font-black text-base" style={{ backgroundColor: zone.bg, color: zone.color }}>
+                  {zone.letter}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-xs font-bold text-toss-gray mb-1">{booth.name}</p>
+                  <p className="text-xs font-bold text-toss-gray mb-1">{zone.name}</p>
                   <input
                     type="text"
-                    value={codes[booth.id] ?? ""}
-                    onChange={(e) =>
-                      setCodes((prev) => ({ ...prev, [booth.id]: e.target.value }))
-                    }
+                    value={codes[zone.id] ?? ""}
+                    onChange={(e) => setCodes((prev) => ({ ...prev, [zone.id]: e.target.value }))}
                     maxLength={4}
                     placeholder="4자리 코드"
                     className="w-full px-3 py-2 rounded-xl border border-toss-border focus:border-toss-blue outline-none font-black text-lg tracking-widest text-center transition-colors"
                   />
                 </div>
                 <button
-                  onClick={() => handleSaveCode(booth.id)}
-                  disabled={savingId === booth.id}
+                  onClick={() => handleSaveCode(zone.id)}
+                  disabled={savingId === zone.id}
                   className="shrink-0 bg-toss-blue text-white px-4 py-2 rounded-xl font-bold text-sm hover:bg-blue-600 transition-colors flex items-center gap-1.5 disabled:opacity-60"
                 >
-                  {savingId === booth.id ? (
-                    <Loader2 size={14} className="animate-spin" />
-                  ) : (
-                    <Save size={14} />
-                  )}
+                  {savingId === zone.id ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
                   저장
                 </button>
               </div>
@@ -160,15 +140,11 @@ export default function AdminCallingZonePage() {
               <CheckCircle2 size={18} className="text-green-500" />
               <h2 className="font-bold text-toss-black">전체 스탬프 완료</h2>
             </div>
-            <span className="text-sm font-black text-toss-blue bg-toss-blue/8 px-3 py-1 rounded-xl">
-              {completedAll.length}명
-            </span>
+            <span className="text-sm font-black text-toss-blue bg-toss-blue/8 px-3 py-1 rounded-xl">{completedAll.length}명</span>
           </div>
           <div className="divide-y divide-toss-border max-h-[420px] overflow-y-auto">
             {completedAll.length === 0 ? (
-              <div className="p-12 text-center text-toss-gray text-sm">
-                아직 전체 스탬프를 완료한 참가자가 없습니다.
-              </div>
+              <div className="p-12 text-center text-toss-gray text-sm">아직 전체 스탬프를 완료한 참가자가 없습니다.</div>
             ) : (
               completedAll.map((stamp, i) => (
                 <div key={stamp.userId} className="px-6 py-4 flex items-center justify-between">
@@ -176,20 +152,20 @@ export default function AdminCallingZonePage() {
                     <span className="text-xs font-bold text-toss-gray/40 w-5">{i + 1}</span>
                     <div>
                       <p className="text-sm font-bold text-toss-black">{stamp.userName}</p>
-                      {stamp.userTeam && (
-                        <p className="text-xs text-toss-blue font-bold">{stamp.userTeam}</p>
-                      )}
+                      {stamp.userTeam && <p className="text-xs text-toss-blue font-bold">{stamp.userTeam}</p>}
                     </div>
                   </div>
                   <div className="flex gap-1">
-                    {BOOTHS.map((b) => (
+                    {ZONES.map((z) => (
                       <div
-                        key={b.id}
-                        className="w-5 h-5 rounded-md flex items-center justify-center"
-                        style={{ backgroundColor: stamp.stamps?.includes(b.id) ? b.bg : "rgba(0,0,0,0.04)", color: b.color }}
-                        title={b.name}
+                        key={z.id}
+                        className="w-5 h-5 rounded-md flex items-center justify-center text-[9px] font-black"
+                        style={{
+                          backgroundColor: stamp.stamps?.includes(z.id) ? z.bg : "rgba(0,0,0,0.04)",
+                          color: stamp.stamps?.includes(z.id) ? z.color : "rgba(0,0,0,0.2)",
+                        }}
                       >
-                        {stamp.stamps?.includes(b.id) && <CheckCircle2 size={12} />}
+                        {z.letter}
                       </div>
                     ))}
                   </div>
@@ -204,49 +180,42 @@ export default function AdminCallingZonePage() {
       <div className="bg-white rounded-3xl shadow-sm border border-toss-border overflow-hidden">
         <div className="px-6 py-5 border-b border-toss-border flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Users size={18} className="text-toss-blue" />
+            <Users2 size={18} className="text-toss-blue" />
             <h2 className="font-bold text-toss-black">전체 참가자 스탬프 현황</h2>
           </div>
           <span className="text-sm font-bold text-toss-gray">{allStamps.length}명 참여</span>
         </div>
         <div className="divide-y divide-toss-border max-h-[480px] overflow-y-auto">
           {allStamps.length === 0 ? (
-            <div className="p-12 text-center text-toss-gray text-sm">
-              아직 스탬프를 받은 참가자가 없습니다.
-            </div>
+            <div className="p-12 text-center text-toss-gray text-sm">아직 스탬프를 받은 참가자가 없습니다.</div>
           ) : (
             [...allStamps]
               .sort((a, b) => (b.stamps?.length ?? 0) - (a.stamps?.length ?? 0))
               .map((stamp) => (
                 <div key={stamp.userId} className="px-6 py-4 flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div>
-                      <p className="text-sm font-bold text-toss-black">{stamp.userName}</p>
-                      {stamp.userTeam && (
-                        <p className="text-xs text-toss-gray">{stamp.userTeam}</p>
-                      )}
-                    </div>
+                  <div>
+                    <p className="text-sm font-bold text-toss-black">{stamp.userName}</p>
+                    {stamp.userTeam && <p className="text-xs text-toss-gray">{stamp.userTeam}</p>}
                   </div>
                   <div className="flex items-center gap-3">
                     <span className={`text-xs font-bold px-2 py-0.5 rounded-md ${
-                      stamp.stamps?.length === 4
+                      (stamp.stamps?.length ?? 0) >= 5
                         ? "bg-green-50 text-green-600"
                         : "bg-toss-lightGray text-toss-gray"
                     }`}>
-                      {stamp.stamps?.length ?? 0} / 4
+                      {stamp.stamps?.length ?? 0} / 5
                     </span>
                     <div className="flex gap-1">
-                      {BOOTHS.map((b) => (
+                      {ZONES.map((z) => (
                         <div
-                          key={b.id}
-                          className="w-5 h-5 rounded-md flex items-center justify-center"
+                          key={z.id}
+                          className="w-5 h-5 rounded-md flex items-center justify-center text-[9px] font-black"
                           style={{
-                            backgroundColor: stamp.stamps?.includes(b.id) ? b.bg : "rgba(0,0,0,0.04)",
-                            color: b.color,
+                            backgroundColor: stamp.stamps?.includes(z.id) ? z.bg : "rgba(0,0,0,0.04)",
+                            color: stamp.stamps?.includes(z.id) ? z.color : "rgba(0,0,0,0.2)",
                           }}
-                          title={b.name}
                         >
-                          {stamp.stamps?.includes(b.id) && <CheckCircle2 size={12} />}
+                          {z.letter}
                         </div>
                       ))}
                     </div>

@@ -15,13 +15,14 @@ import { CallingZoneConfig, CallingStamp } from "@/types/database";
 const CONFIG_DOC = doc(db, "callingZoneConfig", "settings");
 const STAMPS_COL = collection(db, "callingStamps");
 
-// 기본 부스 코드 초기값
+// 기본 존 코드 초기값 (zone-a ~ zone-e)
 const DEFAULT_CONFIG: CallingZoneConfig = {
   booths: {
-    comfort:    { code: "1111" },
-    prayer:     { code: "2222" },
-    experience: { code: "3333" },
-    activity:   { code: "4444" },
+    "zone-a": { code: "1111" },
+    "zone-b": { code: "2222" },
+    "zone-c": { code: "3333" },
+    "zone-d": { code: "4444" },
+    "zone-e": { code: "5555" },
   },
 };
 

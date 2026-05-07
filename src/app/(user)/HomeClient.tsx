@@ -208,7 +208,7 @@ export default function Home({
           <QuickLink href="/group" icon={<Users className="text-blue-500" />} label="우리 조" desc="조원 및 조장" />
           <QuickLink href="/resort" icon={<Map className="text-red-400" />} label="리조트 안내" desc="지도 및 식당" />
           <QuickLink href="/lectures" icon={<ClipboardCheck className="text-orange-500" />} label="강의 신청" desc="선택강의" />
-          <QuickLink href="/dispatched-church" icon={<MapPin className="text-purple-500" />} label="파송교회" desc="나의 파송지 확인" />
+          <QuickLink href="/dispatched-church" icon={<MapPin className="text-purple-500" />} label="아웃리치" desc="나의 파송지 확인" />
           <QuickLink href="/vote" icon={<Vote className="text-indigo-500" />} label="실시간 투표" desc="참여하기" />
           <QuickLink href="/lucky-draw" icon={<Zap className="text-rose-400" />} label="실시간 추첨" desc="추첨 확인하기" />
           <QuickLink href="/gallery" icon={<Image className="text-blue-600" />} label="포토앨범" desc="수련회 사진첩" />

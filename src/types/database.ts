@@ -12,7 +12,7 @@ export interface User {
   attendanceType?: string;
 }
 
-export type TeamType = "초신자팀" | "기신자팀" | "1팀" | "2팀" | "3팀" | "4팀" | "5팀" | "6팀" | "웰컴팀" | "임원단" | "사역자";
+export type TeamType = "초신자팀" | "기신자팀" | "1팀" | "2팀" | "3팀" | "4팀" | "5팀" | "6팀" | "웰컴팀" | "임원단" | "사역자" | "부장단";
 export type AttendanceType = "A형" | "B-1형" | "B-2형" | "C형" | "D형";
 
 export interface Participant {

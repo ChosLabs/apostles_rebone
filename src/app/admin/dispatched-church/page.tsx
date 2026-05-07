@@ -87,7 +87,7 @@ export default function AdminDispatchedChurchPage() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm("정말로 이 파송교회를 삭제하시겠습니까?")) return;
+    if (!confirm("정말로 이 아웃리치를 삭제하시겠습니까?")) return;
     try {
       await deleteDispatchedChurch(id);
     } catch (e) {
@@ -101,7 +101,7 @@ export default function AdminDispatchedChurchPage() {
     <div className="flex flex-col gap-8">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-black text-toss-black">파송교회 관리</h1>
+          <h1 className="text-2xl font-black text-toss-black">아웃리치 관리</h1>
           <p className="text-sm text-toss-gray mt-1">파송지 정보를 관리하고 각 교회별로 조(Group)를 배정합니다.</p>
         </div>
         <button
@@ -109,7 +109,7 @@ export default function AdminDispatchedChurchPage() {
           className="bg-toss-blue text-white px-5 py-3 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-blue-600 transition-colors shadow-sm"
         >
           <Plus size={20} />
-          파송교회 추가
+          아웃리치 추가
         </button>
       </div>
 
@@ -180,7 +180,7 @@ export default function AdminDispatchedChurchPage() {
 
           {churches.length === 0 && (
             <div className="col-span-2 py-20 text-center text-toss-gray font-bold text-sm">
-              등록된 파송교회가 없습니다. 추가해주세요.
+              등록된 아웃리치가 없습니다. 추가해주세요.
             </div>
           )}
         </div>
@@ -192,7 +192,7 @@ export default function AdminDispatchedChurchPage() {
           <div className="bg-white w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
             <div className="px-6 py-5 border-b border-toss-border flex justify-between items-center bg-toss-lightGray/30">
               <h2 className="text-xl font-bold text-toss-black">
-                {editingId ? "파송교회 정보 수정" : "새 파송교회 추가"}
+                {editingId ? "아웃리치 정보 수정" : "새 아웃리치 추가"}
               </h2>
               <button onClick={() => setIsModalOpen(false)} className="p-2 hover:bg-white rounded-full transition-colors">
                 <X size={24} className="text-toss-gray" />
