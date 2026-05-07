@@ -1,12 +1,6 @@
 {
   "indexes": [
     {
-<<<<<<< HEAD
-      "collectionGroup": "prayers",
-      "queryScope": "COLLECTION",
-      "fields": [
-        {
-=======
       "collectionGroup": "gallery_links",
       "queryScope": "COLLECTION",
       "fields": [
@@ -15,7 +9,16 @@
           "order": "ASCENDING"
         },
         {
->>>>>>> d3626a55900d3fabd6ba8126b19f04d68bb0aaef
+          "fieldPath": "createdAt",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "prayers",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
           "fieldPath": "createdAt",
           "order": "DESCENDING"
         }

@@ -3,11 +3,7 @@ import { getTimetable } from "@/lib/services/timetableService";
 import { getDailyPrayerByDateServer } from "@/lib/services/dailyPrayerService.server";
 import HomeClient from "./HomeClient";
 
-<<<<<<< HEAD
 export const revalidate = 300; // 5-minute ISR cache; daily prayer changes infrequently
-=======
-export const revalidate = 0;
->>>>>>> d3626a55900d3fabd6ba8126b19f04d68bb0aaef
 
 function getKSTDateString() {
   const now = new Date();
