@@ -43,13 +43,12 @@ export function subscribeInquiries(callback: (list: InquiryData[]) => void) {
 }
 
 export function subscribeUserInquiries(userId: string, callback: (list: InquiryData[]) => void) {
-  const q = query(
-    collection(db, COLL),
-    where("userId", "==", userId),
-    orderBy("createdAt", "desc")
-  );
+  const q = query(collection(db, COLL), where("userId", "==", userId));
   return onSnapshot(q, (snap) => {
-    callback(snap.docs.map((d) => ({ id: d.id, ...d.data() } as InquiryData)));
+    const list = snap.docs
+      .map((d) => ({ id: d.id, ...d.data() } as InquiryData))
+      .sort((a, b) => (b.createdAt?.toMillis?.() ?? 0) - (a.createdAt?.toMillis?.() ?? 0));
+    callback(list);
   });
 }
 
