@@ -14,7 +14,7 @@ import {
   Loader2,
   MapPin
 } from "lucide-react";
-import { collection, onSnapshot, query, orderBy, limit } from "firebase/firestore";
+import { collection, getDocs, query, orderBy, limit } from "firebase/firestore";
 import { db } from "@/lib/firebase/client";
 import { PrayerRequest } from "@/types/database";
 
@@ -42,45 +42,29 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    let resolvedCount = 0;
-    const markResolved = () => {
-      resolvedCount++;
-      if (resolvedCount >= 4) setLoading(false);
+    const fetchData = async () => {
+      const recentQ = query(
+        collection(db, "prayers"),
+        orderBy("createdAt", "desc"),
+        limit(5)
+      );
+      const [participants, notices, prayers, lectures, recentSnap] = await Promise.all([
+        getDocs(collection(db, "participants")),
+        getDocs(collection(db, "notices")),
+        getDocs(collection(db, "prayers")),
+        getDocs(collection(db, "lectures")),
+        getDocs(recentQ),
+      ]);
+      setCounts({
+        participants: participants.size,
+        notices: notices.size,
+        prayers: prayers.size,
+        lectures: lectures.size,
+      });
+      setRecentPrayers(recentSnap.docs.map(d => ({ id: d.id, ...d.data() } as PrayerRequest)));
+      setLoading(false);
     };
-
-    const unsubParticipants = onSnapshot(collection(db, "participants"), (snap) => {
-      setCounts(prev => ({ ...prev, participants: snap.size }));
-      markResolved();
-    });
-    const unsubNotices = onSnapshot(collection(db, "notices"), (snap) => {
-      setCounts(prev => ({ ...prev, notices: snap.size }));
-      markResolved();
-    });
-    const unsubPrayers = onSnapshot(collection(db, "prayers"), (snap) => {
-      setCounts(prev => ({ ...prev, prayers: snap.size }));
-      markResolved();
-    });
-    const unsubLectures = onSnapshot(collection(db, "lectures"), (snap) => {
-      setCounts(prev => ({ ...prev, lectures: snap.size }));
-      markResolved();
-    });
-
-    const recentQ = query(
-      collection(db, "prayers"),
-      orderBy("createdAt", "desc"),
-      limit(5)
-    );
-    const unsubRecent = onSnapshot(recentQ, (snap) => {
-      setRecentPrayers(snap.docs.map(d => ({ id: d.id, ...d.data() } as PrayerRequest)));
-    });
-
-    return () => {
-      unsubParticipants();
-      unsubNotices();
-      unsubPrayers();
-      unsubLectures();
-      unsubRecent();
-    };
+    fetchData();
   }, []);
 
   const stats = [
