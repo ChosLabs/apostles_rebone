@@ -1,50 +1,68 @@
 "use client";
 
-import { useState } from "react";
-import { ArrowLeft, Send, MessageCircle, CheckCircle2, ChevronRight, X, Tag } from "lucide-react";
+import { useState, useEffect } from "react";
+import { ArrowLeft, Send, MessageCircle, CheckCircle2, X, Tag, Loader2 } from "lucide-react";
 import Link from "next/link";
-
-interface Inquiry {
-  id: number;
-  categoryName: string;
-  title: string;
-  content: string;
-  status: "pending" | "answered";
-  createdAt: string;
-  answer?: string;
-  answeredAt?: string;
-}
+import { useAuth } from "@/components/providers/AuthProvider";
+import {
+  addInquiry,
+  subscribeUserInquiries,
+  InquiryData,
+} from "@/lib/services/inquiryService";
 
 const DEFAULT_CATEGORIES = ["식사/숙소", "일정/프로그램", "기타"];
 
+function formatTs(ts: any): string {
+  if (!ts) return "";
+  const d = ts.toDate ? ts.toDate() : new Date(ts);
+  return `${d.getFullYear()}. ${d.getMonth() + 1}. ${d.getDate()} ${d.getHours()}:${String(d.getMinutes()).padStart(2, "0")}`;
+}
+
 export default function InquiryPage() {
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<"list" | "form">("list");
-  const [inquiries, setInquiries] = useState<Inquiry[]>([]);
-  const [selectedInquiry, setSelectedInquiry] = useState<Inquiry | null>(null);
+  const [inquiries, setInquiries] = useState<InquiryData[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedInquiry, setSelectedInquiry] = useState<InquiryData | null>(null);
+  const [submitting, setSubmitting] = useState(false);
 
   const [newCategory, setNewCategory] = useState(DEFAULT_CATEGORIES[0]);
   const [newTitle, setNewTitle] = useState("");
   const [newContent, setNewContent] = useState("");
 
-  const handleSubmit = (e: React.FormEvent) => {
+  useEffect(() => {
+    if (!user?.uid) return;
+    const unsub = subscribeUserInquiries(user.uid, (list) => {
+      setInquiries(list);
+      setLoading(false);
+    });
+    return unsub;
+  }, [user?.uid]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newTitle || !newContent) return;
-
-    const inquiry: Inquiry = {
-      id: Date.now(),
-      categoryName: newCategory,
-      title: newTitle,
-      content: newContent,
-      status: "pending",
-      createdAt: new Date().toLocaleString(),
-    };
-
-    setInquiries([inquiry, ...inquiries]);
-    setNewCategory(DEFAULT_CATEGORIES[0]);
-    setNewTitle("");
-    setNewContent("");
-    setActiveTab("list");
-    alert("문의가 등록되었습니다. 최대한 빨리 답변 드리겠습니다!");
+    if (!newTitle || !newContent || !user) return;
+    setSubmitting(true);
+    try {
+      await addInquiry({
+        userId: user.uid,
+        userName: user.name,
+        userGroup: user.group ? `${user.group}조` : (user.team ?? ""),
+        categoryName: newCategory,
+        title: newTitle,
+        content: newContent,
+      });
+      setNewCategory(DEFAULT_CATEGORIES[0]);
+      setNewTitle("");
+      setNewContent("");
+      setActiveTab("list");
+      alert("문의가 등록되었습니다. 최대한 빨리 답변 드리겠습니다!");
+    } catch (err) {
+      console.error(err);
+      alert("문의 등록에 실패했습니다. 다시 시도해주세요.");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -74,7 +92,11 @@ export default function InquiryPage() {
       <main className="p-4 flex flex-col gap-4">
         {activeTab === "list" ? (
           <div className="flex flex-col gap-3">
-            {inquiries.length > 0 ? (
+            {loading ? (
+              <div className="flex justify-center py-20">
+                <Loader2 className="animate-spin text-toss-blue" size={28} />
+              </div>
+            ) : inquiries.length > 0 ? (
               inquiries.map((inquiry) => (
                 <div
                   key={inquiry.id}
@@ -91,7 +113,7 @@ export default function InquiryPage() {
                         {inquiry.categoryName}
                       </span>
                     </div>
-                    <span className="text-[11px] text-toss-gray">{inquiry.createdAt.split(" ")[0]}</span>
+                    <span className="text-[11px] text-toss-gray">{formatTs(inquiry.createdAt).split(" ").slice(0, 3).join(" ")}</span>
                   </div>
                   <h3 className="text-[15px] font-bold text-toss-black mb-1 group-hover:text-toss-blue transition-colors truncate">
                     {inquiry.title}
@@ -161,9 +183,10 @@ export default function InquiryPage() {
               </div>
               <button
                 type="submit"
-                className="w-full bg-toss-blue text-white py-4 rounded-xl font-bold mt-4 shadow-lg shadow-toss-blue/20 active:scale-95 transition-all flex items-center justify-center gap-2"
+                disabled={submitting}
+                className="w-full bg-toss-blue text-white py-4 rounded-xl font-bold mt-4 shadow-lg shadow-toss-blue/20 active:scale-95 transition-all flex items-center justify-center gap-2 disabled:opacity-60"
               >
-                <Send size={18} />
+                {submitting ? <Loader2 size={18} className="animate-spin" /> : <Send size={18} />}
                 보내기
               </button>
             </div>
@@ -171,7 +194,6 @@ export default function InquiryPage() {
         )}
       </main>
 
-      {/* Inquiry Detail Modal */}
       {selectedInquiry && (
         <div className="fixed inset-0 z-[100] flex items-end justify-center sm:items-center p-0 sm:p-4 bg-black/40 backdrop-blur-sm" onClick={() => setSelectedInquiry(null)}>
           <div className="bg-white w-full max-w-[420px] rounded-t-3xl sm:rounded-3xl p-6 shadow-2xl animate-in slide-in-from-bottom duration-300 max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
@@ -187,7 +209,7 @@ export default function InquiryPage() {
                   </span>
                 </div>
                 <h2 className="text-xl font-bold text-toss-black mt-2">{selectedInquiry.title}</h2>
-                <span className="text-xs text-toss-gray">{selectedInquiry.createdAt}</span>
+                <span className="text-xs text-toss-gray">{formatTs(selectedInquiry.createdAt)}</span>
               </div>
               <button onClick={() => setSelectedInquiry(null)} className="p-2 hover:bg-toss-lightGray rounded-full transition-colors">
                 <X size={24} className="text-toss-gray" />
@@ -203,7 +225,7 @@ export default function InquiryPage() {
                 <div className="flex items-center gap-2 mb-3 text-toss-blue">
                   <CheckCircle2 size={18} />
                   <span className="font-bold text-sm">운영진 답변</span>
-                  <span className="text-[11px] text-toss-gray font-normal ml-auto">{selectedInquiry.answeredAt}</span>
+                  <span className="text-[11px] text-toss-gray font-normal ml-auto">{formatTs(selectedInquiry.answeredAt)}</span>
                 </div>
                 <div className="bg-blue-50/50 border border-toss-blue/10 p-4 rounded-2xl">
                   <p className="text-[15px] text-toss-black leading-relaxed whitespace-pre-wrap">{selectedInquiry.answer}</p>
