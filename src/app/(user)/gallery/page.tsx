@@ -25,7 +25,7 @@ export default function GalleryPage() {
       })) as GalleryLinkType[];
       setLinks(docs);
       setLoading(false);
-    });
+    }, () => setLoading(false));
 
     return () => unsubscribe();
   }, []);

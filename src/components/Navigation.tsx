@@ -1,6 +1,7 @@
 "use client";
 
 import { Home, Calendar, Heart, Zap, Menu, User } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -39,8 +40,8 @@ export function GlobalHeader() {
 
   return (
     <header className="sticky top-0 z-50 bg-background px-5 py-4 flex justify-between items-center h-16">
-      <h1 className="text-2xl font-black text-toss-blue tracking-tight italic">
-        Re:본
+      <h1>
+        <Image src="/rebon_logo_blue.png" alt="Re:본" height={32} width={80} className="object-contain translate-y-1" />
       </h1>
       <div className="flex gap-4 items-center">
         <Link href="/profile" className="flex items-center gap-2 cursor-pointer group bg-white border border-toss-border/50 py-1 pl-3 pr-1 rounded-full hover:border-toss-blue/20 transition-all shadow-sm">

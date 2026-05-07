@@ -116,11 +116,14 @@ export interface Poll {
   createdAt: any;
 }
 
+export type LectureType = "실천형" | "나눔형" | "이론형" | "상담형";
+
 export interface Lecture {
   id: string;
   title: string;
   lecturer: string;
-  location: string;
+  location: string; // Calling Zone (e.g. "ZONE B")
+  lectureType?: LectureType;
   description: string;
   capacity: number;
   applicantIds: string[]; // participant UIDs who applied

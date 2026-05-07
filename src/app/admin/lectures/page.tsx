@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import {
   BookOpen, Plus, Trash2, Edit, X, Users,
-  CheckCircle2, XCircle, Info, Loader2
+  CheckCircle2, XCircle, Info, Loader2, MapPin, Tag
 } from "lucide-react";
 import { clsx } from "clsx";
 import {
@@ -15,18 +15,36 @@ import {
   setRegistrationOpen,
 } from "@/lib/services/lectureService";
 import { getParticipants } from "@/lib/services/participantService";
-import { Lecture, Participant } from "@/types/database";
+import { Lecture, LectureType, Participant } from "@/types/database";
+
+const LECTURE_TYPE_OPTIONS: LectureType[] = ["실천형", "나눔형", "이론형", "상담형"];
+
+const LECTURE_TYPE_STYLE: Record<LectureType, string> = {
+  실천형: "bg-green-50 text-green-600",
+  나눔형: "bg-purple-50 text-purple-600",
+  이론형: "bg-blue-50 text-toss-blue",
+  상담형: "bg-orange-50 text-orange-500",
+};
+
+const ZONE_STYLE: Record<string, string> = {
+  "ZONE A": "bg-red-50 text-red-500",
+  "ZONE B": "bg-yellow-50 text-yellow-600",
+  "ZONE C": "bg-green-50 text-green-600",
+  "ZONE D": "bg-blue-50 text-toss-blue",
+  "ZONE E": "bg-purple-50 text-purple-600",
+};
 
 type LectureForm = {
   title: string;
   lecturer: string;
   location: string;
+  lectureType: LectureType | "";
   description: string;
   capacity: number;
 };
 
 const EMPTY_FORM: LectureForm = {
-  title: "", lecturer: "", location: "", description: "", capacity: 30,
+  title: "", lecturer: "", location: "", lectureType: "", description: "", capacity: 30,
 };
 
 export default function AdminLecturesPage() {
@@ -70,6 +88,7 @@ export default function AdminLecturesPage() {
       title: lecture.title,
       lecturer: lecture.lecturer,
       location: lecture.location,
+      lectureType: lecture.lectureType ?? "",
       description: lecture.description,
       capacity: lecture.capacity,
     });
@@ -83,10 +102,11 @@ export default function AdminLecturesPage() {
     }
     try {
       setIsSaving(true);
+      const payload = { ...form, lectureType: form.lectureType || undefined };
       if (editingLecture) {
-        await updateLecture(editingLecture.id, form);
+        await updateLecture(editingLecture.id, payload);
       } else {
-        await addLecture(form);
+        await addLecture(payload);
       }
       setIsAdding(false);
       setEditingLecture(null);
@@ -193,7 +213,7 @@ export default function AdminLecturesPage() {
             <thead>
               <tr className="bg-toss-lightGray/50 text-toss-gray text-[10px] lg:text-[11px] font-black uppercase tracking-wider">
                 <th className="px-6 py-4">강의 정보</th>
-                <th className="px-6 py-4">강사 / 장소</th>
+                <th className="px-6 py-4">강사 / 존</th>
                 <th className="px-6 py-4">신청 현황</th>
                 <th className="px-6 py-4 text-right">관리</th>
               </tr>
@@ -218,15 +238,32 @@ export default function AdminLecturesPage() {
                   return (
                     <tr key={lecture.id} className="hover:bg-toss-lightGray/20 transition-colors group">
                       <td className="px-6 py-5">
-                        <div className="flex flex-col gap-0.5 min-w-[200px]">
-                          <span className="text-sm font-bold text-toss-black">{lecture.title}</span>
+                        <div className="flex flex-col gap-1 min-w-[200px]">
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <span className="text-sm font-bold text-toss-black">{lecture.title}</span>
+                            {lecture.lectureType && (
+                              <span className={clsx(
+                                "text-[10px] font-black px-1.5 py-0.5 rounded shrink-0",
+                                LECTURE_TYPE_STYLE[lecture.lectureType]
+                              )}>
+                                #{lecture.lectureType}
+                              </span>
+                            )}
+                          </div>
                           <p className="text-[11px] text-toss-gray line-clamp-1">{lecture.description}</p>
                         </div>
                       </td>
                       <td className="px-6 py-5">
-                        <div className="flex flex-col">
+                        <div className="flex flex-col gap-1">
                           <span className="text-sm font-bold text-toss-black">{lecture.lecturer}</span>
-                          <span className="text-[11px] text-toss-gray font-medium">{lecture.location}</span>
+                          {lecture.location && (
+                            <span className={clsx(
+                              "text-[10px] font-black px-1.5 py-0.5 rounded w-fit",
+                              ZONE_STYLE[lecture.location] ?? "bg-toss-lightGray text-toss-gray"
+                            )}>
+                              {lecture.location}
+                            </span>
+                          )}
                         </div>
                       </td>
                       <td className="px-6 py-5">
@@ -359,13 +396,34 @@ export default function AdminLecturesPage() {
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-xs font-black text-toss-gray px-1 uppercase tracking-wider">장소</label>
+                  <label className="text-xs font-black text-toss-gray px-1 uppercase tracking-wider">연결 존</label>
                   <input
                     type="text"
                     value={form.location}
                     onChange={(e) => setForm((f) => ({ ...f, location: e.target.value }))}
+                    placeholder="예: ZONE B"
                     className="w-full px-4 py-3 rounded-xl border border-toss-border focus:border-toss-blue outline-none transition-all font-bold text-sm"
                   />
+                </div>
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-xs font-black text-toss-gray px-1 uppercase tracking-wider">유형</label>
+                <div className="flex gap-2 flex-wrap">
+                  {LECTURE_TYPE_OPTIONS.map((type) => (
+                    <button
+                      key={type}
+                      type="button"
+                      onClick={() => setForm((f) => ({ ...f, lectureType: f.lectureType === type ? "" : type }))}
+                      className={clsx(
+                        "px-3 py-2 rounded-xl text-xs font-black border transition-all",
+                        form.lectureType === type
+                          ? LECTURE_TYPE_STYLE[type] + " border-transparent"
+                          : "bg-white border-toss-border text-toss-gray"
+                      )}
+                    >
+                      #{type}
+                    </button>
+                  ))}
                 </div>
               </div>
               <div className="space-y-1.5">
