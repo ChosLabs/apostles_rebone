@@ -244,13 +244,20 @@ function MemberCard({ member, isLeader = false }: { member: Participant; isLeade
             <p className="text-[11px] text-toss-gray font-medium mt-0.5">{member.team}</p>
           </div>
         </div>
-        <div className="flex flex-col items-end gap-1">
-          {member.room && (
-            <div className="flex items-center gap-1 text-[11px] font-bold text-toss-blue bg-toss-blue/5 px-2 py-0.5 rounded-lg">
-              {member.room}
-            </div>
-          )}
-          <span className="text-[11px] font-mono font-medium text-toss-gray/60">{member.phone}</span>
+        <div className="flex flex-col items-end gap-1.5">
+          <div className="flex items-center gap-1.5">
+            {member.birthYear && (
+              <span className="text-[11px] font-bold text-toss-gray bg-toss-lightGray px-2 py-0.5 rounded-lg">
+                {member.birthYear}또래
+              </span>
+            )}
+            {member.room && (
+              <span className="text-[11px] font-bold text-toss-blue bg-toss-blue/5 px-2 py-0.5 rounded-lg">
+                {member.room}
+              </span>
+            )}
+          </div>
+          <span className="text-[11px] font-mono font-medium text-toss-gray">{member.phone}</span>
         </div>
       </div>
     </div>

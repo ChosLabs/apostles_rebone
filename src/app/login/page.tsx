@@ -53,6 +53,7 @@ export default function LoginPage() {
             height={220}
             className="mx-auto"
             priority
+            loading="eager"
           />
           <p className="text-[15px] font-bold text-toss-gray/60 tracking-tight animate-in fade-in slide-in-from-bottom-4 duration-700 delay-100">
             2026 Apostles Summer Retreat

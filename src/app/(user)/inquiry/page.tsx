@@ -1,12 +1,13 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { ArrowLeft, Send, MessageCircle, CheckCircle2, X, Tag, Loader2 } from "lucide-react";
+import { ArrowLeft, Send, MessageCircle, CheckCircle2, X, Tag, Loader2, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useAuth } from "@/components/providers/AuthProvider";
 import {
   addInquiry,
   subscribeUserInquiries,
+  deleteInquiry,
   InquiryData,
 } from "@/lib/services/inquiryService";
 
@@ -25,6 +26,7 @@ export default function InquiryPage() {
   const [loading, setLoading] = useState(true);
   const [selectedInquiry, setSelectedInquiry] = useState<InquiryData | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   const [newCategory, setNewCategory] = useState(DEFAULT_CATEGORIES[0]);
   const [newTitle, setNewTitle] = useState("");
@@ -38,6 +40,20 @@ export default function InquiryPage() {
     });
     return unsub;
   }, [user?.uid]);
+
+  const handleDelete = async (inquiry: InquiryData) => {
+    if (!confirm("문의를 삭제할까요?")) return;
+    setDeleting(true);
+    try {
+      await deleteInquiry(inquiry.id);
+      setSelectedInquiry(null);
+    } catch (err) {
+      console.error(err);
+      alert("삭제에 실패했습니다. 다시 시도해주세요.");
+    } finally {
+      setDeleting(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -233,7 +249,17 @@ export default function InquiryPage() {
               </div>
             )}
 
-            <button onClick={() => setSelectedInquiry(null)} className="w-full bg-toss-blue text-white font-bold py-4 rounded-xl active:scale-95 transition-all mt-8">닫기</button>
+            <div className="flex gap-3 mt-8">
+              <button
+                onClick={() => handleDelete(selectedInquiry)}
+                disabled={deleting}
+                className="flex-1 bg-red-50 text-red-500 font-bold py-4 rounded-xl active:scale-95 transition-all flex items-center justify-center gap-2 disabled:opacity-60"
+              >
+                {deleting ? <Loader2 size={16} className="animate-spin" /> : <Trash2 size={16} />}
+                삭제
+              </button>
+              <button onClick={() => setSelectedInquiry(null)} className="flex-[2] bg-toss-blue text-white font-bold py-4 rounded-xl active:scale-95 transition-all">닫기</button>
+            </div>
           </div>
         </div>
       )}

@@ -22,7 +22,7 @@ export default function LuckyDrawPage() {
   return (
     <div className="flex flex-col min-h-screen bg-[#f8f9fa] pb-24">
       <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-md px-5 py-4 flex items-center gap-4 border-b border-toss-border/40">
-        <Link href="/more" className="p-2 -ml-2 hover:bg-toss-lightGray rounded-full transition-colors active:scale-90">
+        <Link href="/" className="p-2 -ml-2 hover:bg-toss-lightGray rounded-full transition-colors active:scale-90">
           <ArrowLeft size={24} className="text-toss-black" />
         </Link>
         <h1 className="text-[17px] font-bold text-toss-black">추첨</h1>
