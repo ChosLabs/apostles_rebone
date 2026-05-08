@@ -39,7 +39,7 @@ export default function PrayClient({
   return (
     <div className="flex flex-col gap-4 pb-8 px-4">
       {/* 1. 오늘의 기도제목 (Pinned) */}
-      <div className="bg-white rounded-toss p-6 shadow-[0_2px_8px_rgba(0,0,0,0.04)] border border-toss-blue/10 relative overflow-hidden mt-2">
+      <div className="bg-white dark:bg-surface rounded-toss p-6 shadow-[0_2px_8px_rgba(0,0,0,0.04)] border border-toss-blue/10 relative overflow-hidden mt-2">
         <div className="absolute top-0 right-0 p-4 opacity-10">
           <Sparkles size={40} className="text-toss-blue" />
         </div>
@@ -67,7 +67,7 @@ export default function PrayClient({
       </div>
 
       {/* 2. 기도시기 작성 섹션 */}
-      <div className="bg-white rounded-toss p-5 shadow-[0_2px_8px_rgba(0,0,0,0.04)] border border-toss-border/40">
+      <div className="bg-white dark:bg-surface rounded-toss p-5 shadow-[0_2px_8px_rgba(0,0,0,0.04)] border border-toss-border/40">
         <h3 className="text-sm font-bold text-toss-black mb-4 flex items-center gap-2">
           <PenLine size={16} className="text-toss-blue" />
           기도제목 나누기
@@ -76,7 +76,7 @@ export default function PrayClient({
           placeholder="나누고 싶은 기도제목을 적어주세요..."
           value={content}
           onChange={(e) => setContent(e.target.value)}
-          className="w-full bg-toss-lightGray/50 border-none rounded-xl p-4 text-sm min-h-[100px] focus:ring-1 focus:ring-toss-blue/20 transition-all placeholder:text-toss-gray/40 mb-3"
+          className="w-full bg-toss-lightGray/50 dark:bg-surface text-toss-black border border-toss-border/30 rounded-xl p-4 text-sm min-h-[100px] focus:ring-1 focus:ring-toss-blue/20 focus:outline-none transition-all placeholder:text-toss-gray/40 mb-3"
         />
         <div className="flex justify-between items-center">
           <label className="flex items-center gap-2 cursor-pointer group">
@@ -130,7 +130,7 @@ export default function PrayClient({
 function PrayNavButton({ href, icon, title, desc }: { href: string; icon: React.ReactNode; title: string; desc: string }) {
   return (
     <Link href={href}>
-      <div className="bg-white p-4 rounded-toss shadow-[0_2px_8px_rgba(0,0,0,0.04)] border border-toss-border/40 flex items-center justify-between active:scale-[0.98] transition-all group">
+      <div className="bg-white dark:bg-surface p-4 rounded-toss shadow-[0_2px_8px_rgba(0,0,0,0.04)] border border-toss-border/40 flex items-center justify-between active:scale-[0.98] transition-all group">
         <div className="flex items-center gap-4">
           <div className="w-12 h-12 rounded-2xl bg-toss-lightGray flex items-center justify-center group-hover:bg-toss-blue/5 transition-colors">
             {icon}

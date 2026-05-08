@@ -10,23 +10,27 @@ import {
   LogOut,
   ChevronRight,
   ShieldCheck,
-  Settings
+  Settings,
+  Sun,
+  Moon,
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/components/providers/AuthProvider";
+import { useTheme } from "@/components/providers/ThemeProvider";
 import { logout } from "@/lib/services/authService";
 
 export default function MyProfilePage() {
   const router = useRouter();
   const { user } = useAuth();
+  const { theme, toggleTheme } = useTheme();
 
   if (!user) return null;
 
   return (
-    <div className="min-h-screen bg-[#f8f9fa] pb-20">
+    <div className="min-h-screen bg-[#f8f9fa] dark:bg-background pb-20">
       {/* Header */}
-      <div className="bg-white px-5 pt-8 pb-6 border-b border-toss-border/50">
+      <div className="bg-white dark:bg-surface px-5 pt-8 pb-6 border-b border-toss-border/50">
         <div className="flex items-center justify-between mb-6">
           <button 
             onClick={() => router.back()}
@@ -62,7 +66,7 @@ export default function MyProfilePage() {
       {/* Profile Sections */}
       <div className="px-5 py-6 space-y-4">
         {/* Retreat Info */}
-        <section className="bg-white rounded-3xl p-6 shadow-sm border border-toss-border/30">
+        <section className="bg-white dark:bg-surface rounded-3xl p-6 shadow-sm border border-toss-border/30">
           <h3 className="text-xs font-black text-toss-gray uppercase tracking-widest mb-5 italic flex items-center gap-2">
             <ShieldCheck size={14} className="text-toss-blue" />
             수련회 배정 정보
@@ -77,7 +81,12 @@ export default function MyProfilePage() {
         </section>
 
         {/* Action List */}
-        <div className="bg-white rounded-3xl overflow-hidden shadow-sm border border-toss-border/30">
+        <div className="bg-white dark:bg-surface rounded-3xl overflow-hidden shadow-sm border border-toss-border/30">
+          <MenuLink
+            icon={theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}
+            label={theme === "dark" ? "라이트 모드" : "다크 모드"}
+            onClick={toggleTheme}
+          />
           <MenuLink
             icon={<LogOut size={18} />}
             label="로그아웃"

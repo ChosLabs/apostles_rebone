@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef } from "react";
-import { ChevronLeft, MapPin, Utensils, Home, Church, Info, Navigation as NavIcon } from "lucide-react";
+import { ArrowLeft, ChevronLeft, MapPin, Utensils, Home, Church, Info, Navigation as NavIcon } from "lucide-react";
 import Link from "next/link";
 
 type Location = {
@@ -74,10 +74,12 @@ export default function ResortPage() {
   };
 
   return (
-    <div className="min-h-screen bg-toss-lightGray pb-24">
-      <header className="bg-white sticky top-0 z-50 border-b border-toss-border h-12 flex items-center px-4">
-        <Link href="/" className="p-2 -ml-2"><ChevronLeft size={20} /></Link>
-        <h1 className="flex-1 text-center font-bold text-[15px] mr-8">리조트 안내</h1>
+    <div className="min-h-screen bg-toss-lightGray dark:bg-background pb-24">
+      <header className="sticky top-0 z-50 bg-white dark:bg-surface px-5 py-4 flex items-center gap-4 border-b border-toss-border/40">
+        <Link href="/" className="p-1 -ml-1 hover:bg-toss-lightGray rounded-full transition-colors">
+          <ArrowLeft size={24} className="text-toss-black" />
+        </Link>
+        <h1 className="text-lg font-bold text-toss-black">리조트 안내</h1>
       </header>
 
       <main className="max-w-[420px] mx-auto p-4 space-y-6">
@@ -88,7 +90,7 @@ export default function ResortPage() {
             <span className="text-[10px] text-toss-blue font-bold bg-toss-blue/5 px-2 py-0.5 rounded-md italic">Pyeongchang</span>
           </div>
           
-          <div className="relative aspect-[1020/512] bg-white rounded-3xl border border-toss-border shadow-sm overflow-hidden">
+          <div className="relative aspect-[1020/512] bg-white dark:bg-surface rounded-3xl border border-toss-border shadow-sm overflow-hidden">
             {/* Real Map Image */}
             <img 
               src="/base_place.jpg" 
@@ -156,7 +158,7 @@ export default function ResortPage() {
               <p className="text-[13px] text-white/90 leading-relaxed font-medium">{selectedLocation.detail}</p>
             </div>
           ) : (
-            <div className="bg-white/60 p-6 rounded-3xl border border-dashed border-toss-border/60 flex flex-col items-center justify-center text-center">
+            <div className="bg-white/60 dark:bg-surface/60 p-6 rounded-3xl border border-dashed border-toss-border/60 flex flex-col items-center justify-center text-center">
               <MapPin size={24} className="text-toss-gray/30 mb-2" />
               <p className="text-xs text-toss-gray font-medium">장소를 선택하면 상세 안내가 표시됩니다.</p>
             </div>
@@ -171,7 +173,7 @@ export default function ResortPage() {
               <div 
                 key={loc.id}
                 onClick={() => handleLocationSelect(loc.id)}
-                className={`bg-white p-4 rounded-toss border transition-all active:scale-[0.98] cursor-pointer flex items-center gap-4 ${
+                className={`bg-white dark:bg-surface p-4 rounded-toss border transition-all active:scale-[0.98] cursor-pointer flex items-center gap-4 ${
                   selectedId === loc.id ? 'border-toss-blue ring-1 ring-toss-blue/10 shadow-md' : 'border-toss-border/40 shadow-sm'
                 }`}
               >
@@ -198,7 +200,7 @@ export default function ResortPage() {
 
         {/* 4. Tips */}
         <div className="bg-blue-50/50 p-5 rounded-3xl border border-blue-100/50 flex gap-4">
-          <div className="bg-white p-2 rounded-xl shadow-sm h-fit">
+          <div className="bg-white dark:bg-surface p-2 rounded-xl shadow-sm h-fit">
             <Info size={18} className="text-toss-blue" />
           </div>
           <div>

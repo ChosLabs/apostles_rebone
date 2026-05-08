@@ -67,8 +67,8 @@ export default function GroupPrayersPage() {
   );
 
   return (
-    <div className="min-h-screen bg-toss-lightGray pb-20">
-      <header className="bg-white sticky top-0 z-50 border-b border-toss-border h-12 flex items-center px-4">
+    <div className="min-h-screen bg-toss-lightGray dark:bg-background pb-20">
+      <header className="sticky top-0 z-50 bg-white dark:bg-surface px-5 py-4 flex items-center gap-4 border-b border-toss-border/40">
         <Link href="/pray" className="p-2 -ml-2"><ChevronLeft size={20} /></Link>
         <h1 className="flex-1 text-center font-bold text-[15px] mr-8">우리 조 기도제목</h1>
       </header>
@@ -88,12 +88,12 @@ export default function GroupPrayersPage() {
             placeholder="이름 또는 내용으로 검색..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-3 rounded-xl bg-white border border-toss-border/40 text-sm focus:ring-1 focus:ring-toss-blue outline-none transition-all shadow-sm"
+            className="w-full pl-10 pr-4 py-3 rounded-xl bg-white dark:bg-surface border border-toss-border/40 text-sm focus:ring-1 focus:ring-toss-blue outline-none transition-all shadow-sm"
           />
         </div>
 
         {!user?.group ? (
-          <div className="py-20 text-center text-toss-gray text-sm bg-white rounded-3xl border border-dashed border-toss-border/60">
+          <div className="py-20 text-center text-toss-gray text-sm bg-white dark:bg-surface rounded-3xl border border-dashed border-toss-border/60">
             조 배정 후 이용 가능합니다.
           </div>
         ) : loading ? (
@@ -108,7 +108,7 @@ export default function GroupPrayersPage() {
               <div
                 key={p.id}
                 onClick={() => setSelectedPrayer(p)}
-                className="bg-white p-5 rounded-toss shadow-sm border border-toss-border/40 animate-in fade-in duration-500 cursor-pointer active:scale-[0.98] transition-all"
+                className="bg-white dark:bg-surface p-5 rounded-toss shadow-sm border border-toss-border/40 animate-in fade-in duration-500 cursor-pointer active:scale-[0.98] transition-all"
               >
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-2">
@@ -139,7 +139,7 @@ export default function GroupPrayersPage() {
             );
           })
         ) : (
-          <div className="py-20 text-center text-toss-gray text-sm bg-white rounded-3xl border border-dashed border-toss-border/60">
+          <div className="py-20 text-center text-toss-gray text-sm bg-white dark:bg-surface rounded-3xl border border-dashed border-toss-border/60">
             {searchTerm ? "검색 결과가 없습니다." : "우리 조의 첫 번째 기도제목을 올려보세요!"}
           </div>
         )}
@@ -148,7 +148,7 @@ export default function GroupPrayersPage() {
         const hasPrayed = user ? selectedPrayer.likes?.includes(user.uid) : false;
         return (
           <div className="fixed inset-0 z-[100] flex items-end justify-center sm:items-center p-0 sm:p-4 bg-black/40 backdrop-blur-sm" onClick={() => setSelectedPrayer(null)}>
-            <div className="bg-white w-full max-w-[420px] rounded-t-3xl sm:rounded-3xl p-6 shadow-2xl animate-in slide-in-from-bottom duration-300 max-h-[80vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+            <div className="bg-white dark:bg-surface w-full max-w-[420px] rounded-t-3xl sm:rounded-3xl p-6 shadow-2xl animate-in slide-in-from-bottom duration-300 max-h-[80vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
               <div className="flex justify-between items-start mb-4">
                 <div className="flex items-center gap-2 flex-wrap">
                   <span className={`text-[14px] font-bold ${selectedPrayer.userName === '익명' ? 'text-toss-gray' : 'text-toss-black'}`}>

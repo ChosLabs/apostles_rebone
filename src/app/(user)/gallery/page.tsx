@@ -31,8 +31,8 @@ export default function GalleryPage() {
   }, []);
 
   return (
-    <div className="flex flex-col min-h-screen bg-[#F2F4F6] pb-20">
-      <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-md px-5 py-4 flex items-center gap-4 border-b border-toss-border/40">
+    <div className="flex flex-col min-h-screen bg-[#F2F4F6] dark:bg-background pb-20">
+      <header className="sticky top-0 z-50 bg-white dark:bg-surface px-5 py-4 flex items-center gap-4 border-b border-toss-border/40">
         <Link href="/" className="p-1 -ml-1 hover:bg-toss-lightGray rounded-full transition-colors">
           <ArrowLeft size={24} className="text-toss-black" />
         </Link>
@@ -40,7 +40,7 @@ export default function GalleryPage() {
       </header>
 
       <main className="p-4 flex flex-col gap-4">
-        <div className="bg-white rounded-3xl p-6 shadow-sm border border-toss-border/40">
+        <div className="bg-white dark:bg-surface rounded-3xl p-6 shadow-sm border border-toss-border/40">
           <div className="flex items-center gap-3 mb-2">
             <div className="w-10 h-10 bg-toss-blue/10 text-toss-blue rounded-full flex items-center justify-center">
               <Camera size={20} />
@@ -61,7 +61,7 @@ export default function GalleryPage() {
               <p className="text-sm font-medium">앨범을 불러오는 중...</p>
             </div>
           ) : links.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-20 bg-white rounded-3xl border border-dashed border-toss-border/60 text-center px-6">
+            <div className="flex flex-col items-center justify-center py-20 bg-white dark:bg-surface rounded-3xl border border-dashed border-toss-border/60 text-center px-6">
               <div className="w-12 h-12 bg-toss-lightGray rounded-full flex items-center justify-center text-toss-gray/30 mb-3">
                 <ImageIcon size={24} />
               </div>
@@ -76,7 +76,7 @@ export default function GalleryPage() {
                   href={link.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="bg-white p-5 rounded-3xl shadow-sm border border-toss-border/40 flex items-center justify-between hover:bg-toss-lightGray/30 active:scale-[0.98] transition-all group"
+                  className="bg-white dark:bg-surface p-5 rounded-3xl shadow-sm border border-toss-border/40 flex items-center justify-between hover:bg-toss-lightGray/30 active:scale-[0.98] transition-all group"
                 >
                   <div className="flex flex-col gap-1 pr-4">
                     <h4 className="text-base font-bold text-toss-black group-hover:text-toss-blue transition-colors">
@@ -86,7 +86,7 @@ export default function GalleryPage() {
                       <p className="text-xs text-toss-gray line-clamp-1">{link.description}</p>
                     )}
                   </div>
-                  <div className="shrink-0 w-10 h-10 bg-[#F2F4F6] rounded-full flex items-center justify-center text-toss-gray group-hover:bg-toss-blue/10 group-hover:text-toss-blue transition-all">
+                  <div className="shrink-0 w-10 h-10 bg-[#F2F4F6] dark:bg-toss-lightGray rounded-full flex items-center justify-center text-toss-gray group-hover:bg-toss-blue/10 group-hover:text-toss-blue transition-all">
                     <ExternalLink size={18} />
                   </div>
                 </a>

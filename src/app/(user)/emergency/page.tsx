@@ -24,7 +24,7 @@ export default function EmergencyPage() {
 
   return (
     <div className="flex flex-col min-h-screen bg-background pb-20">
-      <header className="sticky top-0 z-50 bg-white px-5 py-4 flex items-center gap-4 border-b border-toss-border/40">
+      <header className="sticky top-0 z-50 bg-white dark:bg-surface px-5 py-4 flex items-center gap-4 border-b border-toss-border/40">
         <Link href="/" className="p-1 -ml-1 hover:bg-toss-lightGray rounded-full transition-colors">
           <ArrowLeft size={24} className="text-toss-black" />
         </Link>
@@ -49,7 +49,7 @@ export default function EmergencyPage() {
             <Loader2 className="animate-spin text-toss-blue" size={28} />
           </div>
         ) : contacts.length === 0 ? (
-          <div className="bg-white p-12 rounded-toss text-center border border-toss-border/40 flex flex-col items-center gap-3">
+          <div className="bg-white dark:bg-surface p-12 rounded-toss text-center border border-toss-border/40 flex flex-col items-center gap-3">
             <Phone size={28} className="text-toss-gray/40" />
             <p className="text-sm font-bold text-toss-black">등록된 비상 연락처가 없습니다</p>
             <p className="text-xs text-toss-gray">운영진이 연락처를 등록하면 여기에 표시됩니다.</p>
@@ -60,7 +60,7 @@ export default function EmergencyPage() {
               <div
                 key={contact.id}
                 onClick={() => handleCall(contact.phone)}
-                className="bg-white p-4 rounded-toss shadow-sm border border-toss-border/40 flex justify-between items-center active:scale-[0.98] transition-all cursor-pointer"
+                className="bg-white dark:bg-surface p-4 rounded-toss shadow-sm border border-toss-border/40 flex justify-between items-center active:scale-[0.98] transition-all cursor-pointer"
               >
                 <div className="flex items-center gap-4">
                   <div className="w-10 h-10 rounded-full bg-toss-lightGray flex items-center justify-center shrink-0">

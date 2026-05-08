@@ -47,7 +47,7 @@ export default function VotePage() {
 
   return (
     <div className="flex flex-col min-h-screen bg-background pb-20">
-      <header className="sticky top-0 z-50 bg-white px-5 py-4 flex items-center gap-4 border-b border-toss-border/40">
+      <header className="sticky top-0 z-50 bg-white dark:bg-surface px-5 py-4 flex items-center gap-4 border-b border-toss-border/40">
         <Link href="/" className="p-1 -ml-1 hover:bg-toss-lightGray rounded-full transition-colors">
           <ArrowLeft size={24} className="text-toss-black" />
         </Link>
@@ -67,7 +67,7 @@ export default function VotePage() {
             <Loader2 className="animate-spin text-toss-blue" size={32} />
           </div>
         ) : !poll ? (
-          <div className="bg-white rounded-toss p-12 shadow-sm border border-toss-border/40 flex flex-col items-center gap-4 text-center">
+          <div className="bg-white dark:bg-surface rounded-toss p-12 shadow-sm border border-toss-border/40 flex flex-col items-center gap-4 text-center">
             <div className="w-16 h-16 bg-indigo-50 rounded-2xl flex items-center justify-center">
               <Vote size={32} className="text-indigo-400" />
             </div>
@@ -76,7 +76,7 @@ export default function VotePage() {
           </div>
         ) : (
           <>
-            <div className="bg-white rounded-toss p-6 shadow-sm border border-toss-border/40">
+            <div className="bg-white dark:bg-surface rounded-toss p-6 shadow-sm border border-toss-border/40">
               <div className="w-12 h-12 bg-indigo-50 text-indigo-500 rounded-2xl flex items-center justify-center mb-4">
                 <Vote size={28} />
               </div>
@@ -103,8 +103,8 @@ export default function VotePage() {
                         isMyVote
                           ? "border-toss-blue bg-toss-blue/5"
                           : myVote
-                          ? "border-toss-border/40 bg-white opacity-80"
-                          : "border-toss-border/40 bg-white hover:border-toss-blue/40"
+                          ? "border-toss-border/40 bg-white dark:bg-surface opacity-80"
+                          : "border-toss-border/40 bg-white dark:bg-surface hover:border-toss-blue/40"
                       }`}
                     >
                       {myVote && (

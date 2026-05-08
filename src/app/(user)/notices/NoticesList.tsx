@@ -39,9 +39,9 @@ export default function NoticesList({ initialNotices }: { initialNotices: Notice
   };
 
   return (
-    <div className="min-h-screen bg-toss-lightGray pb-20">
+    <div className="min-h-screen bg-toss-lightGray dark:bg-background pb-20">
       {/* Header */}
-      <div className="bg-white sticky top-0 z-50 border-b border-toss-border">
+      <div className="bg-white dark:bg-surface sticky top-0 z-50 border-b border-toss-border">
         <div className="max-w-[420px] mx-auto flex items-center h-12 px-4">
           <Link href="/" className="p-2 -ml-2 hover:bg-toss-lightGray rounded-full transition-colors">
             <ChevronLeft size={20} className="text-toss-black" />
@@ -51,7 +51,7 @@ export default function NoticesList({ initialNotices }: { initialNotices: Notice
       </div>
 
       <main className="max-w-[420px] mx-auto p-4">
-        <div className="bg-white rounded-toss overflow-hidden shadow-[0_2px_8px_rgba(0,0,0,0.04)] border border-toss-border/40">
+        <div className="bg-white dark:bg-surface rounded-toss overflow-hidden shadow-[0_2px_8px_rgba(0,0,0,0.04)] border border-toss-border/40">
           {notices.map((notice, idx) => (
             <div 
               key={notice.id}
@@ -84,7 +84,7 @@ export default function NoticesList({ initialNotices }: { initialNotices: Notice
       {selectedNotice && (
         <div className="fixed inset-0 z-[100] flex items-end justify-center sm:items-center p-0 sm:p-4 bg-black/40 backdrop-blur-sm" onClick={() => setSelectedNotice(null)}>
           <div 
-            className="bg-white w-full max-w-[420px] rounded-t-3xl sm:rounded-3xl p-6 shadow-2xl animate-in slide-in-from-bottom duration-300"
+            className="bg-white dark:bg-surface w-full max-w-[420px] rounded-t-3xl sm:rounded-3xl p-6 shadow-2xl animate-in slide-in-from-bottom duration-300"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex justify-between items-start mb-6">

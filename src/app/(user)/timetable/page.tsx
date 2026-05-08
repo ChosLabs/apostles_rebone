@@ -31,15 +31,15 @@ export default function TimetablePage() {
   const currentDay = DAY_INFO.find((d) => d.day === selectedDay)!;
 
   return (
-    <div className="min-h-screen bg-toss-lightGray pb-24">
-      <div className="bg-white sticky top-0 z-50 shadow-sm">
+    <div className="min-h-screen bg-toss-lightGray dark:bg-background pb-24">
+      <div className="bg-white dark:bg-surface sticky top-0 z-50 shadow-sm">
         <div className="max-w-[420px] mx-auto px-5 pt-4 pb-2">
           <div className="flex justify-between items-center mb-4">
             <Link href="/" className="w-10 h-10 -ml-2 flex items-center justify-center hover:bg-toss-lightGray rounded-full transition-colors">
               <ChevronLeft size={24} className="text-toss-black" />
             </Link>
             <div className="flex flex-col items-center">
-              <span className="text-[11px] font-black text-toss-blue tracking-[0.2em] italic mb-0.5">RE:본 2026</span>
+              <span className="text-[11px] font-black text-toss-blue tracking-[0.2em] italic mb-0.5">RE:BON 2026</span>
               <h1 className="text-[17px] font-bold text-toss-black tracking-tight">수련회 일정</h1>
             </div>
             <div className="w-10"></div>
@@ -52,7 +52,7 @@ export default function TimetablePage() {
                 onClick={() => setSelectedDay(d.day)}
                 className={`flex-1 py-3 rounded-[14px] text-[13px] font-bold transition-all ${
                   selectedDay === d.day
-                    ? "bg-white text-toss-blue shadow-sm"
+                    ? "bg-white dark:bg-surface text-toss-blue shadow-sm"
                     : "text-toss-gray/60 hover:text-toss-gray"
                 }`}
               >
@@ -83,7 +83,7 @@ export default function TimetablePage() {
             {currentDayItems.map((item) => (
               <div
                 key={item.id}
-                className="bg-white rounded-toss p-4 shadow-sm flex items-center gap-4 border border-toss-border/40 hover:border-toss-blue/10 transition-all active:scale-[0.99] min-h-[85px]"
+                className="bg-white dark:bg-surface rounded-toss p-4 shadow-sm flex items-center gap-4 border border-toss-border/40 hover:border-toss-blue/10 transition-all active:scale-[0.99] min-h-[85px]"
               >
                 <div className="flex flex-col items-center justify-center min-w-[85px] border-r border-toss-border/40 pr-3 my-1">
                   <span className="text-[12px] font-bold text-toss-black tabular-nums leading-none">

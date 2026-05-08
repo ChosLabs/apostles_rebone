@@ -4,7 +4,24 @@
 
 :root {
   --background: #f2f4f6;
+  --surface: #ffffff;
   --foreground: #191f28;
+  --toss-blue: #3182f6;
+  --toss-black: #191f28;
+  --toss-gray: #4e5968;
+  --toss-lightgray: #f2f4f6;
+  --toss-border: #e5e8eb;
+}
+
+.dark {
+  --background: #0d1117;
+  --surface: #161b22;
+  --foreground: #e6edf3;
+  --toss-blue: #58a6ff;
+  --toss-black: #e6edf3;
+  --toss-gray: #8b949e;
+  --toss-lightgray: #21262d;
+  --toss-border: #30363d;
 }
 
 body {
@@ -30,7 +47,7 @@ body {
 
 @layer components {
   .toss-card {
-    @apply bg-white p-6 rounded-toss shadow-[0_2px_4px_rgba(0,0,0,0.04)] mb-3 transition-transform active:scale-[0.98];
+    @apply bg-white dark:bg-surface p-6 rounded-toss shadow-[0_2px_4px_rgba(0,0,0,0.04)] mb-3 transition-transform active:scale-[0.98];
   }
   .toss-title {
     @apply text-xl font-bold text-toss-black mb-4;

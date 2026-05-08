@@ -20,8 +20,8 @@ export default function LuckyDrawPage() {
   }, []);
 
   return (
-    <div className="flex flex-col min-h-screen bg-[#f8f9fa] pb-24">
-      <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-md px-5 py-4 flex items-center gap-4 border-b border-toss-border/40">
+    <div className="flex flex-col min-h-screen bg-[#f8f9fa] dark:bg-background pb-24">
+      <header className="sticky top-0 z-50 bg-white dark:bg-surface px-5 py-4 flex items-center gap-4 border-b border-toss-border/40">
         <Link href="/" className="p-2 -ml-2 hover:bg-toss-lightGray rounded-full transition-colors active:scale-90">
           <ArrowLeft size={24} className="text-toss-black" />
         </Link>
@@ -52,7 +52,7 @@ export default function LuckyDrawPage() {
             {draws.map((draw) => (
               <div
                 key={draw.id}
-                className="bg-white rounded-[32px] p-6 shadow-sm border border-toss-border/40 overflow-hidden relative transition-all active:scale-[0.98]"
+                className="bg-white dark:bg-surface rounded-[32px] p-6 shadow-sm border border-toss-border/40 overflow-hidden relative transition-all active:scale-[0.98]"
               >
                 {draw.status === "drawing" && (
                   <div className="absolute top-0 left-0 w-full h-1 bg-toss-blue animate-pulse"></div>
@@ -106,7 +106,7 @@ export default function LuckyDrawPage() {
                               </p>
                             </div>
                           </div>
-                          <div className="flex items-center justify-center bg-white w-8 h-8 rounded-full shadow-sm border border-yellow-100">
+                          <div className="flex items-center justify-center bg-white dark:bg-surface w-8 h-8 rounded-full shadow-sm border border-yellow-100">
                             <Check size={16} className="text-yellow-600" />
                           </div>
                         </div>
@@ -128,7 +128,7 @@ export default function LuckyDrawPage() {
                   </div>
                 ) : (
                   <div className="py-10 flex flex-col items-center justify-center gap-4 bg-toss-lightGray/20 rounded-3xl border border-toss-border/20">
-                    <div className="w-14 h-14 rounded-full bg-white flex items-center justify-center text-toss-gray/20 shadow-inner">
+                    <div className="w-14 h-14 rounded-full bg-white dark:bg-surface flex items-center justify-center text-toss-gray/20 shadow-inner">
                       <Users size={28} />
                     </div>
                     <div className="text-center">
@@ -153,7 +153,7 @@ export default function LuckyDrawPage() {
           </div>
         )}
 
-        <div className="bg-white rounded-[32px] p-8 border border-toss-border/40 mt-4">
+        <div className="bg-white dark:bg-surface rounded-[32px] p-8 border border-toss-border/40 mt-4">
           <h4 className="text-[14px] font-black text-toss-black mb-4 flex items-center gap-2">
             <Check size={18} className="text-toss-blue" />
             안내사항

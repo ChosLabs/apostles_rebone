@@ -98,7 +98,7 @@ export default function LecturesPage() {
   return (
     <div className="flex flex-col min-h-screen bg-background pb-20">
       {/* Header */}
-      <header className="sticky top-0 z-50 bg-white px-5 py-4 flex items-center gap-4 border-b border-toss-border/40">
+      <header className="sticky top-0 z-50 bg-white dark:bg-surface px-5 py-4 flex items-center gap-4 border-b border-toss-border/40">
         <Link href="/" className="p-1 -ml-1 hover:bg-toss-lightGray rounded-full transition-colors">
           <ArrowLeft size={24} className="text-toss-black" />
         </Link>
@@ -111,7 +111,7 @@ export default function LecturesPage() {
       </header>
 
       {/* Tabs */}
-      <div className="flex bg-white border-b border-toss-border/20 sticky top-[61px] z-40">
+      <div className="flex bg-white dark:bg-surface border-b border-toss-border/20 sticky top-[61px] z-40">
         {(
           [
             { id: "all",       label: "전체 강의" },
@@ -177,7 +177,7 @@ export default function LecturesPage() {
                   <div
                     key={lecture.id}
                     className={clsx(
-                      "bg-white rounded-toss p-5 shadow-sm border relative",
+                      "bg-white dark:bg-surface rounded-toss p-5 shadow-sm border relative",
                       isStarred ? "border-yellow-300" : "border-toss-border/40"
                     )}
                   >
@@ -274,7 +274,7 @@ export default function LecturesPage() {
             myLectures.map((lecture) => (
               <div
                 key={lecture.id}
-                className="bg-white rounded-toss p-5 shadow-sm border border-toss-border/40 flex justify-between items-center animate-in fade-in slide-in-from-bottom-2"
+                className="bg-white dark:bg-surface rounded-toss p-5 shadow-sm border border-toss-border/40 flex justify-between items-center animate-in fade-in slide-in-from-bottom-2"
               >
                 <div className="flex flex-col gap-1">
                   <h3 className="text-base font-bold text-toss-black">{lecture.title}</h3>
