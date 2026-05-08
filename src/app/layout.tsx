@@ -14,7 +14,7 @@ export const metadata: Metadata = {
     siteName: "Re:본",
     images: [
       {
-        url: "/og-image.png",
+        url: "/rebone-og.png",
         width: 1200,
         height: 630,
         alt: "Re:본 수련회 메인 이미지",
@@ -27,7 +27,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Re:본 - 2026 아포슬 여름수련회",
     description: "",
-    images: ["/og-image.png"],
+    images: ["/rebone-og.png"],
   },
 };
 
