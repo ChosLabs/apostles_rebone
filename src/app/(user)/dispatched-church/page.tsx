@@ -28,8 +28,8 @@ export default function DispatchedChurchPage() {
     : null;
 
   return (
-    <div className="flex flex-col min-h-screen bg-[#f8f9fa] pb-20">
-      <header className="sticky top-0 z-50 bg-white px-5 py-4 flex items-center gap-4 border-b border-toss-border/40">
+    <div className="flex flex-col min-h-screen bg-[#f8f9fa] dark:bg-background pb-20">
+      <header className="sticky top-0 z-50 bg-white dark:bg-surface px-5 py-4 flex items-center gap-4 border-b border-toss-border/40">
         <Link href="/" className="p-1 -ml-1 hover:bg-toss-lightGray rounded-full transition-colors">
           <ArrowLeft size={24} className="text-toss-black" />
         </Link>
@@ -44,7 +44,7 @@ export default function DispatchedChurchPage() {
         <main className="p-4 flex flex-col gap-4">
           {/* 내 파송지 */}
           {myAssignedChurch ? (
-            <section className="bg-white rounded-toss p-6 shadow-sm border border-toss-blue/20 mb-2 relative overflow-hidden">
+            <section className="bg-white dark:bg-surface rounded-toss p-6 shadow-sm border border-toss-blue/20 mb-2 relative overflow-hidden">
               <div className="absolute top-0 right-0 p-4 opacity-5">
                 <MapPin size={120} className="text-toss-blue" />
               </div>
@@ -66,7 +66,7 @@ export default function DispatchedChurchPage() {
               </div>
             </section>
           ) : (
-            <div className="bg-white p-8 rounded-toss text-center border border-toss-border/40 text-toss-gray text-sm">
+            <div className="bg-white dark:bg-surface p-8 rounded-toss text-center border border-toss-border/40 text-toss-gray text-sm">
               {userGroup
                 ? "배정된 아웃리치가 없습니다. 관리자에게 문의해주세요."
                 : "조 배정이 필요합니다. 관리자에게 문의해주세요."}
@@ -79,7 +79,7 @@ export default function DispatchedChurchPage() {
           </div>
 
           {churches.length === 0 ? (
-            <div className="bg-white p-8 rounded-toss text-center border border-toss-border/40 text-toss-gray text-sm">
+            <div className="bg-white dark:bg-surface p-8 rounded-toss text-center border border-toss-border/40 text-toss-gray text-sm">
               등록된 아웃리치가 없습니다.
             </div>
           ) : (
@@ -88,7 +88,7 @@ export default function DispatchedChurchPage() {
                 <div
                   key={church.id}
                   className={clsx(
-                    "bg-white rounded-toss p-5 shadow-sm border transition-all",
+                    "bg-white dark:bg-surface rounded-toss p-5 shadow-sm border transition-all",
                     myAssignedChurch?.id === church.id
                       ? "border-toss-blue bg-blue-50/10"
                       : "border-toss-border/40"

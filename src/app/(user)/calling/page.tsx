@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Globe, Briefcase, Users, Mic2, Sparkles, CheckCircle2, Loader2, Coffee, ChevronDown, ChevronUp, Clock } from "lucide-react";
+import { clsx } from "clsx";
 import { useAuth } from "@/components/providers/AuthProvider";
 import {
   subscribeCallingZoneConfig,
@@ -172,7 +173,7 @@ export default function CallingPage() {
     <div className="flex flex-col gap-4 pb-10 px-4">
 
       {/* ── 헤더 배너 ── */}
-      <div className="bg-toss-black rounded-toss p-6 mt-2 relative overflow-hidden">
+      <div className="bg-[#191f28] rounded-toss p-6 mt-2 relative overflow-hidden">
         <div className="absolute -right-6 -top-6 w-32 h-32 rounded-full bg-white/5" />
         <div className="absolute -right-2 -bottom-8 w-24 h-24 rounded-full bg-white/5" />
         <span className="text-[10px] font-bold text-white/50 tracking-widest uppercase">DAY 2 · 6/6(토) 15:00~17:00</span>
@@ -184,7 +185,7 @@ export default function CallingPage() {
       </div>
 
       {/* ── 타임라인 ── */}
-      <div className="bg-white rounded-toss p-5 shadow-[0_2px_8px_rgba(0,0,0,0.04)] border border-toss-border/40">
+      <div className="bg-white dark:bg-surface rounded-toss p-5 shadow-[0_2px_8px_rgba(0,0,0,0.04)] border border-toss-border/40">
         <h3 className="text-[11px] font-bold text-toss-gray uppercase tracking-wider flex items-center gap-1.5 mb-4">
           <Clock size={13} /> 운영 타임라인
         </h3>
@@ -216,7 +217,7 @@ export default function CallingPage() {
           return (
             <div
               key={zone.id}
-              className="bg-white rounded-toss shadow-[0_2px_8px_rgba(0,0,0,0.04)] border overflow-hidden transition-all"
+              className="bg-white dark:bg-surface rounded-toss shadow-[0_2px_8px_rgba(0,0,0,0.04)] border overflow-hidden transition-all"
               style={{ borderColor: isExpanded ? zone.border : "rgba(0,0,0,0.06)" }}
             >
               {/* 존 헤더 */}
@@ -297,7 +298,7 @@ export default function CallingPage() {
       </div>
 
       {/* ── Calling Cafe ── */}
-      <div className="bg-white rounded-toss p-5 shadow-[0_2px_8px_rgba(0,0,0,0.04)] border border-toss-border/40 flex gap-4 items-start">
+      <div className="bg-white dark:bg-surface rounded-toss p-5 shadow-[0_2px_8px_rgba(0,0,0,0.04)] border border-toss-border/40 flex gap-4 items-start">
         <div className="w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 bg-amber-50 text-amber-600">
           <Coffee size={20} />
         </div>
@@ -310,7 +311,7 @@ export default function CallingPage() {
       </div>
 
       {/* ── Calling Passport (스탬프) ── */}
-      <div className="bg-white rounded-toss p-5 shadow-[0_2px_8px_rgba(0,0,0,0.04)] border border-toss-border/40">
+      <div className="bg-white dark:bg-surface rounded-toss p-5 shadow-[0_2px_8px_rgba(0,0,0,0.04)] border border-toss-border/40">
         <div className="flex justify-between items-center mb-4">
           <h3 className="text-[11px] font-bold text-toss-gray uppercase tracking-wider flex items-center gap-1.5">
             <CheckCircle2 size={13} className="text-toss-blue" />
@@ -329,22 +330,21 @@ export default function CallingPage() {
                 key={zone.id}
                 onClick={() => handleStampClick(zone)}
                 disabled={isCompleted}
-                className="aspect-square rounded-2xl border-2 flex flex-col items-center justify-center gap-0.5 transition-all active:scale-95"
-                style={
-                  isCompleted
-                    ? { backgroundColor: zone.bg, borderColor: zone.color, borderStyle: "solid" }
-                    : { backgroundColor: "rgba(0,0,0,0.02)", borderColor: "rgba(0,0,0,0.1)", borderStyle: "dashed" }
-                }
+                className={clsx(
+                  "aspect-square rounded-2xl border-2 flex flex-col items-center justify-center gap-0.5 transition-all active:scale-95",
+                  !isCompleted && "bg-black/[0.02] dark:bg-white/[0.05] border-dashed border-black/10 dark:border-white/20"
+                )}
+                style={isCompleted ? { backgroundColor: zone.bg, borderColor: zone.color, borderStyle: "solid" } : undefined}
               >
                 <span
-                  className="text-sm font-black"
-                  style={{ color: isCompleted ? zone.color : "rgba(0,0,0,0.2)" }}
+                  className={clsx("text-sm font-black", !isCompleted && "text-black/20 dark:text-white/30")}
+                  style={isCompleted ? { color: zone.color } : undefined}
                 >
                   {isCompleted ? "✓" : zone.letter}
                 </span>
                 <span
-                  className="text-[8px] font-bold leading-none"
-                  style={{ color: isCompleted ? zone.color : "rgba(0,0,0,0.2)" }}
+                  className={clsx("text-[8px] font-bold leading-none", !isCompleted && "text-black/20 dark:text-white/30")}
+                  style={isCompleted ? { color: zone.color } : undefined}
                 >
                   ZONE {zone.letter}
                 </span>
@@ -371,7 +371,7 @@ export default function CallingPage() {
           onClick={() => setSelectedZone(null)}
         >
           <div
-            className="bg-white w-full max-w-[320px] rounded-3xl p-6 shadow-2xl animate-in zoom-in-95 duration-200"
+            className="bg-white dark:bg-surface w-full max-w-[320px] rounded-3xl p-6 shadow-2xl animate-in zoom-in-95 duration-200"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex flex-col items-center text-center">
@@ -394,8 +394,8 @@ export default function CallingPage() {
                 maxLength={4}
                 placeholder="0000"
                 autoFocus
-                className={`w-full bg-toss-lightGray border-2 rounded-xl py-4 text-center text-2xl font-black tracking-[12px] focus:outline-none transition-colors ${
-                  error ? "border-red-400 text-red-500" : "border-transparent focus:border-toss-blue"
+                className={`w-full bg-toss-lightGray text-toss-black border-2 rounded-xl py-4 text-center text-2xl font-black tracking-[12px] focus:outline-none transition-colors ${
+                  error ? "border-red-400 !text-red-500" : "border-transparent focus:border-toss-blue"
                 }`}
               />
               {error && <p className="text-xs text-red-500 mt-2 font-bold">코드가 일치하지 않습니다</p>}

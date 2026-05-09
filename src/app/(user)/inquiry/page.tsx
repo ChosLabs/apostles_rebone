@@ -1,12 +1,13 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { ArrowLeft, Send, MessageCircle, CheckCircle2, X, Tag, Loader2 } from "lucide-react";
+import { ArrowLeft, Send, MessageCircle, CheckCircle2, X, Tag, Loader2, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useAuth } from "@/components/providers/AuthProvider";
 import {
   addInquiry,
   subscribeUserInquiries,
+  deleteInquiry,
   InquiryData,
 } from "@/lib/services/inquiryService";
 
@@ -25,6 +26,7 @@ export default function InquiryPage() {
   const [loading, setLoading] = useState(true);
   const [selectedInquiry, setSelectedInquiry] = useState<InquiryData | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   const [newCategory, setNewCategory] = useState(DEFAULT_CATEGORIES[0]);
   const [newTitle, setNewTitle] = useState("");
@@ -38,6 +40,20 @@ export default function InquiryPage() {
     });
     return unsub;
   }, [user?.uid]);
+
+  const handleDelete = async (inquiry: InquiryData) => {
+    if (!confirm("문의를 삭제할까요?")) return;
+    setDeleting(true);
+    try {
+      await deleteInquiry(inquiry.id);
+      setSelectedInquiry(null);
+    } catch (err) {
+      console.error(err);
+      alert("삭제에 실패했습니다. 다시 시도해주세요.");
+    } finally {
+      setDeleting(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -67,14 +83,14 @@ export default function InquiryPage() {
 
   return (
     <div className="flex flex-col min-h-screen bg-background pb-20">
-      <header className="sticky top-0 z-50 bg-white px-5 py-4 flex items-center gap-4 border-b border-toss-border/40">
+      <header className="sticky top-0 z-50 bg-white dark:bg-surface px-5 py-4 flex items-center gap-4 border-b border-toss-border/40">
         <Link href="/more" className="p-1 -ml-1 hover:bg-toss-lightGray rounded-full transition-colors">
           <ArrowLeft size={24} className="text-toss-black" />
         </Link>
         <h1 className="text-lg font-bold text-toss-black">문의하기</h1>
       </header>
 
-      <div className="flex px-4 py-3 bg-white border-b border-toss-border/20 sticky top-[61px] z-40">
+      <div className="flex px-4 py-3 bg-white dark:bg-surface border-b border-toss-border/20 sticky top-[61px] z-40">
         <button
           onClick={() => setActiveTab("list")}
           className={`flex-1 py-2 text-sm font-bold transition-colors ${activeTab === "list" ? "text-toss-blue border-b-2 border-toss-blue" : "text-toss-gray"}`}
@@ -101,7 +117,7 @@ export default function InquiryPage() {
                 <div
                   key={inquiry.id}
                   onClick={() => setSelectedInquiry(inquiry)}
-                  className="bg-white p-5 rounded-toss shadow-sm border border-toss-border/40 active:scale-[0.98] transition-all cursor-pointer group"
+                  className="bg-white dark:bg-surface p-5 rounded-toss shadow-sm border border-toss-border/40 active:scale-[0.98] transition-all cursor-pointer group"
                 >
                   <div className="flex justify-between items-start mb-2">
                     <div className="flex items-center gap-1.5">
@@ -138,7 +154,7 @@ export default function InquiryPage() {
             )}
           </div>
         ) : (
-          <form onSubmit={handleSubmit} className="bg-white rounded-toss p-6 shadow-sm border border-toss-border/40 animate-in slide-in-from-bottom-4 duration-500">
+          <form onSubmit={handleSubmit} className="bg-white dark:bg-surface rounded-toss p-6 shadow-sm border border-toss-border/40 animate-in slide-in-from-bottom-4 duration-500">
             <h2 className="text-lg font-bold text-toss-black mb-6">무엇을 도와드릴까요?</h2>
             <div className="flex flex-col gap-5">
               <div>
@@ -166,7 +182,7 @@ export default function InquiryPage() {
                   type="text"
                   value={newTitle}
                   onChange={(e) => setNewTitle(e.target.value)}
-                  className="w-full bg-toss-lightGray/50 border border-toss-border/40 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-toss-blue transition-colors"
+                  className="w-full bg-toss-lightGray/50 dark:bg-surface text-toss-black border border-toss-border/40 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-toss-blue transition-colors"
                   placeholder="간략한 제목을 입력해주세요"
                   required
                 />
@@ -176,7 +192,7 @@ export default function InquiryPage() {
                 <textarea
                   value={newContent}
                   onChange={(e) => setNewContent(e.target.value)}
-                  className="w-full bg-toss-lightGray/50 border border-toss-border/40 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-toss-blue transition-colors min-h-[160px]"
+                  className="w-full bg-toss-lightGray/50 dark:bg-surface text-toss-black border border-toss-border/40 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-toss-blue transition-colors min-h-[160px]"
                   placeholder="상세한 내용을 입력해주시면 정확한 답변에 도움이 됩니다."
                   required
                 />
@@ -196,7 +212,7 @@ export default function InquiryPage() {
 
       {selectedInquiry && (
         <div className="fixed inset-0 z-[100] flex items-end justify-center sm:items-center p-0 sm:p-4 bg-black/40 backdrop-blur-sm" onClick={() => setSelectedInquiry(null)}>
-          <div className="bg-white w-full max-w-[420px] rounded-t-3xl sm:rounded-3xl p-6 shadow-2xl animate-in slide-in-from-bottom duration-300 max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+          <div className="bg-white dark:bg-surface w-full max-w-[420px] rounded-t-3xl sm:rounded-3xl p-6 shadow-2xl animate-in slide-in-from-bottom duration-300 max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
             <div className="flex justify-between items-start mb-6">
               <div className="flex flex-col gap-1">
                 <div className="flex items-center gap-1.5 flex-wrap">
@@ -233,7 +249,17 @@ export default function InquiryPage() {
               </div>
             )}
 
-            <button onClick={() => setSelectedInquiry(null)} className="w-full bg-toss-blue text-white font-bold py-4 rounded-xl active:scale-95 transition-all mt-8">닫기</button>
+            <div className="flex gap-3 mt-8">
+              <button
+                onClick={() => handleDelete(selectedInquiry)}
+                disabled={deleting}
+                className="flex-1 bg-red-50 text-red-500 font-bold py-4 rounded-xl active:scale-95 transition-all flex items-center justify-center gap-2 disabled:opacity-60"
+              >
+                {deleting ? <Loader2 size={16} className="animate-spin" /> : <Trash2 size={16} />}
+                삭제
+              </button>
+              <button onClick={() => setSelectedInquiry(null)} className="flex-[2] bg-toss-blue text-white font-bold py-4 rounded-xl active:scale-95 transition-all">닫기</button>
+            </div>
           </div>
         </div>
       )}

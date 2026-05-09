@@ -32,10 +32,6 @@ initializeApp({
 
 const db = getFirestore();
 
-function last4(phone) {
-  return phone.replace(/\D/g, "").slice(-4);
-}
-
 // [attendanceType, team, name, birthYear, phone]
 const RAW = [
   // ── A형 1팀 ──────────────────────────────────────────
@@ -578,45 +574,62 @@ const RAW = [
   ["D형","6팀","김영인","80","010-3298-3971"],
 ];
 
+// name+birthYear+team 조합으로 전화번호 조회 맵 생성
+const phoneMap = new Map();
+for (const [, team, name, birthYear, phone] of RAW) {
+  const key = `${name}__${birthYear}__${team}`;
+  phoneMap.set(key, phone);
+}
+// name+birthYear만으로도 조회 (팀 정보가 없는 경우 fallback)
+const phoneMapNoBirthYear = new Map();
+for (const [, team, name, birthYear, phone] of RAW) {
+  const key2 = `${name}__${birthYear}`;
+  if (!phoneMapNoBirthYear.has(key2)) phoneMapNoBirthYear.set(key2, phone);
+  const key3 = `${name}__${team}`;
+  if (!phoneMapNoBirthYear.has(key3)) phoneMapNoBirthYear.set(key3, phone);
+}
+
 async function main() {
-  const force = process.argv.includes("--force");
   const coll = db.collection("participants");
+  const snapshot = await coll.get();
 
-  if (force) {
-    console.log("🗑️  기존 참가자 데이터 삭제 중...");
-    const existing = await coll.get();
-    if (existing.size > 0) {
-      const batchDel = db.batch();
-      existing.docs.forEach((d) => batchDel.delete(d.ref));
-      await batchDel.commit();
-    }
-    console.log(`   ${existing.size}명 삭제 완료`);
-  }
+  console.log(`📋 ${snapshot.size}명 참가자 전화번호 업데이트 중...`);
 
-  console.log(`📋 ${RAW.length}명 참가자 등록 중...`);
-  const now = FieldValue.serverTimestamp();
+  let updated = 0;
+  let notFound = 0;
+  const notFoundList = [];
 
-  for (let i = 0; i < RAW.length; i += 400) {
+  for (let i = 0; i < snapshot.docs.length; i += 400) {
     const batch = db.batch();
-    const chunk = RAW.slice(i, i + 400);
-    for (const [attendanceType, team, name, birthYear, phone] of chunk) {
-      const ref = coll.doc();
-      batch.set(ref, {
-        attendanceType,
-        team,
-        name,
-        birthYear,
-        phone: phone,
-        isLeader: false,
-        createdAt: now,
-        updatedAt: now,
-      });
+    const chunk = snapshot.docs.slice(i, i + 400);
+
+    for (const doc of chunk) {
+      const data = doc.data();
+      const { name, birthYear, team } = data;
+
+      let fullPhone =
+        phoneMap.get(`${name}__${birthYear}__${team}`) ||
+        phoneMapNoBirthYear.get(`${name}__${birthYear}`) ||
+        phoneMapNoBirthYear.get(`${name}__${team}`);
+
+      if (fullPhone) {
+        batch.update(doc.ref, { phone: fullPhone });
+        updated++;
+      } else {
+        notFound++;
+        notFoundList.push(`${name} (${birthYear}, ${team})`);
+      }
     }
+
     await batch.commit();
-    console.log(`   ${Math.min(i + 400, RAW.length)} / ${RAW.length} 완료`);
+    console.log(`   ${Math.min(i + 400, snapshot.docs.length)} / ${snapshot.docs.length} 처리 완료`);
   }
 
-  console.log(`✅ ${RAW.length}명 참가자 등록 완료!`);
+  console.log(`\n✅ 업데이트 완료: ${updated}명`);
+  if (notFound > 0) {
+    console.log(`⚠️  매칭 실패 (${notFound}명):`);
+    notFoundList.forEach((n) => console.log(`   - ${n}`));
+  }
   process.exit(0);
 }
 

@@ -41,7 +41,7 @@ export default function MorePage() {
     <div className="flex flex-col gap-6 pb-8 px-4">
       {/* 1. 프로필 요약 섹션 */}
       <Link href="/profile">
-        <div className="bg-white rounded-toss p-5 shadow-[0_2px_8_rgba(0,0,0,0.04)] border border-toss-border/40 mt-2 flex justify-between items-center group cursor-pointer active:scale-[0.98] transition-all">
+        <div className="bg-white dark:bg-surface rounded-toss p-5 shadow-[0_2px_8_rgba(0,0,0,0.04)] border border-toss-border/40 mt-2 flex justify-between items-center group cursor-pointer active:scale-[0.98] transition-all">
           <div className="flex items-center gap-4">
             <div className="w-14 h-14 rounded-full bg-toss-lightGray border border-toss-border/40 flex items-center justify-center text-toss-gray/40 group-hover:text-toss-blue group-hover:bg-toss-blue/5 transition-all">
               <User size={28} />
@@ -70,7 +70,7 @@ export default function MorePage() {
         <div className="grid grid-cols-2 gap-3">
           {allMenuItems.map((item, idx) => (
             <Link href={item.href} key={idx} target={item.target}>
-              <div className="bg-white p-4 rounded-toss shadow-sm border border-toss-border/40 flex items-center gap-3 transition-transform active:scale-[0.96] cursor-pointer h-full">
+              <div className="bg-white dark:bg-surface p-4 rounded-toss shadow-sm border border-toss-border/40 flex items-center gap-3 transition-transform active:scale-[0.96] cursor-pointer h-full">
                 <div className="bg-toss-lightGray w-10 h-10 rounded-xl flex items-center justify-center shrink-0">
                   <div className={item.color}>
                     {item.icon}
@@ -88,7 +88,7 @@ export default function MorePage() {
 
       {/* 3. 푸터 섹션 */}
       <div className="flex flex-col gap-3 mt-2">
-        <Link href="/inquiry" className="flex items-center justify-between w-full p-5 bg-white border border-toss-border/40 rounded-2xl active:scale-[0.98] transition-all group">
+        <Link href="/inquiry" className="flex items-center justify-between w-full p-5 bg-white dark:bg-surface border border-toss-border/40 rounded-2xl active:scale-[0.98] transition-all group">
           <div className="flex items-center gap-4">
             <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center text-toss-blue">
               <HelpCircle size={22} />

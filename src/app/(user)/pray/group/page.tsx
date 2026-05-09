@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { ChevronLeft, Search, Heart, Loader2 } from "lucide-react";
+import { ChevronLeft, Heart, Search, Loader2, X } from "lucide-react";
 import Link from "next/link";
 import { db } from "@/lib/firebase/client";
 import { collection, query, where, orderBy, onSnapshot } from "firebase/firestore";
@@ -14,6 +14,7 @@ export default function GroupPrayersPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [groupPrayers, setGroupPrayers] = useState<PrayerRequest[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedPrayer, setSelectedPrayer] = useState<PrayerRequest | null>(null);
 
   useEffect(() => {
     if (!user?.group) {
@@ -66,8 +67,8 @@ export default function GroupPrayersPage() {
   );
 
   return (
-    <div className="min-h-screen bg-toss-lightGray pb-20">
-      <header className="bg-white sticky top-0 z-50 border-b border-toss-border h-12 flex items-center px-4">
+    <div className="min-h-screen bg-toss-lightGray dark:bg-background pb-20">
+      <header className="sticky top-0 z-50 bg-white dark:bg-surface px-5 py-4 flex items-center gap-4 border-b border-toss-border/40">
         <Link href="/pray" className="p-2 -ml-2"><ChevronLeft size={20} /></Link>
         <h1 className="flex-1 text-center font-bold text-[15px] mr-8">우리 조 기도제목</h1>
       </header>
@@ -87,12 +88,12 @@ export default function GroupPrayersPage() {
             placeholder="이름 또는 내용으로 검색..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-3 rounded-xl bg-white border border-toss-border/40 text-sm focus:ring-1 focus:ring-toss-blue outline-none transition-all shadow-sm"
+            className="w-full pl-10 pr-4 py-3 rounded-xl bg-white dark:bg-surface border border-toss-border/40 text-sm focus:ring-1 focus:ring-toss-blue outline-none transition-all shadow-sm"
           />
         </div>
 
         {!user?.group ? (
-          <div className="py-20 text-center text-toss-gray text-sm bg-white rounded-3xl border border-dashed border-toss-border/60">
+          <div className="py-20 text-center text-toss-gray text-sm bg-white dark:bg-surface rounded-3xl border border-dashed border-toss-border/60">
             조 배정 후 이용 가능합니다.
           </div>
         ) : loading ? (
@@ -104,7 +105,11 @@ export default function GroupPrayersPage() {
           filteredPrayers.map(p => {
             const hasPrayed = user ? p.likes?.includes(user.uid) : false;
             return (
-              <div key={p.id} className="bg-white p-5 rounded-toss shadow-sm border border-toss-border/40 animate-in fade-in duration-500">
+              <div
+                key={p.id}
+                onClick={() => setSelectedPrayer(p)}
+                className="bg-white dark:bg-surface p-5 rounded-toss shadow-sm border border-toss-border/40 animate-in fade-in duration-500 cursor-pointer active:scale-[0.98] transition-all"
+              >
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-2">
                     <span className={`text-[13px] font-bold ${p.userName === '익명' ? 'text-toss-gray' : 'text-toss-black'}`}>
@@ -118,18 +123,12 @@ export default function GroupPrayersPage() {
                   </div>
                   <span className="text-[10px] text-toss-gray/60">{formatDate(p.createdAt)}</span>
                 </div>
-                <p className="text-[14px] text-toss-black leading-relaxed mb-4 whitespace-pre-wrap">{p.content}</p>
-                
-                <div className="flex justify-between items-center">
-                  <span className="text-[10px] text-toss-blue font-bold">
-                    {p.likes?.length || 0}명이 함께 기도함
-                  </span>
-                  <button 
+                <p className="text-[14px] text-toss-black leading-relaxed mb-4 whitespace-pre-wrap line-clamp-3">{p.content}</p>
+                <div className="flex justify-end" onClick={(e) => e.stopPropagation()}>
+                  <button
                     onClick={() => handlePray(p.id, !!hasPrayed)}
                     className={`flex items-center gap-1.5 text-[11px] font-bold px-3 py-1.5 rounded-lg active:scale-95 transition-all ${
-                      hasPrayed 
-                      ? "text-red-500 bg-red-50" 
-                      : "text-toss-blue bg-toss-blue/5"
+                      hasPrayed ? "text-red-500 bg-red-50" : "text-toss-blue bg-toss-blue/5"
                     }`}
                   >
                     <Heart size={12} fill={hasPrayed ? "currentColor" : "none"} />
@@ -140,11 +139,49 @@ export default function GroupPrayersPage() {
             );
           })
         ) : (
-          <div className="py-20 text-center text-toss-gray text-sm bg-white rounded-3xl border border-dashed border-toss-border/60">
+          <div className="py-20 text-center text-toss-gray text-sm bg-white dark:bg-surface rounded-3xl border border-dashed border-toss-border/60">
             {searchTerm ? "검색 결과가 없습니다." : "우리 조의 첫 번째 기도제목을 올려보세요!"}
           </div>
         )}
       </main>
+      {selectedPrayer && (() => {
+        const hasPrayed = user ? selectedPrayer.likes?.includes(user.uid) : false;
+        return (
+          <div className="fixed inset-0 z-[100] flex items-end justify-center sm:items-center p-0 sm:p-4 bg-black/40 backdrop-blur-sm" onClick={() => setSelectedPrayer(null)}>
+            <div className="bg-white dark:bg-surface w-full max-w-[420px] rounded-t-3xl sm:rounded-3xl p-6 shadow-2xl animate-in slide-in-from-bottom duration-300 max-h-[80vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+              <div className="flex justify-between items-start mb-4">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className={`text-[14px] font-bold ${selectedPrayer.userName === '익명' ? 'text-toss-gray' : 'text-toss-black'}`}>
+                    {selectedPrayer.userName}
+                  </span>
+                  {(selectedPrayer.userTeam || selectedPrayer.userBirthYear) && (
+                    <span className="text-[10px] text-toss-gray font-medium px-1.5 py-0.5 bg-toss-lightGray rounded">
+                      {selectedPrayer.userTeam} {selectedPrayer.userBirthYear && `· ${selectedPrayer.userBirthYear}또래`}
+                    </span>
+                  )}
+                  <span className="text-[10px] text-toss-gray/60">{formatDate(selectedPrayer.createdAt)}</span>
+                </div>
+                <button onClick={() => setSelectedPrayer(null)} className="p-2 hover:bg-toss-lightGray rounded-full transition-colors shrink-0">
+                  <X size={20} className="text-toss-gray" />
+                </button>
+              </div>
+              <p className="text-[15px] text-toss-black leading-relaxed whitespace-pre-wrap mb-6">{selectedPrayer.content}</p>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => { handlePray(selectedPrayer.id, !!hasPrayed); }}
+                  className={`flex-1 flex items-center justify-center gap-2 font-bold py-3.5 rounded-xl active:scale-95 transition-all text-sm ${
+                    hasPrayed ? "text-red-500 bg-red-50" : "text-toss-blue bg-toss-blue/5"
+                  }`}
+                >
+                  <Heart size={14} fill={hasPrayed ? "currentColor" : "none"} />
+                  {hasPrayed ? "기도했습니다" : "함께 기도하기"}
+                </button>
+                <button onClick={() => setSelectedPrayer(null)} className="flex-1 bg-toss-lightGray text-toss-gray font-bold py-3.5 rounded-xl active:scale-95 transition-all text-sm">닫기</button>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
     </div>
   );
 }

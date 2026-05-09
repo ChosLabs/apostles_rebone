@@ -113,11 +113,11 @@ export default function Home({
               <div 
                 className={clsx(
                   "p-5 rounded-toss shadow-sm border-l-4 active:scale-[0.98] transition-all cursor-pointer",
-                  notices[0].type === "긴급" 
-                    ? "bg-red-50 border-red-500 border-y-red-100 border-r-red-100" 
+                  notices[0].type === "긴급"
+                    ? "bg-red-50 dark:bg-red-950/40 border-red-500 dark:border-red-800"
                     : notices[0].type === "시간"
-                    ? "bg-green-50 border-green-500 border-y-green-100 border-r-green-100"
-                    : "bg-white border-toss-blue border-y-toss-blue/10 border-r-toss-blue/10"
+                    ? "bg-green-50 dark:bg-green-950/40 border-green-500 dark:border-green-800"
+                    : "bg-white dark:bg-surface border-toss-blue border-y-toss-blue/10 border-r-toss-blue/10"
                 )}
                 onClick={() => setSelectedNotice(notices[0])}
               >
@@ -132,17 +132,17 @@ export default function Home({
                     )}
                     <span className={clsx(
                       "text-[15px] font-bold",
-                      notices[0].type === "긴급" ? "text-red-900" : notices[0].type === "시간" ? "text-green-900" : "text-toss-black"
+                      notices[0].type === "긴급" ? "text-red-900 dark:text-red-300" : notices[0].type === "시간" ? "text-green-900 dark:text-green-300" : "text-toss-black"
                     )}>{notices[0].title}</span>
                   </div>
                   <span className="text-[11px] text-toss-gray font-medium">{formatDate(notices[0].createdAt)}</span>
                 </div>
                 <p className={clsx(
                   "text-sm leading-relaxed line-clamp-1",
-                  notices[0].type === "긴급" ? "text-red-700" : notices[0].type === "시간" ? "text-green-700" : "text-toss-gray"
+                  notices[0].type === "긴급" ? "text-red-700 dark:text-red-400" : notices[0].type === "시간" ? "text-green-700 dark:text-green-400" : "text-toss-gray"
                 )}>{notices[0].content}</p>
               </div>
-              <div className="bg-white rounded-toss overflow-hidden shadow-sm border border-toss-border/40">
+              <div className="bg-white dark:bg-surface rounded-toss overflow-hidden shadow-sm border border-toss-border/40">
                 {notices.slice(1, 3).map((notice, idx) => (
                   <NoticeItem 
                     key={notice.id}
@@ -157,7 +157,7 @@ export default function Home({
               </div>
             </>
           ) : (
-            <div className="bg-white p-8 rounded-toss text-center border border-toss-border/40 text-toss-gray text-sm">
+            <div className="bg-white dark:bg-surface p-8 rounded-toss text-center border border-toss-border/40 text-toss-gray text-sm">
               등록된 공지사항이 없습니다.
             </div>
           )}
@@ -172,7 +172,7 @@ export default function Home({
         </div>
         {currentProgram ? (
           <Link href="/timetable" className="flex flex-col gap-2">
-            <div className="bg-white p-5 rounded-toss shadow-sm border border-toss-blue/10 flex justify-between items-center active:scale-[0.98] transition-all">
+            <div className="bg-white dark:bg-surface p-5 rounded-toss shadow-sm border border-toss-blue/10 flex justify-between items-center active:scale-[0.98] transition-all">
               <div className="flex flex-col gap-1">
                 <div className="flex items-center gap-1.5">
                   <span className="w-1.5 h-1.5 bg-toss-blue rounded-full animate-pulse"></span>
@@ -184,7 +184,7 @@ export default function Home({
               <span className="text-[10px] bg-toss-blue text-white px-2.5 py-1 rounded-lg font-bold shadow-sm shadow-toss-blue/20">진행중</span>
             </div>
             {nextProgram && (
-              <div className="bg-white/60 p-5 rounded-toss border border-toss-border/40 flex justify-between items-center active:scale-[0.98] transition-all">
+              <div className="bg-white/60 dark:bg-surface/60 p-5 rounded-toss border border-toss-border/40 flex justify-between items-center active:scale-[0.98] transition-all">
                 <div className="flex flex-col gap-1">
                   <span className="text-[10px] font-bold text-toss-gray/60 uppercase tracking-wider">NEXT</span>
                   <p className="text-[15px] font-bold text-toss-gray">{nextProgram.title}</p>
@@ -195,7 +195,7 @@ export default function Home({
             )}
           </Link>
         ) : (
-          <div className="bg-white p-8 rounded-toss text-center border border-toss-border/40 text-toss-gray text-sm">
+          <div className="bg-white dark:bg-surface p-8 rounded-toss text-center border border-toss-border/40 text-toss-gray text-sm">
             등록된 일정이 없습니다.
           </div>
         )}
@@ -219,7 +219,7 @@ export default function Home({
       {/* 공지사항 상세 모달 */}
       {selectedNotice && (
         <div className="fixed inset-0 z-[100] flex items-end justify-center sm:items-center p-0 sm:p-4 bg-black/40 backdrop-blur-sm" onClick={() => setSelectedNotice(null)}>
-          <div className="bg-white w-full max-w-[420px] rounded-t-3xl sm:rounded-3xl p-6 shadow-2xl animate-in slide-in-from-bottom duration-300" onClick={(e) => e.stopPropagation()}>
+          <div className="bg-white dark:bg-surface w-full max-w-[420px] rounded-t-3xl sm:rounded-3xl p-6 shadow-2xl animate-in slide-in-from-bottom duration-300" onClick={(e) => e.stopPropagation()}>
             <div className="flex justify-between items-start mb-6">
               <div className="flex flex-col gap-1">
                 <span className="text-xs font-bold text-toss-blue">{formatDate(selectedNotice.createdAt)}</span>
@@ -243,7 +243,7 @@ export default function Home({
 function QuickLink({ href, icon, label, desc }: { href: string; icon: React.ReactNode; label: string; desc: string }) {
   return (
     <Link href={href}>
-      <div className="bg-white p-4 rounded-toss shadow-sm border border-toss-border/40 flex items-center gap-3 transition-transform active:scale-[0.96] cursor-pointer h-full">
+      <div className="bg-white dark:bg-surface p-4 rounded-toss shadow-sm border border-toss-border/40 flex items-center gap-3 transition-transform active:scale-[0.96] cursor-pointer h-full">
         <div className="bg-toss-lightGray w-10 h-10 rounded-xl flex items-center justify-center shrink-0">
           {icon}
         </div>
@@ -262,14 +262,14 @@ function NoticeItem({ title, time, content, type = "일반", border = true, onCl
       className={clsx(
         "p-4 flex flex-col gap-1 active:bg-toss-lightGray transition-colors cursor-pointer",
         border && "border-b border-toss-border/40",
-        type === "긴급" ? "bg-red-50/30" : type === "시간" ? "bg-green-50/30" : ""
+        type === "긴급" ? "bg-red-50/30 dark:bg-red-950/20" : type === "시간" ? "bg-green-50/30 dark:bg-green-950/20" : ""
       )} 
       onClick={onClick}
     >
       <div className="flex justify-between items-center">
         <div className={clsx(
           "flex items-center gap-2 text-[14px] font-bold",
-          type === "긴급" ? "text-red-700" : type === "시간" ? "text-green-700" : "text-toss-black"
+          type === "긴급" ? "text-red-700 dark:text-red-400" : type === "시간" ? "text-green-700 dark:text-green-400" : "text-toss-black"
         )}>
           {type === "긴급" && <span className="w-1.5 h-1.5 bg-red-500 rounded-full"></span>}
           {type === "시간" && <span className="w-1.5 h-1.5 bg-green-500 rounded-full"></span>}

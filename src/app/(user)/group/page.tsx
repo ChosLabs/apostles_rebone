@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { ChevronLeft, Users, UserCheck, Edit3, X, Save, Quote, Loader2 } from "lucide-react";
+import { ArrowLeft, Users, UserCheck, Edit3, X, Save, Quote, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { subscribeGroup, subscribeGroupMembers, updateGroupInfo } from "@/lib/services/groupService";
@@ -72,12 +72,12 @@ export default function MyGroupPage() {
   const regularMembers = members.filter((m) => !m.isLeader);
 
   return (
-    <div className="min-h-screen bg-toss-lightGray pb-20">
-      <header className="bg-white sticky top-0 z-50 border-b border-toss-border h-12 flex items-center px-4">
-        <Link href="/" className="p-2 -ml-2 hover:bg-toss-lightGray rounded-full transition-colors">
-          <ChevronLeft size={20} />
+    <div className="min-h-screen bg-toss-lightGray dark:bg-background pb-20">
+      <header className="sticky top-0 z-50 bg-white dark:bg-surface px-5 py-4 flex items-center gap-4 border-b border-toss-border/40">
+        <Link href="/" className="p-1 -ml-1 hover:bg-toss-lightGray rounded-full transition-colors">
+          <ArrowLeft size={24} className="text-toss-black" />
         </Link>
-        <h1 className="flex-1 text-center font-bold text-[15px] mr-8">우리 조</h1>
+        <h1 className="text-lg font-bold text-toss-black">우리 조</h1>
       </header>
 
       {loading ? (
@@ -87,7 +87,7 @@ export default function MyGroupPage() {
       ) : (
         <main className="p-4 space-y-4 max-w-[420px] mx-auto">
           {/* 조 헤더 카드 */}
-          <div className="bg-white rounded-3xl p-6 shadow-sm border border-toss-border/40 flex flex-col items-center text-center relative overflow-hidden">
+          <div className="bg-white dark:bg-surface rounded-3xl p-6 shadow-sm border border-toss-border/40 flex flex-col items-center text-center relative overflow-hidden">
             <div className="absolute top-4 right-4">
               <button
                 onClick={openEditModal}
@@ -157,7 +157,7 @@ export default function MyGroupPage() {
           onClick={() => setIsEditModalOpen(false)}
         >
           <div
-            className="bg-white w-full max-w-[420px] rounded-t-3xl sm:rounded-3xl p-6 shadow-2xl animate-in slide-in-from-bottom duration-300"
+            className="bg-white dark:bg-surface w-full max-w-[420px] rounded-t-3xl sm:rounded-3xl p-6 shadow-2xl animate-in slide-in-from-bottom duration-300"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex justify-between items-center mb-6">
@@ -178,7 +178,7 @@ export default function MyGroupPage() {
                   value={tempNickname}
                   onChange={(e) => setTempNickname(e.target.value)}
                   placeholder="멋진 조 별명을 입력해주세요"
-                  className="w-full px-4 py-3.5 rounded-2xl border border-toss-border focus:border-toss-blue outline-none transition-all font-bold text-base bg-toss-lightGray/20"
+                  className="w-full px-4 py-3.5 rounded-2xl border border-toss-border focus:border-toss-blue outline-none transition-all font-bold text-base text-toss-black bg-toss-lightGray/20 dark:bg-surface"
                 />
               </div>
               <div className="space-y-1.5">
@@ -188,7 +188,7 @@ export default function MyGroupPage() {
                   value={tempSlogan}
                   onChange={(e) => setTempSlogan(e.target.value)}
                   placeholder="우리 조만의 구호를 입력해주세요"
-                  className="w-full px-4 py-3.5 rounded-2xl border border-toss-border focus:border-toss-blue outline-none transition-all font-medium text-[15px] bg-toss-lightGray/20 resize-none"
+                  className="w-full px-4 py-3.5 rounded-2xl border border-toss-border focus:border-toss-blue outline-none transition-all font-medium text-[15px] text-toss-black bg-toss-lightGray/20 dark:bg-surface resize-none"
                 />
               </div>
             </div>
@@ -219,7 +219,7 @@ export default function MyGroupPage() {
 function MemberCard({ member, isLeader = false }: { member: Participant; isLeader?: boolean }) {
   return (
     <div
-      className={`bg-white p-4 rounded-toss shadow-sm border transition-all ${
+      className={`bg-white dark:bg-surface p-4 rounded-toss shadow-sm border transition-all ${
         isLeader ? "border-toss-blue/20 ring-1 ring-toss-blue/5" : "border-toss-border/40"
       }`}
     >
@@ -244,13 +244,20 @@ function MemberCard({ member, isLeader = false }: { member: Participant; isLeade
             <p className="text-[11px] text-toss-gray font-medium mt-0.5">{member.team}</p>
           </div>
         </div>
-        <div className="flex flex-col items-end gap-1">
-          {member.room && (
-            <div className="flex items-center gap-1 text-[11px] font-bold text-toss-blue bg-toss-blue/5 px-2 py-0.5 rounded-lg">
-              {member.room}
-            </div>
-          )}
-          <span className="text-[11px] font-mono font-medium text-toss-gray/60">{member.phone}</span>
+        <div className="flex flex-col items-end gap-1.5">
+          <div className="flex items-center gap-1.5">
+            {member.birthYear && (
+              <span className="text-[11px] font-bold text-toss-gray bg-toss-lightGray px-2 py-0.5 rounded-lg">
+                {member.birthYear}또래
+              </span>
+            )}
+            {member.room && (
+              <span className="text-[11px] font-bold text-toss-blue bg-toss-blue/5 px-2 py-0.5 rounded-lg">
+                {member.room}
+              </span>
+            )}
+          </div>
+          <span className="text-[11px] font-mono font-medium text-toss-gray">{member.phone}</span>
         </div>
       </div>
     </div>

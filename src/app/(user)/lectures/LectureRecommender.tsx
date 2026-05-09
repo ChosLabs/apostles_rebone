@@ -170,7 +170,7 @@ function OptionRow({
         "flex items-center gap-4 w-full p-4 rounded-2xl border-2 text-left transition-all active:scale-[0.98]",
         selected
           ? "border-toss-blue bg-toss-blue/5"
-          : "border-toss-border bg-white hover:border-toss-blue/30"
+          : "border-toss-border bg-white dark:bg-surface hover:border-toss-blue/30"
       )}
     >
       <span className="text-2xl shrink-0">{emoji}</span>
@@ -242,7 +242,7 @@ export function LectureRecommender({ lectures }: { lectures: Lecture[] }) {
                 "flex flex-col items-start gap-1.5 p-4 rounded-2xl border-2 text-left transition-all active:scale-[0.97]",
                 selectedTopics.includes(t.id)
                   ? "border-toss-blue bg-toss-blue/5"
-                  : "border-toss-border bg-white hover:border-toss-blue/30"
+                  : "border-toss-border bg-white dark:bg-surface hover:border-toss-blue/30"
               )}
             >
               <span className="text-2xl">{t.emoji}</span>
@@ -389,7 +389,7 @@ export function LectureRecommender({ lectures }: { lectures: Lecture[] }) {
               <div
                 key={lecture.id}
                 className={clsx(
-                  "bg-white rounded-2xl border p-4 shadow-sm",
+                  "bg-white dark:bg-surface rounded-2xl border p-4 shadow-sm",
                   isTop ? "border-toss-blue/40 ring-1 ring-toss-blue/20" : "border-toss-border/40"
                 )}
               >

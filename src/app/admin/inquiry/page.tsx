@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { MessageCircle, Send, CheckCircle2, ChevronRight, X, Tag, Plus, Pencil, Trash2, Loader2 } from "lucide-react";
-import { subscribeInquiries, answerInquiry, InquiryData } from "@/lib/services/inquiryService";
+import { subscribeInquiries, answerInquiry, deleteInquiry, InquiryData } from "@/lib/services/inquiryService";
 
 interface InquiryCategory {
   id: number;
@@ -27,6 +27,7 @@ export default function AdminInquiryPage() {
   const [selectedInquiry, setSelectedInquiry] = useState<InquiryData | null>(null);
   const [answerText, setAnswerText] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [statusFilter, setStatusFilter] = useState<"all" | "pending" | "answered">("all");
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
 
@@ -47,6 +48,20 @@ export default function AdminInquiryPage() {
     const matchesCategory = categoryFilter === "all" || inq.categoryName === categoryFilter;
     return matchesStatus && matchesCategory;
   });
+
+  const handleDelete = async () => {
+    if (!selectedInquiry || !confirm("이 문의를 삭제할까요?")) return;
+    setDeleting(true);
+    try {
+      await deleteInquiry(selectedInquiry.id);
+      setSelectedInquiry(null);
+    } catch (e) {
+      console.error(e);
+      alert("삭제에 실패했습니다.");
+    } finally {
+      setDeleting(false);
+    }
+  };
 
   const handleReply = async () => {
     if (!selectedInquiry || !answerText.trim()) return;
@@ -306,6 +321,14 @@ export default function AdminInquiryPage() {
                   답변 완료 일시: {formatTs(selectedInquiry.answeredAt)}
                 </p>
               )}
+              <button
+                onClick={handleDelete}
+                disabled={deleting}
+                className="w-full bg-red-50 text-red-500 py-4 rounded-2xl font-bold active:scale-95 transition-all flex items-center justify-center gap-2 mt-2 disabled:opacity-60"
+              >
+                {deleting ? <Loader2 size={18} className="animate-spin" /> : <Trash2 size={18} />}
+                문의 삭제
+              </button>
             </div>
           </div>
         </div>

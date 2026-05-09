@@ -7,6 +7,7 @@ import {
   orderBy,
   where,
   updateDoc,
+  deleteDoc,
   doc,
   serverTimestamp,
 } from "firebase/firestore";
@@ -58,4 +59,8 @@ export async function answerInquiry(id: string, answer: string) {
     answer,
     answeredAt: serverTimestamp(),
   });
+}
+
+export async function deleteInquiry(id: string) {
+  await deleteDoc(doc(db, COLL, id));
 }

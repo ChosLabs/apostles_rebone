@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { AuthProvider } from "@/components/providers/AuthProvider";
 import { NotificationProvider } from "@/components/providers/NotificationProvider";
+import { ThemeProvider } from "@/components/providers/ThemeProvider";
 
 export const metadata: Metadata = {
 // ... existing metadata
@@ -15,7 +16,7 @@ export const metadata: Metadata = {
     siteName: "Re:본",
     images: [
       {
-        url: "/og-image.png",
+        url: "/rebone-og.png",
         width: 1200,
         height: 630,
         alt: "Re:본 수련회 메인 이미지",
@@ -28,7 +29,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Re:본 - 2026 아포슬 여름수련회",
     description: "",
-    images: ["/og-image.png"],
+    images: ["/rebone-og.png"],
   },
 };
 
@@ -48,11 +49,13 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-title" content="Re:본" />
       </head>
       <body className="bg-background text-toss-black antialiased selection:bg-toss-blue/20 font-['Pretendard',_sans-serif]">
-        <AuthProvider>
-          <NotificationProvider>
-            {children}
-          </NotificationProvider>
-        </AuthProvider>
+        <ThemeProvider>
+          <AuthProvider>
+            <NotificationProvider>
+              {children}
+            </NotificationProvider>
+          </AuthProvider>
+        </ThemeProvider>
       </body>
     </html>
   );
