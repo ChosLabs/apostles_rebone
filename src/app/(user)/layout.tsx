@@ -1,4 +1,5 @@
 import { BottomNav, GlobalHeader } from "@/components/Navigation";
+import { NotificationBanner } from "@/components/ui/NotificationBanner";
 
 export default function UserLayout({
   children,
@@ -11,6 +12,7 @@ export default function UserLayout({
       <main className="">
         {children}
       </main>
+      <NotificationBanner />
       <BottomNav />
     </div>
   );

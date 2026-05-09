@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { AuthProvider } from "@/components/providers/AuthProvider";
+import { NotificationProvider } from "@/components/providers/NotificationProvider";
 
 export const metadata: Metadata = {
 // ... existing metadata
@@ -40,10 +41,17 @@ export default function RootLayout({
     <html lang="ko">
       <head>
         <link rel="stylesheet" as="style" crossOrigin="" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" />
+        <link rel="manifest" href="/manifest.json" />
+        <meta name="theme-color" content="#3182f6" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+        <meta name="apple-mobile-web-app-title" content="Re:본" />
       </head>
       <body className="bg-background text-toss-black antialiased selection:bg-toss-blue/20 font-['Pretendard',_sans-serif]">
         <AuthProvider>
-          {children}
+          <NotificationProvider>
+            {children}
+          </NotificationProvider>
         </AuthProvider>
       </body>
     </html>

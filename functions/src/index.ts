@@ -1,32 +1,58 @@
-/**
- * Import function triggers from their respective submodules:
- *
- * import {onCall} from "firebase-functions/v2/https";
- * import {onDocumentWritten} from "firebase-functions/v2/firestore";
- *
- * See a full list of supported triggers at https://firebase.google.com/docs/functions
- */
+import { initializeApp } from 'firebase-admin/app';
+import { getFirestore } from 'firebase-admin/firestore';
+import { getMessaging } from 'firebase-admin/messaging';
+import { setGlobalOptions } from 'firebase-functions/v2';
+import { onDocumentCreated } from 'firebase-functions/v2/firestore';
 
-import {setGlobalOptions} from "firebase-functions";
-import {onRequest} from "firebase-functions/https";
-import * as logger from "firebase-functions/logger";
+initializeApp();
+setGlobalOptions({ region: 'asia-northeast3', maxInstances: 10 });
 
-// Start writing functions
-// https://firebase.google.com/docs/functions/typescript
+export const sendNoticeNotification = onDocumentCreated(
+  'notices/{noticeId}',
+  async (event) => {
+    const notice = event.data?.data();
+    if (!notice) return;
 
-// For cost control, you can set the maximum number of containers that can be
-// running at the same time. This helps mitigate the impact of unexpected
-// traffic spikes by instead downgrading performance. This limit is a
-// per-function limit. You can override the limit for each function using the
-// `maxInstances` option in the function's options, e.g.
-// `onRequest({ maxInstances: 5 }, (req, res) => { ... })`.
-// NOTE: setGlobalOptions does not apply to functions using the v1 API. V1
-// functions should each use functions.runWith({ maxInstances: 10 }) instead.
-// In the v1 API, each function can only serve one request per container, so
-// this will be the maximum concurrent request count.
-setGlobalOptions({ maxInstances: 10 });
+    const db = getFirestore();
+    const tokensSnap = await db.collection('fcmTokens').get();
+    if (tokensSnap.empty) return;
 
-// export const helloWorld = onRequest((request, response) => {
-//   logger.info("Hello logs!", {structuredData: true});
-//   response.send("Hello from Firebase!");
-// });
+    const tokens = tokensSnap.docs
+      .map((d) => d.data().token as string)
+      .filter(Boolean);
+    if (tokens.length === 0) return;
+
+    const response = await getMessaging().sendEachForMulticast({
+      tokens,
+      notification: {
+        title: '📢 새 공지사항',
+        body: notice.title as string,
+      },
+      webpush: {
+        notification: {
+          icon: 'https://apostles-rebone.pages.dev/rebon_logo_blue.png',
+          tag: 'notice-notification',
+        },
+      },
+    });
+
+    const invalidIds = response.responses
+      .map((resp, idx) => ({ resp, id: tokensSnap.docs[idx].id }))
+      .filter(({ resp }) => {
+        const code = resp.error?.code;
+        return (
+          code === 'messaging/invalid-registration-token' ||
+          code === 'messaging/registration-token-not-registered'
+        );
+      })
+      .map(({ id }) => id);
+
+    if (invalidIds.length > 0) {
+      const batch = db.batch();
+      invalidIds.forEach((id) =>
+        batch.delete(db.collection('fcmTokens').doc(id))
+      );
+      await batch.commit();
+    }
+  }
+);
