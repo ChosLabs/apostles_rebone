@@ -3,30 +3,30 @@
 @tailwind utilities;
 
 :root {
-  --background: #f2f4f6;
-  --surface: #ffffff;
-  --foreground: #191f28;
-  --toss-blue: #3182f6;
-  --toss-black: #191f28;
-  --toss-gray: #4e5968;
-  --toss-lightgray: #f2f4f6;
-  --toss-border: #e5e8eb;
+  --background: 242 244 246;
+  --surface: 255 255 255;
+  --foreground: 25 31 40;
+  --toss-blue: 49 130 246;
+  --toss-black: 25 31 40;
+  --toss-gray: 78 89 104;
+  --toss-lightgray: 242 244 246;
+  --toss-border: 229 232 235;
 }
 
 .dark {
-  --background: #0d1117;
-  --surface: #161b22;
-  --foreground: #e6edf3;
-  --toss-blue: #58a6ff;
-  --toss-black: #e6edf3;
-  --toss-gray: #8b949e;
-  --toss-lightgray: #21262d;
-  --toss-border: #30363d;
+  --background: 13 17 23;
+  --surface: 22 27 34;
+  --foreground: 230 237 243;
+  --toss-blue: 88 166 255;
+  --toss-black: 230 237 243;
+  --toss-gray: 139 148 158;
+  --toss-lightgray: 33 38 45;
+  --toss-border: 48 54 61;
 }
 
 body {
-  color: var(--foreground);
-  background: var(--background);
+  color: rgb(var(--foreground));
+  background: rgb(var(--background));
   font-family: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, Roboto, "Helvetica Neue", "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif;
 }
 

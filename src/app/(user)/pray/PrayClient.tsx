@@ -1,10 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { PenLine, Sparkles, User, Users, Globe, ChevronRight, Heart, Loader2 } from "lucide-react";
+import { PenLine, Sparkles, User, Users, Globe, ChevronRight, Heart, Loader2, Moon, Sun } from "lucide-react";
 import Link from "next/link";
 import { DailyPrayer } from "@/types/database";
 import { useAuth } from "@/components/providers/AuthProvider";
+import { useTheme } from "@/components/providers/ThemeProvider";
 import { addPrayerRequest } from "@/lib/services/prayService";
 
 export default function PrayClient({ 
@@ -15,6 +16,7 @@ export default function PrayClient({
   dDay: number 
 }) {
   const { user } = useAuth();
+  const { theme, toggleTheme } = useTheme();
   const [content, setContent] = useState("");
   const [isAnonymous, setIsAnonymous] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -38,6 +40,18 @@ export default function PrayClient({
 
   return (
     <div className="flex flex-col gap-4 pb-8 px-4">
+      <button
+        onClick={toggleTheme}
+        className="flex items-center justify-center gap-2 w-full text-sm font-bold mt-2 py-3.5 rounded-2xl border transition-all active:scale-[0.98] shadow-sm
+          bg-white dark:bg-surface
+          text-toss-black dark:text-toss-black
+          border-toss-border dark:border-toss-border"
+      >
+        {theme === 'dark'
+          ? <><Sun size={15} className="text-yellow-400" />화면 밝게 보기</>
+          : <><Moon size={15} className="text-toss-blue" />화면 어둡게 보기</>
+        }
+      </button>
       {/* 1. 오늘의 기도제목 (Pinned) */}
       <div className="bg-white dark:bg-surface rounded-toss p-6 shadow-[0_2px_8px_rgba(0,0,0,0.04)] border border-toss-blue/10 relative overflow-hidden mt-2">
         <div className="absolute top-0 right-0 p-4 opacity-10">

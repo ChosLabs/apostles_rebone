@@ -186,11 +186,11 @@ export default function Home({
             {nextProgram && (
               <div className="bg-white/60 dark:bg-surface/60 p-5 rounded-toss border border-toss-border/40 flex justify-between items-center active:scale-[0.98] transition-all">
                 <div className="flex flex-col gap-1">
-                  <span className="text-[10px] font-bold text-toss-gray/60 uppercase tracking-wider">NEXT</span>
-                  <p className="text-[15px] font-bold text-toss-gray">{nextProgram.title}</p>
-                  <p className="text-[12px] text-toss-gray/40">{nextProgram.time} · {nextProgram.location}</p>
+                  <span className="text-[10px] font-bold text-toss-gray/60 dark:text-toss-gray uppercase tracking-wider">NEXT</span>
+                  <p className="text-[15px] font-bold text-toss-gray dark:text-toss-black">{nextProgram.title}</p>
+                  <p className="text-[12px] text-toss-gray/60 dark:text-toss-gray">{nextProgram.time} · {nextProgram.location}</p>
                 </div>
-                <ChevronRight size={16} className="text-toss-gray/30" />
+                <ChevronRight size={16} className="text-toss-gray/40 dark:text-toss-gray" />
               </div>
             )}
           </Link>

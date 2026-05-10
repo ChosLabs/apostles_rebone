@@ -33,7 +33,7 @@ export default function DispatchedChurchPage() {
         <Link href="/" className="p-1 -ml-1 hover:bg-toss-lightGray rounded-full transition-colors">
           <ArrowLeft size={24} className="text-toss-black" />
         </Link>
-        <h1 className="text-lg font-bold text-toss-black">아웃리치 확인</h1>
+        <h1 className="text-lg font-bold text-toss-black">아웃리치</h1>
       </header>
 
       {loading ? (
@@ -42,7 +42,7 @@ export default function DispatchedChurchPage() {
         </div>
       ) : (
         <main className="p-4 flex flex-col gap-4">
-          {/* 내 파송지 */}
+          {/* 내 파송교회 */}
           {myAssignedChurch ? (
             <section className="bg-white dark:bg-surface rounded-toss p-6 shadow-sm border border-toss-blue/20 mb-2 relative overflow-hidden">
               <div className="absolute top-0 right-0 p-4 opacity-5">
@@ -52,7 +52,7 @@ export default function DispatchedChurchPage() {
                 <span className="text-[10px] font-bold bg-toss-blue text-white px-2 py-0.5 rounded-md uppercase tracking-wider">
                   My Assignment
                 </span>
-                <h2 className="text-sm font-bold text-toss-black">나의 파송지</h2>
+                <h2 className="text-sm font-bold text-toss-black">나의 파송교회</h2>
               </div>
               <div className="relative z-10">
                 <h3 className="text-2xl font-black text-toss-black mb-1">{myAssignedChurch.name}</h3>
@@ -68,19 +68,19 @@ export default function DispatchedChurchPage() {
           ) : (
             <div className="bg-white dark:bg-surface p-8 rounded-toss text-center border border-toss-border/40 text-toss-gray text-sm">
               {userGroup
-                ? "배정된 아웃리치가 없습니다. 관리자에게 문의해주세요."
+                ? "배정된 파송교회가 없습니다. 관리자에게 문의해주세요."
                 : "조 배정이 필요합니다. 관리자에게 문의해주세요."}
             </div>
           )}
 
           <div className="px-1 mt-4">
-            <h2 className="text-[15px] font-bold text-toss-black mb-1">전체 파송지 현황</h2>
-            <p className="text-xs text-toss-gray mb-4">이번 수련회에서 함께 섬기는 아웃리치 목록입니다.</p>
+            <h2 className="text-[15px] font-bold text-toss-black mb-1">전체 파송교회 현황</h2>
+            <p className="text-xs text-toss-gray mb-4">이번 수련회에서 함께 섬기는 파송교회 목록입니다.</p>
           </div>
 
           {churches.length === 0 ? (
             <div className="bg-white dark:bg-surface p-8 rounded-toss text-center border border-toss-border/40 text-toss-gray text-sm">
-              등록된 아웃리치가 없습니다.
+              등록된 파송교회가 없습니다.
             </div>
           ) : (
             <div className="flex flex-col gap-4">
@@ -105,7 +105,7 @@ export default function DispatchedChurchPage() {
                     </div>
                     {myAssignedChurch?.id === church.id && (
                       <span className="text-[10px] font-bold bg-toss-blue text-white px-2 py-0.5 rounded-full shadow-sm shadow-toss-blue/20">
-                        내 파송지
+                        내 파송교회
                       </span>
                     )}
                   </div>

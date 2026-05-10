@@ -13,14 +13,14 @@ const config: Config = {
         sans: ["Pretendard", "sans-serif"],
       },
       colors: {
-        background: "var(--background)",
-        surface: "var(--surface)",
+        background: "rgb(var(--background) / <alpha-value>)",
+        surface: "rgb(var(--surface) / <alpha-value>)",
         toss: {
-          blue: "var(--toss-blue)",
-          black: "var(--toss-black)",
-          gray: "var(--toss-gray)",
-          lightGray: "var(--toss-lightgray)",
-          border: "var(--toss-border)",
+          blue: "rgb(var(--toss-blue) / <alpha-value>)",
+          black: "rgb(var(--toss-black) / <alpha-value>)",
+          gray: "rgb(var(--toss-gray) / <alpha-value>)",
+          lightGray: "rgb(var(--toss-lightgray) / <alpha-value>)",
+          border: "rgb(var(--toss-border) / <alpha-value>)",
         },
       },
       borderRadius: {
