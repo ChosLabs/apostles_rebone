@@ -177,7 +177,7 @@ export default function CallingPage() {
         <div className="absolute -right-6 -top-6 w-32 h-32 rounded-full bg-white/5" />
         <div className="absolute -right-2 -bottom-8 w-24 h-24 rounded-full bg-white/5" />
         <span className="text-[10px] font-bold text-white/50 tracking-widest uppercase">DAY 2 · 6/6(토) 15:00~17:00</span>
-        <h2 className="text-2xl font-black text-white mt-1 mb-1">Holy Festival <span className="text-[#FF8A65]">&</span> Cafe</h2>
+        <h2 className="text-2xl font-black text-white mt-1 mb-1">Calling Zone<span className="text-[#FF8A65]">(</span>Call To Action<span className="text-[#FF8A65]">)</span></h2>
         <p className="text-xs text-white/60 leading-relaxed">평창 알펜시아 리조트 컨벤션센터 · 그랜드 볼룸 2층</p>
         <p className="text-sm text-white/80 mt-3 leading-relaxed">
           선택강의에서 받은 감동이 구체적인 삶의 헌신과 행동으로 연결되는 120분의 핵심 플랫폼
