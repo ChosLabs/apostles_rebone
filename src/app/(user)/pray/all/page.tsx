@@ -131,30 +131,31 @@ export default function AllPrayersPage() {
         )}
       </main>
       {selectedPrayer && (() => {
-        const hasPrayed = user ? selectedPrayer.likes?.includes(user.uid) : false;
+        const currentPrayer = allPrayers.find(p => p.id === selectedPrayer.id) ?? selectedPrayer;
+        const hasPrayed = user ? currentPrayer.likes?.includes(user.uid) : false;
         return (
           <div className="fixed inset-0 z-[100] flex items-end justify-center sm:items-center p-0 sm:p-4 bg-black/40 backdrop-blur-sm" onClick={() => setSelectedPrayer(null)}>
             <div className="bg-white dark:bg-surface w-full max-w-[420px] rounded-t-3xl sm:rounded-3xl p-6 shadow-2xl animate-in slide-in-from-bottom duration-300 max-h-[80vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
               <div className="flex justify-between items-start mb-4">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <span className={`text-[14px] font-bold ${selectedPrayer.userName === '익명' ? 'text-toss-gray' : 'text-toss-black'}`}>
-                    {selectedPrayer.userName}
+                  <span className={`text-[14px] font-bold ${currentPrayer.userName === '익명' ? 'text-toss-gray' : 'text-toss-black'}`}>
+                    {currentPrayer.userName}
                   </span>
-                  {(selectedPrayer.userTeam || selectedPrayer.userBirthYear) && (
+                  {(currentPrayer.userTeam || currentPrayer.userBirthYear) && (
                     <span className="text-[10px] text-toss-gray font-medium px-1.5 py-0.5 bg-toss-lightGray rounded">
-                      {selectedPrayer.userTeam} {selectedPrayer.userBirthYear && `· ${selectedPrayer.userBirthYear}또래`}
+                      {currentPrayer.userTeam} {currentPrayer.userBirthYear && `· ${currentPrayer.userBirthYear}또래`}
                     </span>
                   )}
-                  <span className="text-[10px] text-toss-gray/60">{formatDate(selectedPrayer.createdAt)}</span>
+                  <span className="text-[10px] text-toss-gray/60">{formatDate(currentPrayer.createdAt)}</span>
                 </div>
                 <button onClick={() => setSelectedPrayer(null)} className="p-2 hover:bg-toss-lightGray rounded-full transition-colors shrink-0">
                   <X size={20} className="text-toss-gray" />
                 </button>
               </div>
-              <p className="text-[15px] text-toss-black leading-relaxed whitespace-pre-wrap mb-6">{selectedPrayer.content}</p>
+              <p className="text-[15px] text-toss-black leading-relaxed whitespace-pre-wrap mb-6">{currentPrayer.content}</p>
               <div className="flex gap-3">
                 <button
-                  onClick={() => { handlePray(selectedPrayer.id, !!hasPrayed); }}
+                  onClick={() => { handlePray(currentPrayer.id, !!hasPrayed); }}
                   className={`flex-1 flex items-center justify-center gap-2 font-bold py-3.5 rounded-xl active:scale-95 transition-all text-sm ${
                     hasPrayed ? "text-red-500 bg-red-50" : "text-toss-blue bg-toss-blue/5"
                   }`}
