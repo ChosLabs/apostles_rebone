@@ -1,6 +1,6 @@
 {
-  "name": "Re:본 - 2026 아포슬 여름수련회",
-  "short_name": "Re:본",
+  "name": "RE:BON - 2026 아포슬 여름수련회",
+  "short_name": "RE:BON",
   "description": "2026 아포슬 여름수련회",
   "start_url": "/",
   "display": "standalone",
@@ -11,7 +11,7 @@
       "src": "/rebon_logo_blue.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
     }
   ]
 }
