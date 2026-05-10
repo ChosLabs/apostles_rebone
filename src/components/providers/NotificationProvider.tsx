@@ -29,6 +29,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (initialized.current) return;
+    if (!user) return;
     if (typeof window === 'undefined') return;
     if (!('Notification' in window) || !('serviceWorker' in navigator)) return;
     if (Notification.permission !== 'granted') return;
@@ -36,7 +37,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
     initialized.current = true;
 
     requestFcmToken().then((token) => {
-      if (token && user) saveFcmToken(token, user.uid);
+      if (token) saveFcmToken(token, user.uid);
     });
 
     const unsubscribe = onForegroundMessage((payload) => {

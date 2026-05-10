@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useNotification } from '@/components/providers/NotificationProvider';
 
-type BannerType = 'ios-guide' | 'android-chrome' | 'permission' | null;
+type BannerType = 'ios-guide' | 'android-chrome' | 'permission' | 'denied' | null;
 
 const DISMISSED_KEY = 'rebone_notif_banner_dismissed';
 
@@ -11,15 +11,17 @@ function detectBanner(): BannerType {
   if (typeof window === 'undefined') return null;
   if (!('Notification' in window) || !('serviceWorker' in navigator)) return null;
 
-  const dismissed = localStorage.getItem(DISMISSED_KEY);
-  if (dismissed) return null;
-
   const ua = navigator.userAgent.toLowerCase();
   const isIOS = /iphone|ipad|ipod/.test(ua);
   const isAndroid = /android/.test(ua);
   const isStandalone =
     window.matchMedia('(display-mode: standalone)').matches ||
     (navigator as { standalone?: boolean }).standalone === true;
+
+  if (Notification.permission === 'denied') return 'denied';
+
+  const dismissed = localStorage.getItem(DISMISSED_KEY);
+  if (dismissed) return null;
 
   if (isIOS && !isStandalone) return 'ios-guide';
 
@@ -103,6 +105,25 @@ export function NotificationBanner() {
             >
               Chrome으로 열기
             </button>
+          </div>
+          <button
+            onClick={dismiss}
+            className="text-gray-400 hover:text-gray-600 flex-shrink-0 text-sm leading-none p-1"
+            aria-label="닫기"
+          >
+            ✕
+          </button>
+        </div>
+      )}
+
+      {banner === 'denied' && (
+        <div className="flex items-start gap-3">
+          <span className="text-xl mt-0.5">🔕</span>
+          <div className="flex-1 min-w-0">
+            <p className="font-semibold text-sm text-gray-900">알림이 차단되어 있어요</p>
+            <p className="text-xs text-gray-500 mt-1 leading-relaxed">
+              Chrome 주소창 왼쪽 자물쇠 아이콘 → 알림 → 허용
+            </p>
           </div>
           <button
             onClick={dismiss}
