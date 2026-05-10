@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { ArrowLeft, Users, UserCheck, Edit3, X, Save, Quote, Loader2 } from "lucide-react";
+import { ArrowLeft, Users, UserCheck, Edit3, X, Save, Quote, Loader2, EyeOff, Eye } from "lucide-react";
 import Link from "next/link";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { subscribeGroup, subscribeGroupMembers, updateGroupInfo } from "@/lib/services/groupService";
@@ -18,6 +18,17 @@ export default function MyGroupPage() {
   const [tempNickname, setTempNickname] = useState("");
   const [tempSlogan, setTempSlogan] = useState("");
   const [isSaving, setIsSaving] = useState(false);
+  const [hidePhone, setHidePhone] = useState(false);
+
+  useEffect(() => {
+    setHidePhone(localStorage.getItem("rebone_hide_phone") === "1");
+  }, []);
+
+  const toggleHidePhone = () => {
+    const next = !hidePhone;
+    setHidePhone(next);
+    localStorage.setItem("rebone_hide_phone", next ? "1" : "0");
+  };
 
   useEffect(() => {
     if (!groupNumber) {
@@ -77,7 +88,18 @@ export default function MyGroupPage() {
         <Link href="/" className="p-1 -ml-1 hover:bg-toss-lightGray rounded-full transition-colors">
           <ArrowLeft size={24} className="text-toss-black" />
         </Link>
-        <h1 className="text-lg font-bold text-toss-black">우리 조</h1>
+        <h1 className="text-lg font-bold text-toss-black flex-1">우리 조</h1>
+        <button
+          onClick={toggleHidePhone}
+          className={`flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-full border transition-all active:scale-95 ${
+            hidePhone
+              ? "bg-toss-blue/10 text-toss-blue border-toss-blue/20"
+              : "bg-toss-lightGray text-toss-gray border-toss-border/40"
+          }`}
+        >
+          {hidePhone ? <EyeOff size={13} /> : <Eye size={13} />}
+          내 번호 {hidePhone ? "숨김" : "표시"}
+        </button>
       </header>
 
       {loading ? (
@@ -127,7 +149,7 @@ export default function MyGroupPage() {
                 <UserCheck size={14} className="text-toss-blue" />
                 <h3 className="text-xs font-bold text-toss-gray uppercase tracking-wider">우리 조장님</h3>
               </div>
-              <MemberCard member={leader} isLeader />
+              <MemberCard member={leader} isLeader hidePhone={hidePhone && leader.id === user?.uid} />
             </div>
           )}
 
@@ -142,7 +164,7 @@ export default function MyGroupPage() {
             ) : (
               <div className="grid grid-cols-1 gap-2">
                 {regularMembers.map((member) => (
-                  <MemberCard key={member.id} member={member} />
+                  <MemberCard key={member.id} member={member} hidePhone={hidePhone && member.id === user?.uid} />
                 ))}
               </div>
             )}
@@ -216,7 +238,7 @@ export default function MyGroupPage() {
   );
 }
 
-function MemberCard({ member, isLeader = false }: { member: Participant; isLeader?: boolean }) {
+function MemberCard({ member, isLeader = false, hidePhone = false }: { member: Participant; isLeader?: boolean; hidePhone?: boolean }) {
   return (
     <div
       className={`bg-white dark:bg-surface p-4 rounded-toss shadow-sm border transition-all ${
@@ -257,7 +279,9 @@ function MemberCard({ member, isLeader = false }: { member: Participant; isLeade
               </span>
             )}
           </div>
-          <span className="text-[11px] font-mono font-medium text-toss-gray">{member.phone}</span>
+          {!hidePhone && (
+            <span className="text-[11px] font-mono font-medium text-toss-gray">{member.phone}</span>
+          )}
         </div>
       </div>
     </div>

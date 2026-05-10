@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import {
   User,
   Phone,
@@ -13,19 +13,64 @@ import {
   Settings,
   Sun,
   Moon,
+  Lock,
+  X,
+  Loader2,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { useTheme } from "@/components/providers/ThemeProvider";
-import { logout } from "@/lib/services/authService";
+import { logout, verifyPassword, changePassword } from "@/lib/services/authService";
 
 export default function MyProfilePage() {
   const router = useRouter();
   const { user } = useAuth();
   const { theme, toggleTheme } = useTheme();
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [currentPw, setCurrentPw] = useState("");
+  const [newPw, setNewPw] = useState("");
+  const [confirmPw, setConfirmPw] = useState("");
+  const [showCurrent, setShowCurrent] = useState(false);
+  const [showNew, setShowNew] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState("");
 
   if (!user) return null;
+
+  const closeModal = () => {
+    setShowPasswordModal(false);
+    setCurrentPw(""); setNewPw(""); setConfirmPw("");
+    setError(""); setShowCurrent(false); setShowNew(false); setShowConfirm(false);
+  };
+
+  const handleChangePassword = async () => {
+    setError("");
+    if (currentPw.length !== 4 || newPw.length !== 4 || confirmPw.length !== 4) {
+      setError("비밀번호는 숫자 4자리입니다."); return;
+    }
+    if (newPw !== confirmPw) {
+      setError("새 비밀번호가 일치하지 않습니다."); return;
+    }
+    if (newPw === currentPw) {
+      setError("현재 비밀번호와 동일합니다."); return;
+    }
+    setSubmitting(true);
+    try {
+      const valid = await verifyPassword(user.uid, currentPw);
+      if (!valid) { setError("현재 비밀번호가 틀렸습니다."); return; }
+      await changePassword(user.uid, newPw);
+      alert("비밀번호가 변경되었습니다.");
+      closeModal();
+    } catch {
+      setError("변경 중 오류가 발생했습니다.");
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-[#f8f9fa] dark:bg-background pb-20">
@@ -87,6 +132,13 @@ export default function MyProfilePage() {
             label={theme === "dark" ? "라이트 모드" : "다크 모드"}
             onClick={toggleTheme}
           />
+          {user.role !== "admin" && (
+            <MenuLink
+              icon={<Lock size={18} />}
+              label="비밀번호 변경"
+              onClick={() => setShowPasswordModal(true)}
+            />
+          )}
           <MenuLink
             icon={<LogOut size={18} />}
             label="로그아웃"
@@ -94,6 +146,59 @@ export default function MyProfilePage() {
             onClick={() => logout()}
           />
         </div>
+
+      {/* 비밀번호 변경 모달 */}
+      {showPasswordModal && (
+        <div className="fixed inset-0 z-[100] flex items-end justify-center bg-black/40 backdrop-blur-sm" onClick={closeModal}>
+          <div className="bg-white dark:bg-surface w-full max-w-[420px] rounded-t-3xl p-6 shadow-2xl animate-in slide-in-from-bottom duration-300" onClick={(e) => e.stopPropagation()}>
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-lg font-bold text-toss-black">비밀번호 변경</h2>
+              <button onClick={closeModal} className="p-2 hover:bg-toss-lightGray rounded-full transition-colors">
+                <X size={20} className="text-toss-gray" />
+              </button>
+            </div>
+
+            <p className="text-xs text-toss-gray mb-5 leading-relaxed">
+              로그인 시 사용하는 숫자 4자리 비밀번호를 변경합니다.
+            </p>
+
+            <div className="space-y-3 mb-4">
+              <PwInput
+                label="현재 비밀번호"
+                value={currentPw}
+                show={showCurrent}
+                onChange={(v) => { setCurrentPw(v); setError(""); }}
+                onToggle={() => setShowCurrent((p) => !p)}
+              />
+              <PwInput
+                label="새 비밀번호"
+                value={newPw}
+                show={showNew}
+                onChange={(v) => { setNewPw(v); setError(""); }}
+                onToggle={() => setShowNew((p) => !p)}
+              />
+              <PwInput
+                label="새 비밀번호 확인"
+                value={confirmPw}
+                show={showConfirm}
+                onChange={(v) => { setConfirmPw(v); setError(""); }}
+                onToggle={() => setShowConfirm((p) => !p)}
+              />
+            </div>
+
+            {error && <p className="text-xs text-red-500 font-medium mb-4">{error}</p>}
+
+            <button
+              onClick={handleChangePassword}
+              disabled={submitting}
+              className="w-full bg-toss-blue text-white font-bold py-4 rounded-2xl active:scale-95 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+            >
+              {submitting && <Loader2 size={16} className="animate-spin" />}
+              변경하기
+            </button>
+          </div>
+        </div>
+      )}
 
         {/* Footer Info */}
         <p className="text-center text-[11px] text-toss-gray pt-4 leading-relaxed">
@@ -113,6 +218,31 @@ function InfoItem({ icon, label, value }: { icon: React.ReactNode; label: string
         <span className="text-[11px] font-bold uppercase tracking-tight">{label}</span>
       </div>
       <p className="text-[15px] font-black text-toss-black ml-7">{value}</p>
+    </div>
+  );
+}
+
+function PwInput({ label, value, show, onChange, onToggle }: {
+  label: string; value: string; show: boolean;
+  onChange: (v: string) => void; onToggle: () => void;
+}) {
+  return (
+    <div>
+      <p className="text-xs font-bold text-toss-gray mb-1.5">{label}</p>
+      <div className="relative">
+        <input
+          type={show ? "text" : "password"}
+          inputMode="numeric"
+          maxLength={4}
+          value={value}
+          onChange={(e) => onChange(e.target.value.replace(/\D/g, "").slice(0, 4))}
+          placeholder="••••"
+          className="w-full bg-toss-lightGray dark:bg-background rounded-xl px-4 py-3 text-sm font-bold text-toss-black focus:outline-none focus:ring-2 focus:ring-toss-blue/30 pr-10 tracking-[0.3em]"
+        />
+        <button type="button" onClick={onToggle} className="absolute right-3 top-1/2 -translate-y-1/2 text-toss-gray/60 hover:text-toss-gray transition-colors">
+          {show ? <EyeOff size={16} /> : <Eye size={16} />}
+        </button>
+      </div>
     </div>
   );
 }

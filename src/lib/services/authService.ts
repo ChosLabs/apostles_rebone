@@ -1,11 +1,12 @@
 import { db } from "../firebase/client";
-import { 
-  collection, 
-  query, 
-  where, 
+import {
+  collection,
+  query,
+  where,
   getDocs,
   doc,
-  getDoc
+  getDoc,
+  updateDoc,
 } from "firebase/firestore";
 import { Participant, User } from "@/types/database";
 
@@ -31,11 +32,13 @@ export const login = async (name: string, phoneLast4: string): Promise<User | nu
   const querySnapshot = await getDocs(q);
 
   let foundParticipant: Participant | null = null;
-  querySnapshot.forEach((doc) => {
-    const data = doc.data() as Omit<Participant, "id">;
-    // Check if phone ends with phoneLast4
-    if (data.phone.replace(/-/g, "").endsWith(phoneLast4)) {
-      foundParticipant = { id: doc.id, ...data } as Participant;
+  querySnapshot.forEach((docSnap) => {
+    const data = docSnap.data() as Omit<Participant, "id"> & { pin?: string };
+    const passwordMatch = data.pin
+      ? data.pin === phoneLast4
+      : data.phone.replace(/-/g, "").endsWith(phoneLast4);
+    if (passwordMatch) {
+      foundParticipant = { id: docSnap.id, ...data } as Participant;
     }
   });
 
@@ -59,6 +62,21 @@ export const login = async (name: string, phoneLast4: string): Promise<User | nu
   }
 
   return null;
+};
+
+export const verifyPassword = async (userId: string, phoneLast4: string): Promise<boolean> => {
+  if (userId === "admin-id") return phoneLast4 === "2585";
+
+  const snap = await getDoc(doc(db, "participants", userId));
+  if (!snap.exists()) return false;
+
+  const data = snap.data() as Omit<Participant, "id"> & { pin?: string };
+  if (data.pin) return data.pin === phoneLast4;
+  return data.phone.replace(/-/g, "").endsWith(phoneLast4);
+};
+
+export const changePassword = async (userId: string, newPin: string): Promise<void> => {
+  await updateDoc(doc(db, "participants", userId), { pin: newPin });
 };
 
 export const logout = () => {
