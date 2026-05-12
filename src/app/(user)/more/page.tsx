@@ -1,13 +1,15 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { logout } from "@/lib/services/authService";
 import { useAuth } from "@/components/providers/AuthProvider";
+import { isInventoryManager } from "@/lib/services/inventoryService";
 import {
   ClipboardCheck, Users, Map, Bus,
   Image, Zap, Phone,
   ChevronRight, Settings, LogOut, User, Vote,
-  HelpCircle, MapPin, PackageSearch
+  HelpCircle, MapPin, PackageSearch, Archive
 } from "lucide-react";
 
 type MenuItem = {
@@ -34,6 +36,12 @@ const allMenuItems: MenuItem[] = [
 
 export default function MorePage() {
   const { user } = useAuth();
+  const [isManager, setIsManager] = useState(false);
+
+  useEffect(() => {
+    if (!user) return;
+    isInventoryManager(user.uid).then(setIsManager);
+  }, [user]);
 
   return (
     <div className="flex flex-col gap-6 pb-8 px-4">
@@ -98,6 +106,21 @@ export default function MorePage() {
           </div>
           <ChevronRight size={20} className="text-toss-gray/30 group-hover:text-toss-blue transition-colors" />
         </Link>
+
+        {isManager && (
+          <Link href="/inventory" className="flex items-center justify-between w-full p-5 bg-white dark:bg-surface border border-toss-border/40 rounded-2xl active:scale-[0.98] transition-all group">
+            <div className="flex items-center gap-4">
+              <div className="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-600">
+                <Archive size={22} />
+              </div>
+              <div>
+                <p className="text-[15px] font-bold text-toss-black">재고관리</p>
+                <p className="text-xs text-toss-gray">물품 재고 등록 및 수정</p>
+              </div>
+            </div>
+            <ChevronRight size={20} className="text-toss-gray/30 group-hover:text-toss-blue transition-colors" />
+          </Link>
+        )}
 
         <button 
           onClick={() => logout()}

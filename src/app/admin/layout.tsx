@@ -22,7 +22,8 @@ import {
   Heart,
   Phone,
   Stamp,
-  PackageSearch
+  PackageSearch,
+  Archive
 } from "lucide-react";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { logout } from "@/lib/services/authService";
@@ -75,6 +76,7 @@ export default function AdminLayout({
     { name: "비상연락처 관리", icon: <Phone size={20} />, href: "/admin/emergency-contacts" },
     { name: "포토앨범 관리", icon: <Image size={20} />, href: "/admin/gallery" },
     { name: "분실물 관리", icon: <PackageSearch size={20} />, href: "/admin/lost-items" },
+    { name: "재고 관리", icon: <Archive size={20} />, href: "/admin/inventory" },
   ];
 
   const SidebarContent = () => (

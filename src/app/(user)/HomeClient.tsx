@@ -6,6 +6,7 @@ import Link from "next/link";
 import { clsx } from "clsx";
 import { db } from "@/lib/firebase/client";
 import { collection, query, orderBy, limit, onSnapshot } from "firebase/firestore";
+import { useReadNotices } from "@/lib/hooks/useReadNotices";
 
 import { Notice, TimetableItem, DailyPrayer } from "@/types/database";
 
@@ -23,6 +24,9 @@ export default function Home({
   const [notices, setNotices] = useState<Notice[]>(initialNotices);
   const [timetable, setTimetable] = useState<TimetableItem[]>(initialTimetable);
   const [selectedNotice, setSelectedNotice] = useState<Notice | null>(null);
+  const { markAsRead, isUnread } = useReadNotices();
+
+  const unreadCount = notices.filter((n) => isUnread(n.id)).length;
 
   useEffect(() => {
     const noticesQ = query(collection(db, "notices"), orderBy("createdAt", "desc"), limit(10));
@@ -104,13 +108,20 @@ export default function Home({
       {/* 3. 공지사항 */}
       <section>
         <div className="flex justify-between items-center mb-3 px-1">
-          <h2 className="text-[15px] font-bold text-toss-black">공지사항</h2>
+          <div className="flex items-center gap-2">
+            <h2 className="text-[15px] font-bold text-toss-black">공지사항</h2>
+            {unreadCount > 0 && (
+              <span className="text-[10px] font-bold bg-red-500 text-white px-1.5 py-0.5 rounded-full leading-none">
+                {unreadCount}
+              </span>
+            )}
+          </div>
           <Link href="/notices" className="text-xs text-toss-gray flex items-center hover:text-toss-blue transition-colors">더보기 <ChevronRight size={14} /></Link>
         </div>
         <div className="flex flex-col gap-2">
           {notices.length > 0 ? (
             <>
-              <div 
+              <div
                 className={clsx(
                   "p-5 rounded-toss shadow-sm border-l-4 active:scale-[0.98] transition-all cursor-pointer",
                   notices[0].type === "긴급"
@@ -119,7 +130,7 @@ export default function Home({
                     ? "bg-green-50 dark:bg-green-950/40 border-green-500 dark:border-green-800"
                     : "bg-white dark:bg-surface border-toss-blue border-y-toss-blue/10 border-r-toss-blue/10"
                 )}
-                onClick={() => setSelectedNotice(notices[0])}
+                onClick={() => { setSelectedNotice(notices[0]); markAsRead(notices[0].id); }}
               >
                 <div className="flex justify-between items-start mb-2">
                   <div className="flex items-center gap-2">
@@ -134,6 +145,9 @@ export default function Home({
                       "text-[15px] font-bold",
                       notices[0].type === "긴급" ? "text-red-900 dark:text-red-300" : notices[0].type === "시간" ? "text-green-900 dark:text-green-300" : "text-toss-black"
                     )}>{notices[0].title}</span>
+                    {isUnread(notices[0].id) && (
+                      <span className="w-1.5 h-1.5 bg-red-500 rounded-full shrink-0" />
+                    )}
                   </div>
                   <span className="text-[11px] text-toss-gray font-medium">{formatDate(notices[0].createdAt)}</span>
                 </div>
@@ -144,14 +158,15 @@ export default function Home({
               </div>
               <div className="bg-white dark:bg-surface rounded-toss overflow-hidden shadow-sm border border-toss-border/40">
                 {notices.slice(1, 3).map((notice, idx) => (
-                  <NoticeItem 
+                  <NoticeItem
                     key={notice.id}
                     title={notice.title}
                     time={formatDate(notice.createdAt)}
                     content={notice.content}
                     type={notice.type}
+                    unread={isUnread(notice.id)}
                     border={idx !== Math.min(notices.length - 1, 2) - 1}
-                    onClick={() => setSelectedNotice(notice)}
+                    onClick={() => { setSelectedNotice(notice); markAsRead(notice.id); }}
                   />
                 ))}
               </div>
@@ -256,23 +271,24 @@ function QuickLink({ href, icon, label, desc }: { href: string; icon: React.Reac
   );
 }
 
-function NoticeItem({ title, time, content, type = "일반", border = true, onClick }: { title: string; time: string; content: string; type?: string; border?: boolean, onClick: () => void }) {
+function NoticeItem({ title, time, content, type = "일반", unread = false, border = true, onClick }: { title: string; time: string; content: string; type?: string; unread?: boolean; border?: boolean; onClick: () => void }) {
   return (
-    <div 
+    <div
       className={clsx(
         "p-4 flex flex-col gap-1 active:bg-toss-lightGray transition-colors cursor-pointer",
         border && "border-b border-toss-border/40",
         type === "긴급" ? "bg-red-50/30 dark:bg-red-950/20" : type === "시간" ? "bg-green-50/30 dark:bg-green-950/20" : ""
-      )} 
+      )}
       onClick={onClick}
     >
       <div className="flex justify-between items-center">
         <div className={clsx(
           "flex items-center gap-2 text-[14px] font-bold",
-          type === "긴급" ? "text-red-700 dark:text-red-400" : type === "시간" ? "text-green-700 dark:text-green-400" : "text-toss-black"
+          type === "긴급" ? "text-red-700 dark:text-red-400" : type === "시간" ? "text-green-700 dark:text-green-400" : unread ? "text-toss-black" : "text-toss-black/50"
         )}>
-          {type === "긴급" && <span className="w-1.5 h-1.5 bg-red-500 rounded-full"></span>}
-          {type === "시간" && <span className="w-1.5 h-1.5 bg-green-500 rounded-full"></span>}
+          {type === "긴급" && <span className="w-1.5 h-1.5 bg-red-500 rounded-full" />}
+          {type === "시간" && <span className="w-1.5 h-1.5 bg-green-500 rounded-full" />}
+          {type === "일반" && unread && <span className="w-1.5 h-1.5 bg-red-500 rounded-full shrink-0" />}
           {title}
         </div>
         <span className="text-[11px] text-toss-gray font-medium">{time}</span>

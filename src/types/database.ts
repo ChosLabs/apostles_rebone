@@ -173,6 +173,33 @@ export interface DailyPrayer {
   updatedAt: any;
 }
 
+export interface InventoryCategory {
+  id: string;
+  name: string;
+  createdAt: any;
+}
+
+export interface InventoryItem {
+  id: string;
+  name: string;
+  imageUrl: string;
+  storagePath?: string;
+  categoryId: string;
+  categoryName: string;
+  initialQuantity: number;
+  currentQuantity: number;
+  registeredById: string;
+  registeredByName: string;
+  createdAt: any;
+  updatedAt: any;
+}
+
+export interface InventoryManager {
+  id: string; // participantId
+  name: string;
+  addedAt: any;
+}
+
 export interface LostItem {
   id: string;
   imageUrl: string;

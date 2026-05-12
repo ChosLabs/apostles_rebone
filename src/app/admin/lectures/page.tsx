@@ -16,7 +16,7 @@ import {
 } from "@/lib/services/lectureService";
 import { getParticipants } from "@/lib/services/participantService";
 import { Lecture, LectureType, Participant } from "@/types/database";
-import { exportMultiSheetToExcel } from "@/lib/utils/excel";
+import { exportMultiSheetToExcel, exportToExcel } from "@/lib/utils/excel";
 
 const LECTURE_TYPE_OPTIONS: LectureType[] = ["실천형", "나눔형", "이론형", "상담형"];
 
@@ -205,7 +205,27 @@ export default function AdminLecturesPage() {
             className="bg-white text-toss-black border border-toss-border px-4 py-2.5 rounded-xl font-bold flex items-center gap-2 hover:bg-toss-lightGray transition-all shadow-sm text-sm"
           >
             <Download size={16} />
-            엑셀 내보내기
+            신청자 명단
+          </button>
+          <button
+            onClick={async () => {
+              const all = await getParticipants();
+              const appliedIds = new Set(lectures.flatMap(l => l.applicantIds));
+              const rows = all
+                .filter(p => !appliedIds.has(p.id))
+                .map((p, idx) => ({
+                  번호: idx + 1,
+                  이름: p.name,
+                  팀: p.team ?? "",
+                  조: p.group ?? "",
+                  전화번호: p.phone ?? "",
+                }));
+              exportToExcel(rows, "강의_미신청_명단");
+            }}
+            className="bg-white text-toss-black border border-toss-border px-4 py-2.5 rounded-xl font-bold flex items-center gap-2 hover:bg-toss-lightGray transition-all shadow-sm text-sm"
+          >
+            <Download size={16} />
+            미신청자 명단
           </button>
           <button
             onClick={openAddModal}

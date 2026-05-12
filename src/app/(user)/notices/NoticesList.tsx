@@ -5,12 +5,14 @@ import { ChevronLeft, X, Megaphone } from "lucide-react";
 import Link from "next/link";
 import { db } from "@/lib/firebase/client";
 import { collection, query, orderBy, onSnapshot } from "firebase/firestore";
+import { useReadNotices } from "@/lib/hooks/useReadNotices";
 
 import { Notice } from "@/types/database";
 
 export default function NoticesList({ initialNotices }: { initialNotices: Notice[] }) {
   const [notices, setNotices] = useState<Notice[]>(initialNotices);
   const [selectedNotice, setSelectedNotice] = useState<Notice | null>(null);
+  const { markAsRead, isUnread } = useReadNotices();
 
   useEffect(() => {
     const q = query(collection(db, "notices"), orderBy("createdAt", "desc"));
@@ -52,26 +54,30 @@ export default function NoticesList({ initialNotices }: { initialNotices: Notice
 
       <main className="max-w-[420px] mx-auto p-4">
         <div className="bg-white dark:bg-surface rounded-toss overflow-hidden shadow-[0_2px_8px_rgba(0,0,0,0.04)] border border-toss-border/40">
-          {notices.map((notice, idx) => (
-            <div 
-              key={notice.id}
-              className={`p-5 flex flex-col gap-1 active:bg-toss-lightGray transition-colors cursor-pointer ${
-                idx !== notices.length - 1 ? 'border-b border-toss-border/40' : ''
-              }`}
-              onClick={() => setSelectedNotice(notice)}
-            >
-              <div className="flex justify-between items-center mb-1">
-                <div className="flex items-center gap-2">
-                  {notice.type === "긴급" && <span className="w-1.5 h-1.5 bg-red-500 rounded-full"></span>}
-                  <span className={`text-[15px] font-bold ${notice.type === "긴급" ? 'text-toss-black' : 'text-toss-black/80'}`}>
-                    {notice.title}
-                  </span>
+          {notices.map((notice, idx) => {
+            const unread = isUnread(notice.id);
+            return (
+              <div
+                key={notice.id}
+                className={`p-5 flex flex-col gap-1 active:bg-toss-lightGray transition-colors cursor-pointer ${
+                  idx !== notices.length - 1 ? 'border-b border-toss-border/40' : ''
+                }`}
+                onClick={() => { setSelectedNotice(notice); markAsRead(notice.id); }}
+              >
+                <div className="flex justify-between items-center mb-1">
+                  <div className="flex items-center gap-2">
+                    {notice.type === "긴급" && <span className="w-1.5 h-1.5 bg-red-500 rounded-full"></span>}
+                    {notice.type !== "긴급" && unread && <span className="w-1.5 h-1.5 bg-red-500 rounded-full shrink-0"></span>}
+                    <span className={`text-[15px] font-bold ${unread ? 'text-toss-black' : 'text-toss-black/50'}`}>
+                      {notice.title}
+                    </span>
+                  </div>
+                  <span className="text-[11px] text-toss-gray font-medium">{formatDate(notice.createdAt)}</span>
                 </div>
-                <span className="text-[11px] text-toss-gray font-medium">{formatDate(notice.createdAt)}</span>
+                <p className="text-sm text-toss-gray truncate">{notice.content}</p>
               </div>
-              <p className="text-sm text-toss-gray truncate">{notice.content}</p>
-            </div>
-          ))}
+            );
+          })}
         </div>
 
         <div className="mt-8 flex flex-col items-center gap-2 opacity-30">
