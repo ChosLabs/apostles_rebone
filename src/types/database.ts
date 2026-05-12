@@ -172,3 +172,12 @@ export interface DailyPrayer {
   content: string;
   updatedAt: any;
 }
+
+export interface LostItem {
+  id: string;
+  imageUrl: string;
+  storagePath?: string;
+  description: string;
+  isClaimed: boolean;
+  createdAt: any;
+}

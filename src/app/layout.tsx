@@ -5,9 +5,9 @@ import { NotificationProvider } from "@/components/providers/NotificationProvide
 import { ThemeProvider } from "@/components/providers/ThemeProvider";
 
 export const metadata: Metadata = {
-// ... existing metadata
   metadataBase: new URL("https://apostles-rebone.pages.dev"),
   title: "RE:BON - 2026 아포슬 여름수련회",
+  icons: { icon: "/applogo.png", apple: "/splash-icon.png" },
   description: "2026 아포슬 전체여름수련회",
   openGraph: {
     title: "RE:BON - 2026 아포슬 여름수련회",

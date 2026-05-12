@@ -3,11 +3,11 @@
 import Link from "next/link";
 import { logout } from "@/lib/services/authService";
 import { useAuth } from "@/components/providers/AuthProvider";
-import { 
-  ClipboardCheck, Users, Map, Bus, FileText, 
-  Image, Zap, Phone, 
-  Calendar, Heart, ChevronRight, Settings, LogOut, User, Vote,
-  HelpCircle, MapPin
+import {
+  ClipboardCheck, Users, Map, Bus,
+  Image, Zap, Phone,
+  ChevronRight, Settings, LogOut, User, Vote,
+  HelpCircle, MapPin, PackageSearch
 } from "lucide-react";
 
 type MenuItem = {
@@ -29,9 +29,7 @@ const allMenuItems: MenuItem[] = [
   { icon: <Image className="text-blue-600" />, label: "포토앨범", desc: "수련회 사진첩", color: "text-blue-600", href: "/gallery" },
   { icon: <Phone className="text-green-500" />, label: "비상 연락처", desc: "도움이 필요할 때", color: "text-green-500", href: "/emergency" },
   { icon: <Bus className="text-orange-400" />, label: "버스 배정", desc: "출발 버스 번호 확인", color: "text-orange-400", href: "/more" },
-  { icon: <FileText className="text-blue-400" />, label: "성경공부 자료", desc: "GBS 자료 다운로드", color: "text-blue-400", href: "/more" },
-  { icon: <Calendar className="text-amber-500" />, label: "40일 팔로업", desc: "수련회 후 40일 플랜", color: "text-amber-500", href: "/more" },
-  { icon: <Heart className="text-red-500" />, label: "결단카드", desc: "나의 결단 기록 · 파트너", color: "text-red-500", href: "/more" },
+  { icon: <PackageSearch className="text-teal-500" />, label: "분실물", desc: "분실물 확인 및 수령", color: "text-teal-500", href: "/lost-items" },
 ];
 
 export default function MorePage() {
