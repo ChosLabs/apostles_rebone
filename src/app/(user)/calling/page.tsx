@@ -152,7 +152,7 @@ export default function CallingPage() {
     if (code !== correctCode) { setError(true); return; }
     try {
       setSaving(true);
-      await addStamp(user.uid, user.name, user.team ?? "", selectedZone.id, ALL_ZONE_IDS);
+      await addStamp(user.uid, user.name, user.team ?? "", selectedZone.id, ALL_ZONE_IDS, user.phone ? user.phone.replace(/-/g, "").slice(-4) : "");
       setSelectedZone(null);
     } catch {
       alert("스탬프 저장에 실패했습니다. 다시 시도해주세요.");

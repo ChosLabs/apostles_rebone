@@ -7,6 +7,7 @@ import {
   subscribeAllCallingStamps,
   updateBoothCode,
 } from "@/lib/services/callingZoneService";
+import { getParticipants } from "@/lib/services/participantService";
 import { CallingZoneConfig, CallingStamp } from "@/types/database";
 
 type ZoneMeta = {
@@ -32,6 +33,7 @@ export default function AdminCallingZonePage() {
   const [config, setConfig] = useState<CallingZoneConfig | null>(null);
   const [codes, setCodes] = useState<Record<string, string>>({});
   const [allStamps, setAllStamps] = useState<CallingStamp[]>([]);
+  const [phoneMap, setPhoneMap] = useState<Record<string, string>>({});
   const [savingId, setSavingId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -44,6 +46,11 @@ export default function AdminCallingZonePage() {
       setLoading(false);
     });
     const unsubStamps = subscribeAllCallingStamps(setAllStamps);
+    getParticipants().then((list) => {
+      const map: Record<string, string> = {};
+      list.forEach((p) => { map[p.id] = p.phone ? p.phone.replace(/-/g, "").slice(-4) : ""; });
+      setPhoneMap(map);
+    });
     return () => { unsubConfig(); unsubStamps(); };
   }, []);
 
@@ -152,7 +159,11 @@ export default function AdminCallingZonePage() {
                     <span className="text-xs font-bold text-toss-gray/40 w-5">{i + 1}</span>
                     <div>
                       <p className="text-sm font-bold text-toss-black">{stamp.userName}</p>
-                      {stamp.userTeam && <p className="text-xs text-toss-blue font-bold">{stamp.userTeam}</p>}
+                      {(stamp.userTeam || phoneMap[stamp.userId]) && (
+                        <p className="text-xs text-toss-blue font-bold">
+                          {stamp.userTeam}{phoneMap[stamp.userId] && `${stamp.userTeam ? " · " : ""}${phoneMap[stamp.userId]}`}
+                        </p>
+                      )}
                     </div>
                   </div>
                   <div className="flex gap-1">
@@ -195,7 +206,11 @@ export default function AdminCallingZonePage() {
                 <div key={stamp.userId} className="px-6 py-4 flex items-center justify-between">
                   <div>
                     <p className="text-sm font-bold text-toss-black">{stamp.userName}</p>
-                    {stamp.userTeam && <p className="text-xs text-toss-gray">{stamp.userTeam}</p>}
+                    {(stamp.userTeam || phoneMap[stamp.userId]) && (
+                      <p className="text-xs text-toss-gray">
+                        {stamp.userTeam}{phoneMap[stamp.userId] && `${stamp.userTeam ? " · " : ""}${phoneMap[stamp.userId]}`}
+                      </p>
+                    )}
                   </div>
                   <div className="flex items-center gap-3">
                     <span className={`text-xs font-bold px-2 py-0.5 rounded-md ${

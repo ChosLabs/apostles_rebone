@@ -44,6 +44,7 @@ export interface PrayerRequest {
   userName: string;
   userTeam?: string;
   userBirthYear?: string;
+  userPhone?: string;
   group: string;
   content: string;
   type: 'all' | 'group';
@@ -104,6 +105,7 @@ export interface LuckyDrawWinner {
   userName: string;
   userTeam: string;
   userGroup: number;
+  userPhone?: string;
 }
 
 export interface Poll {
@@ -150,6 +152,7 @@ export interface CallingStamp {
   userId: string;
   userName: string;
   userTeam?: string;
+  userPhone?: string;
   stamps: string[];
   completedAt?: any;
   updatedAt: any;

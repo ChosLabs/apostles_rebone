@@ -25,6 +25,7 @@ export const addPrayerRequest = async (user: User, content: string, type: 'all' 
     userName: isAnonymous ? "익명" : user.name,
     userTeam: user.team || "",
     userBirthYear: user.birthYear || "",
+    userPhone: user.phone ? user.phone.replace(/-/g, "").slice(-4) : "",
     group: user.group?.toString() || "",
     content,
     type,

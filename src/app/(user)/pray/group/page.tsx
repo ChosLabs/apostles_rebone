@@ -115,9 +115,9 @@ export default function GroupPrayersPage() {
                     <span className={`text-[13px] font-bold ${p.userName === '익명' ? 'text-toss-gray' : 'text-toss-black'}`}>
                       {p.userName}
                     </span>
-                    {(p.userTeam || p.userBirthYear) && (
+                    {(p.userTeam || p.userBirthYear || p.userPhone) && (
                       <span className="text-[10px] text-toss-gray font-medium px-1.5 py-0.5 bg-toss-lightGray rounded">
-                        {p.userTeam} {p.userBirthYear && `· ${p.userBirthYear}또래`}
+                        {p.userTeam} {p.userBirthYear && `· ${p.userBirthYear}또래`}{p.userPhone && ` · ${p.userPhone}`}
                       </span>
                     )}
                   </div>

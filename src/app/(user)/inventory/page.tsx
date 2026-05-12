@@ -34,6 +34,7 @@ export default function InventoryPage() {
   // 수량 수정 modal
   const [qtyItem, setQtyItem] = useState<InventoryItem | null>(null);
   const [qtyValue, setQtyValue] = useState(0);
+  const [qtyInput, setQtyInput] = useState("0");
   const [qtySaving, setQtySaving] = useState(false);
 
   // 정보 수정 modal
@@ -74,7 +75,11 @@ export default function InventoryPage() {
   };
 
   // ── 수량 수정 ──────────────────────────────────────────────
-  const openQty = (item: InventoryItem) => { setQtyItem(item); setQtyValue(item.currentQuantity); };
+  const openQty = (item: InventoryItem) => {
+    setQtyItem(item);
+    setQtyValue(item.currentQuantity);
+    setQtyInput(String(item.currentQuantity));
+  };
   const handleQtySave = async () => {
     if (!qtyItem) return;
     try { setQtySaving(true); await updateItemQuantity(qtyItem.id, qtyValue); setQtyItem(null); }
@@ -254,27 +259,49 @@ export default function InventoryPage() {
 
       {/* 수량 수정 모달 */}
       {qtyItem && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm" onClick={() => setQtyItem(null)}>
-          <div className="bg-white dark:bg-surface w-full max-w-xs rounded-3xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200" onClick={(e) => e.stopPropagation()}>
-            <div className="px-6 py-5 border-b border-toss-border flex justify-between items-center">
-              <h2 className="text-base font-black text-toss-black">현재고 수정</h2>
-              <button onClick={() => setQtyItem(null)}><X size={20} className="text-toss-gray" /></button>
+        <div className="fixed inset-0 z-[100] flex items-end justify-center bg-black/40 backdrop-blur-sm" onClick={() => setQtyItem(null)}>
+          <div className="bg-white dark:bg-surface w-full max-w-[420px] rounded-t-3xl shadow-2xl animate-in slide-in-from-bottom duration-300 overflow-hidden" onClick={(e) => e.stopPropagation()}>
+            {/* 드래그 핸들 */}
+            <div className="flex justify-center pt-3 pb-1">
+              <div className="w-10 h-1 rounded-full bg-toss-border" />
             </div>
-            <div className="p-6 space-y-4">
-              <p className="text-sm font-bold text-toss-black">{qtyItem.name}</p>
-              <div className="flex items-center gap-3">
-                <button onClick={() => setQtyValue((v) => Math.max(0, v - 1))}
-                  className="w-10 h-10 rounded-full bg-toss-lightGray font-bold text-lg flex items-center justify-center hover:bg-toss-border transition-colors">−</button>
-                <input type="number" min={0} value={qtyValue} onChange={(e) => setQtyValue(parseInt(e.target.value) || 0)}
-                  className="flex-1 text-center px-3 py-2 border border-toss-border rounded-xl font-black text-xl focus:border-toss-blue outline-none" />
-                <button onClick={() => setQtyValue((v) => v + 1)}
-                  className="w-10 h-10 rounded-full bg-toss-lightGray font-bold text-lg flex items-center justify-center hover:bg-toss-border transition-colors">+</button>
+            <div className="px-6 pt-3 pb-2 flex justify-between items-center">
+              <div>
+                <h2 className="text-lg font-black text-toss-black">현재고 수정</h2>
+                <p className="text-sm text-toss-gray mt-0.5">{qtyItem.name}</p>
               </div>
-              <p className="text-xs text-toss-gray text-center">초기 수량: {qtyItem.initialQuantity}</p>
-              <div className="flex gap-3">
-                <button onClick={() => setQtyItem(null)} className="flex-1 py-3 rounded-2xl font-bold text-toss-gray bg-toss-lightGray">취소</button>
+              <button onClick={() => setQtyItem(null)} className="p-2 hover:bg-toss-lightGray rounded-full transition-colors">
+                <X size={20} className="text-toss-gray" />
+              </button>
+            </div>
+            <div className="px-6 pb-8 pt-4 space-y-5">
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => { const n = Math.max(0, qtyValue - 1); setQtyValue(n); setQtyInput(String(n)); }}
+                  className="w-12 h-12 shrink-0 rounded-full bg-toss-lightGray font-bold text-2xl flex items-center justify-center hover:bg-toss-border active:scale-95 transition-all"
+                >−</button>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  value={qtyInput}
+                  onChange={(e) => {
+                    const raw = e.target.value.replace(/[^0-9]/g, "");
+                    setQtyInput(raw);
+                    setQtyValue(raw === "" ? 0 : parseInt(raw));
+                  }}
+                  onBlur={() => { if (qtyInput === "") setQtyInput("0"); }}
+                  className="flex-1 min-w-0 text-center px-3 py-3 border border-toss-border rounded-2xl font-black text-2xl focus:border-toss-blue outline-none"
+                />
+                <button
+                  onClick={() => { const n = qtyValue + 1; setQtyValue(n); setQtyInput(String(n)); }}
+                  className="w-12 h-12 shrink-0 rounded-full bg-toss-lightGray font-bold text-2xl flex items-center justify-center hover:bg-toss-border active:scale-95 transition-all"
+                >+</button>
+              </div>
+              <p className="text-xs text-toss-gray text-center">초기 수량: {qtyItem.initialQuantity}개</p>
+              <div className="flex gap-3 pt-1">
+                <button onClick={() => setQtyItem(null)} className="flex-1 py-3.5 rounded-2xl font-bold text-toss-gray bg-toss-lightGray active:scale-[0.98] transition-all">취소</button>
                 <button onClick={handleQtySave} disabled={qtySaving}
-                  className="flex-[2] py-3 rounded-2xl font-bold text-white bg-toss-blue flex items-center justify-center gap-2 disabled:opacity-60">
+                  className="flex-[2] py-3.5 rounded-2xl font-bold text-white bg-toss-blue flex items-center justify-center gap-2 disabled:opacity-60 active:scale-[0.98] transition-all">
                   {qtySaving && <Loader2 size={16} className="animate-spin" />}저장
                 </button>
               </div>

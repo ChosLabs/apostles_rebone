@@ -206,6 +206,11 @@ export default function AdminPrayPage() {
                     {request.userTeam}
                   </div>
                 )}
+                {request.userPhone && (
+                  <div className="text-xs font-bold text-toss-gray">
+                    {request.userPhone}
+                  </div>
+                )}
               </div>
             </div>
           ))}
@@ -241,6 +246,9 @@ export default function AdminPrayPage() {
                 </span>
                 {selectedRequest.userTeam && (
                   <span className="text-xs font-bold px-2 py-1 rounded-lg border bg-toss-lightGray text-toss-gray border-toss-border">{selectedRequest.userTeam}</span>
+                )}
+                {selectedRequest.userPhone && (
+                  <span className="text-xs font-bold px-2 py-1 rounded-lg border bg-toss-lightGray text-toss-gray border-toss-border">{selectedRequest.userPhone}</span>
                 )}
                 <span className="text-xs text-toss-gray py-1">{formatDate(selectedRequest.createdAt)}</span>
               </div>

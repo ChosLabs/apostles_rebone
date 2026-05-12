@@ -17,7 +17,7 @@ export function useReadNotices() {
       if (prev.has(id)) return prev;
       const next = new Set(prev);
       next.add(id);
-      localStorage.setItem(KEY, JSON.stringify([...next]));
+      localStorage.setItem(KEY, JSON.stringify(Array.from(next)));
       return next;
     });
   }, []);

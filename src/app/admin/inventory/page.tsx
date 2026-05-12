@@ -350,7 +350,7 @@ export default function AdminInventoryPage() {
                 <li key={p.id} className="flex items-center justify-between px-5 py-3 hover:bg-toss-lightGray/30 cursor-pointer" onClick={() => handleAddManager(p)}>
                   <div>
                     <p className="text-sm font-bold text-toss-black">{p.name}</p>
-                    <p className="text-xs text-toss-gray">{p.team}</p>
+                    <p className="text-xs text-toss-gray">{p.team}{p.phone && ` · ${p.phone.replace(/-/g, "").slice(-4)}`}</p>
                   </div>
                   <Plus size={16} className="text-toss-blue" />
                 </li>

@@ -212,6 +212,7 @@ export default function AdminLuckyDrawPage() {
                             <div className="flex items-center gap-2">
                               <span className="text-[11px] font-bold text-toss-blue bg-toss-blue/5 px-2 py-0.5 rounded-md">{w.userTeam}</span>
                               <span className="text-[11px] font-bold text-toss-gray bg-toss-lightGray px-2 py-0.5 rounded-md">{w.userGroup}조</span>
+                              {w.userPhone && <span className="text-[11px] font-bold text-toss-gray bg-toss-lightGray px-2 py-0.5 rounded-md">{w.userPhone}</span>}
                             </div>
                           </div>
                         ))}

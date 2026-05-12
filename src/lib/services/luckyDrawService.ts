@@ -67,6 +67,7 @@ export async function completeDraw(draw: LuckyDraw): Promise<void> {
       userName: p.name,
       userTeam: p.team,
       userGroup: p.group || 0,
+      userPhone: p.phone ? p.phone.replace(/-/g, "").slice(-4) : "",
     }));
 
   await updateDoc(doc(db, COL, draw.id), { status: "completed", winners });

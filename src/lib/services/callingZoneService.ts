@@ -66,7 +66,8 @@ export async function addStamp(
   userName: string,
   userTeam: string,
   boothId: string,
-  allBoothIds: string[]
+  allBoothIds: string[],
+  userPhone?: string,
 ): Promise<void> {
   const stampRef = doc(db, "callingStamps", userId);
   const snap = await getDoc(stampRef);
@@ -77,6 +78,7 @@ export async function addStamp(
       userId,
       userName,
       userTeam,
+      userPhone: userPhone ?? "",
       stamps: newStamps,
       completedAt: newStamps.length === allBoothIds.length ? serverTimestamp() : null,
       updatedAt: serverTimestamp(),

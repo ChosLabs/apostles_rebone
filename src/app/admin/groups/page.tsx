@@ -244,7 +244,7 @@ export default function AdminGroupsPage() {
                       </div>
                       <div>
                         <p className="text-sm font-bold text-toss-black">{member.name}</p>
-                        <p className="text-[10px] lg:text-[11px] text-toss-gray font-medium">{member.team}</p>
+                        <p className="text-[10px] lg:text-[11px] text-toss-gray font-medium">{member.team}{member.phone && ` · ${member.phone.replace(/-/g, "").slice(-4)}`}</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-2 lg:gap-3">
@@ -334,7 +334,7 @@ export default function AdminGroupsPage() {
                       <div className="w-8 h-8 rounded-full bg-toss-lightGray flex items-center justify-center text-xs font-bold">{p.name[0]}</div>
                       <div className="text-left">
                         <p className="text-sm font-bold text-toss-black">{p.name}</p>
-                        <p className="text-[10px] text-toss-gray">{p.team}</p>
+                        <p className="text-[10px] text-toss-gray">{p.team}{p.phone && ` · ${p.phone.replace(/-/g, "").slice(-4)}`}</p>
                       </div>
                     </div>
                     <Plus size={16} className="text-toss-blue opacity-0 group-hover:opacity-100 transition-opacity" />

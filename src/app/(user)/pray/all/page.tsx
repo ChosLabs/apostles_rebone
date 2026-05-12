@@ -8,6 +8,7 @@ import { collection, query, where, orderBy, onSnapshot, limit } from "firebase/f
 import { PrayerRequest } from "@/types/database";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { togglePrayLike } from "@/lib/services/prayService";
+import { getParticipants } from "@/lib/services/participantService";
 
 export default function AllPrayersPage() {
   const { user } = useAuth();
@@ -15,15 +16,16 @@ export default function AllPrayersPage() {
   const [allPrayers, setAllPrayers] = useState<PrayerRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedPrayer, setSelectedPrayer] = useState<PrayerRequest | null>(null);
+  const [phoneMap, setPhoneMap] = useState<Record<string, string>>({});
 
   useEffect(() => {
     const q = query(
-      collection(db, "prayers"), 
+      collection(db, "prayers"),
       where("type", "==", "all"),
       orderBy("createdAt", "desc"),
       limit(50)
     );
-    
+
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const docs = snapshot.docs.map(doc => ({
         id: doc.id,
@@ -31,6 +33,12 @@ export default function AllPrayersPage() {
       })) as PrayerRequest[];
       setAllPrayers(docs);
       setLoading(false);
+    });
+
+    getParticipants().then((list) => {
+      const map: Record<string, string> = {};
+      list.forEach((p) => { map[p.id] = p.phone ? p.phone.replace(/-/g, "").slice(-4) : ""; });
+      setPhoneMap(map);
     });
 
     return () => unsubscribe();
@@ -101,9 +109,9 @@ export default function AllPrayersPage() {
                     <span className={`text-[13px] font-bold ${p.userName === '익명' ? 'text-toss-gray' : 'text-toss-black'}`}>
                       {p.userName}
                     </span>
-                    {(p.userTeam || p.userBirthYear) && (
+                    {(p.userTeam || p.userBirthYear || phoneMap[p.userId]) && (
                       <span className="text-[10px] text-toss-gray font-medium px-1.5 py-0.5 bg-toss-lightGray rounded">
-                        {p.userTeam} {p.userBirthYear && `· ${p.userBirthYear}또래`}
+                        {p.userTeam} {p.userBirthYear && `· ${p.userBirthYear}또래`}{phoneMap[p.userId] && ` · ${phoneMap[p.userId]}`}
                       </span>
                     )}
                   </div>
@@ -141,9 +149,9 @@ export default function AllPrayersPage() {
                   <span className={`text-[14px] font-bold ${currentPrayer.userName === '익명' ? 'text-toss-gray' : 'text-toss-black'}`}>
                     {currentPrayer.userName}
                   </span>
-                  {(currentPrayer.userTeam || currentPrayer.userBirthYear) && (
+                  {(currentPrayer.userTeam || currentPrayer.userBirthYear || phoneMap[currentPrayer.userId]) && (
                     <span className="text-[10px] text-toss-gray font-medium px-1.5 py-0.5 bg-toss-lightGray rounded">
-                      {currentPrayer.userTeam} {currentPrayer.userBirthYear && `· ${currentPrayer.userBirthYear}또래`}
+                      {currentPrayer.userTeam} {currentPrayer.userBirthYear && `· ${currentPrayer.userBirthYear}또래`}{phoneMap[currentPrayer.userId] && ` · ${phoneMap[currentPrayer.userId]}`}
                     </span>
                   )}
                   <span className="text-[10px] text-toss-gray/60">{formatDate(currentPrayer.createdAt)}</span>
