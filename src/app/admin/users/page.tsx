@@ -1,22 +1,28 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { 
-  Search, 
-  UserPlus, 
-  Edit2, 
-  Trash2, 
+import {
+  Search,
+  UserPlus,
+  Edit2,
+  Trash2,
   Download,
   X,
-  Loader2
+  Loader2,
+  KeyRound,
+  Eye,
+  EyeOff,
+  RotateCcw,
 } from "lucide-react";
-import { 
-  getParticipants, 
-  addParticipant, 
+import {
+  getParticipants,
+  addParticipant,
   deleteParticipant,
-  updateParticipant 
+  updateParticipant
 } from "@/lib/services/participantService";
+import { changePassword, resetPin, getParticipantPin } from "@/lib/services/authService";
 import { Participant, TeamType, AttendanceType } from "@/types/database";
+import { exportToExcel } from "@/lib/utils/excel";
 
 export default function AdminUsersPage() {
   const [participants, setParticipants] = useState<Participant[]>([]);
@@ -27,6 +33,14 @@ export default function AdminUsersPage() {
   const [isAdding, setIsAdding] = useState(false);
   const [editingParticipant, setEditingParticipant] = useState<Participant | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // 비밀번호 관리
+  const [pwTarget, setPwTarget] = useState<Participant | null>(null);
+  const [currentPin, setCurrentPin] = useState<string | null | undefined>(undefined); // undefined=로딩중
+  const [newPin, setNewPin] = useState("");
+  const [showPin, setShowPin] = useState(false);
+  const [savingPin, setSavingPin] = useState(false);
+  const [pwError, setPwError] = useState("");
 
   // Form state
   const [formData, setFormData] = useState({
@@ -117,6 +131,54 @@ export default function AdminUsersPage() {
     }
   };
 
+  const openPwModal = async (participant: Participant) => {
+    setPwTarget(participant);
+    setCurrentPin(undefined);
+    setNewPin("");
+    setPwError("");
+    setShowPin(false);
+    const pin = await getParticipantPin(participant.id);
+    setCurrentPin(pin);
+  };
+
+  const closePwModal = () => {
+    setPwTarget(null);
+    setCurrentPin(undefined);
+    setNewPin("");
+    setPwError("");
+  };
+
+  const handleSavePin = async () => {
+    if (!pwTarget) return;
+    if (newPin.length !== 4) { setPwError("4자리 숫자를 입력해주세요."); return; }
+    setSavingPin(true);
+    try {
+      await changePassword(pwTarget.id, newPin);
+      setCurrentPin(newPin);
+      setNewPin("");
+      setPwError("");
+      alert(`${pwTarget.name}의 비밀번호가 변경되었습니다.`);
+    } catch {
+      setPwError("저장에 실패했습니다.");
+    } finally {
+      setSavingPin(false);
+    }
+  };
+
+  const handleResetPin = async () => {
+    if (!pwTarget) return;
+    if (!confirm(`${pwTarget.name}의 비밀번호를 전화번호 뒷자리로 초기화할까요?`)) return;
+    setSavingPin(true);
+    try {
+      await resetPin(pwTarget.id);
+      setCurrentPin(null);
+    } catch {
+      setPwError("초기화에 실패했습니다.");
+    } finally {
+      setSavingPin(false);
+    }
+  };
+
   const handleDelete = async (id: string, name: string) => {
     if (!confirm(`${name} 참가자를 삭제하시겠습니까?`)) return;
 
@@ -149,8 +211,19 @@ export default function AdminUsersPage() {
           <p className="text-xs lg:text-sm text-toss-gray mt-1">참가자 명단을 확인하고 기본 정보를 관리합니다.</p>
         </div>
         <div className="flex gap-2 w-full md:w-auto overflow-x-auto pb-2 md:pb-0 no-scrollbar">
-          <button 
-            onClick={() => alert("엑셀 내보내기 기능은 준비 중입니다.")}
+          <button
+            onClick={() => {
+              const rows = filteredParticipants.map(p => ({
+                이름: p.name,
+                팀: p.team,
+                또래: p.birthYear || "",
+                전화번호: p.phone,
+                참석구분: p.attendanceType,
+                조: p.group ?? "",
+                숙소: p.room || "",
+              }));
+              exportToExcel(rows, "참가자_명단");
+            }}
             className="whitespace-nowrap bg-white text-toss-black border border-toss-border px-4 lg:px-5 py-2 lg:py-2.5 rounded-xl font-bold flex items-center gap-2 hover:bg-toss-lightGray transition-all shadow-sm text-sm"
           >
             <Download size={16} className="lg:size-[18px]" />
@@ -255,13 +328,20 @@ export default function AdminUsersPage() {
                     <td className="px-4 lg:px-6 py-4 text-xs font-bold text-toss-gray">{user.room || "미배정"}</td>
                     <td className="px-4 lg:px-6 py-4 text-right">
                       <div className="flex justify-end gap-1 sm:opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button 
+                        <button
+                          onClick={() => openPwModal(user)}
+                          className="p-2 text-toss-gray hover:text-amber-500 hover:bg-amber-50 rounded-lg transition-all"
+                          title="비밀번호 관리"
+                        >
+                          <KeyRound size={16} />
+                        </button>
+                        <button
                           onClick={() => setEditingParticipant(user)}
                           className="p-2 text-toss-gray hover:text-toss-blue hover:bg-toss-blue/5 rounded-lg transition-all"
                         >
                           <Edit2 size={16} />
                         </button>
-                        <button 
+                        <button
                           onClick={() => handleDelete(user.id, user.name)}
                           className="p-2 text-toss-gray hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"
                         >
@@ -379,6 +459,90 @@ export default function AdminUsersPage() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* 비밀번호 관리 모달 */}
+      {pwTarget && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-200" onClick={closePwModal}>
+          <div className="bg-white w-full max-w-sm rounded-3xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200" onClick={(e) => e.stopPropagation()}>
+            <div className="px-6 py-5 border-b border-toss-border flex justify-between items-center">
+              <div>
+                <h2 className="text-base font-black text-toss-black">비밀번호 관리</h2>
+                <p className="text-xs text-toss-gray mt-0.5">{pwTarget.name}</p>
+              </div>
+              <button onClick={closePwModal} className="p-2 hover:bg-toss-lightGray rounded-full transition-colors text-toss-gray">
+                <X size={20} />
+              </button>
+            </div>
+
+            <div className="p-6 space-y-5">
+              {/* 현재 비밀번호 */}
+              <div className="bg-toss-lightGray rounded-2xl p-4">
+                <p className="text-[10px] font-black text-toss-gray uppercase tracking-wider mb-2">현재 비밀번호</p>
+                {currentPin === undefined ? (
+                  <div className="flex items-center gap-2 text-toss-gray">
+                    <Loader2 size={14} className="animate-spin" />
+                    <span className="text-sm font-medium">불러오는 중...</span>
+                  </div>
+                ) : currentPin !== null ? (
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-xl font-black text-toss-black tracking-[0.2em]">
+                        {showPin ? currentPin : "••••"}
+                      </p>
+                      <p className="text-[10px] text-toss-blue font-bold mt-1">직접 설정된 PIN</p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button onClick={() => setShowPin((p) => !p)} className="p-2 text-toss-gray hover:text-toss-black rounded-lg transition-colors">
+                        {showPin ? <EyeOff size={16} /> : <Eye size={16} />}
+                      </button>
+                      <button onClick={handleResetPin} disabled={savingPin} className="flex items-center gap-1.5 text-xs font-bold text-amber-600 bg-amber-50 px-3 py-1.5 rounded-lg hover:bg-amber-100 transition-colors disabled:opacity-50">
+                        <RotateCcw size={12} />
+                        초기화
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div>
+                    <p className="text-xl font-black text-toss-black tracking-[0.2em]">
+                      {pwTarget.phone.replace(/-/g, "").slice(-4)}
+                    </p>
+                    <p className="text-[10px] text-toss-gray font-bold mt-1">전화번호 뒷 4자리 (기본값)</p>
+                  </div>
+                )}
+              </div>
+
+              {/* 새 비밀번호 설정 */}
+              <div className="space-y-2">
+                <label className="text-[10px] font-black text-toss-gray uppercase tracking-wider">새 비밀번호 (4자리)</label>
+                <input
+                  type="number"
+                  inputMode="numeric"
+                  maxLength={4}
+                  placeholder="새 PIN 4자리 입력"
+                  value={newPin}
+                  onChange={(e) => { setNewPin(e.target.value.slice(0, 4)); setPwError(""); }}
+                  className="w-full px-4 py-3 rounded-xl border border-toss-border focus:border-toss-blue outline-none font-bold text-lg tracking-[0.3em] [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                />
+                {pwError && <p className="text-xs text-red-500 font-medium">{pwError}</p>}
+              </div>
+            </div>
+
+            <div className="px-6 pb-6 flex gap-3">
+              <button onClick={closePwModal} className="flex-1 py-3 rounded-2xl font-bold text-toss-gray bg-toss-lightGray text-sm">
+                닫기
+              </button>
+              <button
+                onClick={handleSavePin}
+                disabled={savingPin || newPin.length !== 4}
+                className="flex-[2] py-3 rounded-2xl font-bold text-white bg-toss-blue text-sm flex items-center justify-center gap-2 disabled:opacity-50 shadow-lg shadow-toss-blue/20"
+              >
+                {savingPin && <Loader2 size={15} className="animate-spin" />}
+                변경하기
+              </button>
+            </div>
           </div>
         </div>
       )}

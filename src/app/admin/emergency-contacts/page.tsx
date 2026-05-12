@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Plus, Edit2, Trash2, Phone, Shield, X, Save, Loader2 } from "lucide-react";
+import { Plus, Edit2, Trash2, Phone, Shield, X, Save, Loader2, Download } from "lucide-react";
 import { clsx } from "clsx";
 import {
   subscribeEmergencyContacts,
@@ -10,6 +10,7 @@ import {
   deleteEmergencyContact,
 } from "@/lib/services/emergencyContactService";
 import { EmergencyContact } from "@/types/database";
+import { exportToExcel } from "@/lib/utils/excel";
 
 type FormData = Omit<EmergencyContact, "id">;
 
@@ -92,13 +93,31 @@ export default function AdminEmergencyContactsPage() {
           <h1 className="text-2xl font-black text-toss-black">비상연락처 관리</h1>
           <p className="text-sm text-toss-gray mt-1">수련회 중 비상 상황 시 연락할 담당자 정보를 관리합니다.</p>
         </div>
-        <button
-          onClick={openAddModal}
-          className="bg-toss-blue text-white px-5 py-3 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-blue-600 transition-colors shadow-sm"
-        >
-          <Plus size={20} />
-          연락처 추가
-        </button>
+        <div className="flex gap-2">
+          <button
+            onClick={() => {
+              const rows = contacts.map(c => ({
+                순서: c.order,
+                이름: c.name,
+                역할: c.role,
+                전화번호: c.phone,
+                비고: c.description || "",
+              }));
+              exportToExcel(rows, "비상연락처");
+            }}
+            className="bg-white text-toss-black border border-toss-border px-4 py-3 rounded-xl font-bold flex items-center gap-2 hover:bg-toss-lightGray transition-colors shadow-sm text-sm"
+          >
+            <Download size={16} />
+            엑셀 내보내기
+          </button>
+          <button
+            onClick={openAddModal}
+            className="bg-toss-blue text-white px-5 py-3 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-blue-600 transition-colors shadow-sm"
+          >
+            <Plus size={20} />
+            연락처 추가
+          </button>
+        </div>
       </div>
 
       {/* Stats */}

@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import {
   BookOpen, Plus, Trash2, Edit, X, Users,
-  CheckCircle2, XCircle, Info, Loader2, MapPin, Tag
+  CheckCircle2, XCircle, Info, Loader2, MapPin, Tag, Download
 } from "lucide-react";
 import { clsx } from "clsx";
 import {
@@ -16,6 +16,7 @@ import {
 } from "@/lib/services/lectureService";
 import { getParticipants } from "@/lib/services/participantService";
 import { Lecture, LectureType, Participant } from "@/types/database";
+import { exportToExcel } from "@/lib/utils/excel";
 
 const LECTURE_TYPE_OPTIONS: LectureType[] = ["실천형", "나눔형", "이론형", "상담형"];
 
@@ -179,6 +180,25 @@ export default function AdminLecturesPage() {
             {isTogglingReg ? (
               <Loader2 className="animate-spin" size={18} />
             ) : isRegistrationOpen ? "신청 중단하기" : "신청 시작하기"}
+          </button>
+          <button
+            onClick={async () => {
+              const all = await getParticipants();
+              const participantMap = Object.fromEntries(all.map(p => [p.id, p]));
+              const rows = lectures.flatMap(l => {
+                const base = { 강의명: l.title, 강사: l.lecturer, 위치: l.location, 유형: l.lectureType ?? "", 정원: l.capacity };
+                if (l.applicantIds.length === 0) return [{ ...base, 신청자이름: "", 신청자팀: "", 신청자조: "" }];
+                return l.applicantIds.map(id => {
+                  const p = participantMap[id];
+                  return { ...base, 신청자이름: p?.name ?? id, 신청자팀: (p?.team ?? "") as string, 신청자조: String(p?.group ?? "") };
+                });
+              });
+              exportToExcel(rows, "강의_신청_명단");
+            }}
+            className="bg-white text-toss-black border border-toss-border px-4 py-2.5 rounded-xl font-bold flex items-center gap-2 hover:bg-toss-lightGray transition-all shadow-sm text-sm"
+          >
+            <Download size={16} />
+            엑셀 내보내기
           </button>
           <button
             onClick={openAddModal}

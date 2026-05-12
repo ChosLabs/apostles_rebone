@@ -12,9 +12,11 @@ import {
   Filter,
   X,
   Loader2,
+  Download,
 } from "lucide-react";
 import { subscribeAllPrayers, deletePrayer } from "@/lib/services/prayService";
 import { PrayerRequest } from "@/types/database";
+import { exportToExcel } from "@/lib/utils/excel";
 
 export default function AdminPrayPage() {
   const [requests, setRequests] = useState<PrayerRequest[]>([]);
@@ -71,6 +73,22 @@ export default function AdminPrayPage() {
           <h1 className="text-xl lg:text-2xl font-black text-toss-black">기도제목 관리</h1>
           <p className="text-xs lg:text-sm text-toss-gray mt-1">참석자들이 올린 기도제목을 모니터링하고 관리합니다.</p>
         </div>
+        <button
+          onClick={() => {
+            const rows = filtered.map(r => ({
+              작성자: r.userName,
+              유형: r.type === "all" ? "모두에게" : "조별",
+              내용: r.content,
+              함께기도수: r.likes.length,
+              작성시간: formatDate(r.createdAt),
+            }));
+            exportToExcel(rows, "기도제목_목록");
+          }}
+          className="whitespace-nowrap bg-white text-toss-black border border-toss-border px-4 py-2.5 rounded-xl font-bold flex items-center gap-2 hover:bg-toss-lightGray transition-all shadow-sm text-sm self-start sm:self-auto"
+        >
+          <Download size={16} />
+          엑셀 내보내기
+        </button>
       </div>
 
       {/* Stats Cards */}

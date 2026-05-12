@@ -7,6 +7,7 @@ import {
   doc,
   getDoc,
   updateDoc,
+  deleteField,
 } from "firebase/firestore";
 import { Participant, User } from "@/types/database";
 
@@ -77,6 +78,16 @@ export const verifyPassword = async (userId: string, phoneLast4: string): Promis
 
 export const changePassword = async (userId: string, newPin: string): Promise<void> => {
   await updateDoc(doc(db, "participants", userId), { pin: newPin });
+};
+
+export const resetPin = async (userId: string): Promise<void> => {
+  await updateDoc(doc(db, "participants", userId), { pin: deleteField() });
+};
+
+export const getParticipantPin = async (userId: string): Promise<string | null> => {
+  const snap = await getDoc(doc(db, "participants", userId));
+  if (!snap.exists()) return null;
+  return (snap.data() as { pin?: string }).pin ?? null;
 };
 
 export const logout = () => {

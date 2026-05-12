@@ -9,6 +9,7 @@ import {
   Home,
   Loader2,
   Search,
+  Download,
 } from "lucide-react";
 import {
   getParticipants,
@@ -16,6 +17,7 @@ import {
 } from "@/lib/services/participantService";
 import { getRooms, addRoom } from "@/lib/services/roomService";
 import { Participant } from "@/types/database";
+import { exportToExcel } from "@/lib/utils/excel";
 
 interface RoomInfo {
   id: string;
@@ -108,13 +110,33 @@ export default function AdminAccommodationsPage() {
           <h1 className="text-xl lg:text-2xl font-black text-toss-black">숙소 관리</h1>
           <p className="text-xs lg:text-sm text-toss-gray mt-1">참가자들의 숙소 배정을 관리합니다.</p>
         </div>
-        <button
-          onClick={() => setIsAddingRoom(true)}
-          className="whitespace-nowrap bg-toss-blue text-white px-5 py-2.5 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-toss-blue/90 transition-all shadow-sm shadow-toss-blue/20 text-sm"
-        >
-          <Plus size={20} />
-          새 숙소 등록
-        </button>
+        <div className="flex gap-2">
+          <button
+            onClick={() => {
+              const rows = rooms.flatMap(r =>
+                r.members.map(m => ({
+                  숙소: r.id,
+                  이름: m.name,
+                  팀: m.team,
+                  조: m.group ?? "",
+                  전화번호: m.phone,
+                }))
+              );
+              exportToExcel(rows, "숙소_배정_명단");
+            }}
+            className="whitespace-nowrap bg-white text-toss-black border border-toss-border px-4 py-2.5 rounded-xl font-bold flex items-center gap-2 hover:bg-toss-lightGray transition-all shadow-sm text-sm"
+          >
+            <Download size={16} />
+            엑셀 내보내기
+          </button>
+          <button
+            onClick={() => setIsAddingRoom(true)}
+            className="whitespace-nowrap bg-toss-blue text-white px-5 py-2.5 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-toss-blue/90 transition-all shadow-sm shadow-toss-blue/20 text-sm"
+          >
+            <Plus size={20} />
+            새 숙소 등록
+          </button>
+        </div>
       </div>
 
       <div className="bg-white rounded-3xl border border-toss-border shadow-sm overflow-hidden animate-in fade-in duration-300">

@@ -9,6 +9,7 @@ import {
   X,
   Loader2,
   Search,
+  Download,
 } from "lucide-react";
 import {
   getParticipants,
@@ -16,6 +17,7 @@ import {
 } from "@/lib/services/participantService";
 import { getGroups, addGroup } from "@/lib/services/groupService";
 import { Participant } from "@/types/database";
+import { exportToExcel } from "@/lib/utils/excel";
 
 interface GroupInfo {
   id: number;
@@ -123,13 +125,34 @@ export default function AdminGroupsPage() {
           <h1 className="text-xl lg:text-2xl font-black text-toss-black">조 관리</h1>
           <p className="text-xs lg:text-sm text-toss-gray mt-1">참가자들의 조 편성을 관리하고 조장을 지정합니다.</p>
         </div>
-        <button
-          onClick={() => setIsAddingGroup(true)}
-          className="whitespace-nowrap bg-toss-blue text-white px-5 py-2.5 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-toss-blue/90 transition-all shadow-sm shadow-toss-blue/20 text-sm"
-        >
-          <Plus size={20} />
-          새 조 생성
-        </button>
+        <div className="flex gap-2">
+          <button
+            onClick={() => {
+              const rows = groups.flatMap(g =>
+                g.members.map(m => ({
+                  조: g.id,
+                  이름: m.name,
+                  팀: m.team,
+                  역할: m.isLeader ? "조장" : "조원",
+                  또래: m.birthYear || "",
+                  전화번호: m.phone,
+                }))
+              );
+              exportToExcel(rows, "조_편성_명단");
+            }}
+            className="whitespace-nowrap bg-white text-toss-black border border-toss-border px-4 py-2.5 rounded-xl font-bold flex items-center gap-2 hover:bg-toss-lightGray transition-all shadow-sm text-sm"
+          >
+            <Download size={16} />
+            엑셀 내보내기
+          </button>
+          <button
+            onClick={() => setIsAddingGroup(true)}
+            className="whitespace-nowrap bg-toss-blue text-white px-5 py-2.5 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-toss-blue/90 transition-all shadow-sm shadow-toss-blue/20 text-sm"
+          >
+            <Plus size={20} />
+            새 조 생성
+          </button>
+        </div>
       </div>
 
       <div className="bg-white rounded-3xl border border-toss-border shadow-sm overflow-hidden animate-in fade-in duration-300">
