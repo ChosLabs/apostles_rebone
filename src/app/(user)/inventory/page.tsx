@@ -334,10 +334,10 @@ export default function InventoryPage() {
                 className="w-full px-4 py-3 rounded-xl border border-toss-border focus:border-toss-blue outline-none font-bold text-sm bg-white dark:bg-surface">
                 {categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
               </select>
-              <div className="flex items-center gap-2">
-                <label className="text-xs font-black text-toss-gray whitespace-nowrap">초기 수량</label>
+              <div className="space-y-1.5">
+                <label className="text-xs font-black text-toss-gray uppercase tracking-wider px-1">초기 수량</label>
                 <input type="number" min={0} value={editInitQty} onChange={(e) => setEditInitQty(parseInt(e.target.value) || 0)}
-                  className="flex-1 px-4 py-3 rounded-xl border border-toss-border focus:border-toss-blue outline-none font-bold text-sm" />
+                  className="w-full px-4 py-3 rounded-xl border border-toss-border focus:border-toss-blue outline-none font-bold text-sm" />
               </div>
               <div className="flex gap-3">
                 <button onClick={() => setEditItem(null)} className="flex-1 py-3 rounded-2xl font-bold text-toss-gray bg-toss-lightGray">취소</button>
