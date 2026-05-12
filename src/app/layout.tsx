@@ -16,7 +16,7 @@ export const metadata: Metadata = {
     siteName: "RE:BON",
     images: [
       {
-        url: "/applogo.svg",
+        url: "/applogo.png",
         alt: "RE:BON 수련회 메인 이미지",
       },
     ],
@@ -27,7 +27,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "RE:BON - 2026 아포슬 여름수련회",
     description: "",
-    images: ["/applogo.svg"],
+    images: ["/applogo.png"],
   },
 };
 
@@ -42,6 +42,7 @@ export default function RootLayout({
         <link rel="stylesheet" as="style" crossOrigin="" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" />
         <link rel="manifest" href="/manifest.json" />
         <meta name="theme-color" content="#3182f6" />
+        <link rel="apple-touch-icon" sizes="180x180" href="/applogo.png" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
         <meta name="apple-mobile-web-app-title" content="RE:BON" />

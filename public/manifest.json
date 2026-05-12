@@ -8,10 +8,10 @@
   "theme_color": "#3182f6",
   "icons": [
     {
-      "src": "/rebon_logo_blue.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "any"
+      "src": "/applogo.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
     }
   ]
 }
