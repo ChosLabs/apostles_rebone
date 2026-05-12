@@ -42,7 +42,7 @@ export function GlobalHeader() {
     <header className="sticky top-0 z-50 bg-background px-5 py-4 flex justify-between items-center h-16">
       <h1>
         <Link href="/">
-          <Image src="/applogo.svg" alt="RE:BON" height={64} width={64} className="object-contain translate-y-1" unoptimized />
+          <Image src="/applogo.svg" alt="RE:BON" height={64} width={64} className="object-contain translate-y-1" unoptimized priority />
         </Link>
       </h1>
       <div className="flex gap-4 items-center">
