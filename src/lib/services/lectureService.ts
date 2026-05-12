@@ -12,6 +12,8 @@ import {
   arrayUnion,
   arrayRemove,
   getDoc,
+  getDocs,
+  where,
   setDoc,
 } from "firebase/firestore";
 import { Lecture } from "@/types/database";
@@ -56,6 +58,11 @@ export async function deleteLecture(id: string): Promise<void> {
 }
 
 export async function applyLecture(lectureId: string, userId: string): Promise<void> {
+  const alreadyApplied = await getDocs(
+    query(collection(db, COL), where("applicantIds", "array-contains", userId))
+  );
+  if (!alreadyApplied.empty) throw new Error("강의는 1개만 신청할 수 있습니다.");
+
   const ref = doc(db, COL, lectureId);
   const snap = await getDoc(ref);
   if (!snap.exists()) throw new Error("강의를 찾을 수 없습니다.");

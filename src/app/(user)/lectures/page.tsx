@@ -64,6 +64,7 @@ export default function LecturesPage() {
   }, []);
 
   const myLectures = lectures.filter((l) => user && l.applicantIds.includes(user.uid));
+  const hasApplied = myLectures.length > 0;
 
   const sortedLectures = [
     ...lectures.filter((l) => starredIds.includes(l.id)),
@@ -167,11 +168,12 @@ export default function LecturesPage() {
                 </p>
               )}
               {sortedLectures.map((lecture) => {
-                const isApplied  = user ? lecture.applicantIds.includes(user.uid) : false;
-                const isFull     = lecture.applicantIds.length >= lecture.capacity;
-                const remaining  = lecture.capacity - lecture.applicantIds.length;
+                const isApplied    = user ? lecture.applicantIds.includes(user.uid) : false;
+                const isFull       = lecture.applicantIds.length >= lecture.capacity;
+                const remaining    = lecture.capacity - lecture.applicantIds.length;
                 const isProcessing = processingId === lecture.id;
-                const isStarred  = starredIds.includes(lecture.id);
+                const isStarred    = starredIds.includes(lecture.id);
+                const isBlocked    = hasApplied && !isApplied;
 
                 return (
                   <div
@@ -242,16 +244,18 @@ export default function LecturesPage() {
                     ) : (
                       <button
                         onClick={() => handleApply(lecture.id)}
-                        disabled={isFull || !isRegistrationOpen || !!processingId}
+                        disabled={isBlocked || isFull || !isRegistrationOpen || !!processingId}
                         className={clsx(
                           "w-full py-3 rounded-xl font-bold text-sm transition-all active:scale-[0.98] flex items-center justify-center gap-2",
-                          isFull || !isRegistrationOpen
+                          isBlocked || isFull || !isRegistrationOpen
                             ? "bg-toss-lightGray text-toss-gray/50 cursor-not-allowed"
                             : "bg-toss-blue text-white shadow-sm shadow-toss-blue/20"
                         )}
                       >
                         {isProcessing ? (
                           <Loader2 className="animate-spin" size={18} />
+                        ) : isBlocked ? (
+                          "이미 다른 강의를 신청했습니다"
                         ) : isFull ? (
                           "정원이 가득 찼습니다"
                         ) : !isRegistrationOpen ? (

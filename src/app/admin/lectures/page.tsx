@@ -16,7 +16,7 @@ import {
 } from "@/lib/services/lectureService";
 import { getParticipants } from "@/lib/services/participantService";
 import { Lecture, LectureType, Participant } from "@/types/database";
-import { exportToExcel } from "@/lib/utils/excel";
+import { exportMultiSheetToExcel } from "@/lib/utils/excel";
 
 const LECTURE_TYPE_OPTIONS: LectureType[] = ["실천형", "나눔형", "이론형", "상담형"];
 
@@ -185,15 +185,22 @@ export default function AdminLecturesPage() {
             onClick={async () => {
               const all = await getParticipants();
               const participantMap = Object.fromEntries(all.map(p => [p.id, p]));
-              const rows = lectures.flatMap(l => {
-                const base = { 강의명: l.title, 강사: l.lecturer, 위치: l.location, 유형: l.lectureType ?? "", 정원: l.capacity };
-                if (l.applicantIds.length === 0) return [{ ...base, 신청자이름: "", 신청자팀: "", 신청자조: "" }];
-                return l.applicantIds.map(id => {
-                  const p = participantMap[id];
-                  return { ...base, 신청자이름: p?.name ?? id, 신청자팀: (p?.team ?? "") as string, 신청자조: String(p?.group ?? "") };
-                });
-              });
-              exportToExcel(rows, "강의_신청_명단");
+              const sheets = lectures.map(l => ({
+                sheetName: l.title,
+                rows: l.applicantIds.length === 0
+                  ? [{ 이름: "", 팀: "", 조: "", "전화번호": "" }]
+                  : l.applicantIds.map((id, idx) => {
+                      const p = participantMap[id];
+                      return {
+                        번호: idx + 1,
+                        이름: p?.name ?? id,
+                        팀: p?.team ?? "",
+                        조: p?.group ?? "",
+                        "전화번호": p?.phone ?? "",
+                      };
+                    }),
+              }));
+              exportMultiSheetToExcel(sheets, "강의_신청_명단");
             }}
             className="bg-white text-toss-black border border-toss-border px-4 py-2.5 rounded-xl font-bold flex items-center gap-2 hover:bg-toss-lightGray transition-all shadow-sm text-sm"
           >
