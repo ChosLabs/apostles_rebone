@@ -47,13 +47,14 @@ export default function LoginPage() {
         {/* Logo Section */}
         <div className="text-center space-y-3 animate-in fade-in slide-in-from-bottom-4 duration-700">
           <Image
-            src="/rebon_logo_blue.png"
+            src="/applogo.svg"
             alt="Re:본 로고"
             width={220}
             height={220}
             className="mx-auto"
             priority
             loading="eager"
+            unoptimized
           />
           <p className="text-[15px] font-bold text-toss-gray/60 tracking-tight animate-in fade-in slide-in-from-bottom-4 duration-700 delay-100">
             2026 Apostles Summer Retreat
