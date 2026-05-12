@@ -8,10 +8,10 @@ export const metadata: Metadata = {
 // ... existing metadata
   metadataBase: new URL("https://apostles-rebone.pages.dev"),
   title: "RE:BON - 2026 아포슬 여름수련회",
-  description: "",
+  description: "2026 아포슬 전체여름수련회",
   openGraph: {
     title: "RE:BON - 2026 아포슬 여름수련회",
-    description: "",
+    description: "2026 아포슬 전체여름수련회",
     url: "https://apostles-rebone.pages.dev",
     siteName: "RE:BON",
     images: [
@@ -26,7 +26,7 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "RE:BON - 2026 아포슬 여름수련회",
-    description: "",
+    description: "2026 아포슬 전체여름수련회",
     images: ["/applogo.png"],
   },
 };
