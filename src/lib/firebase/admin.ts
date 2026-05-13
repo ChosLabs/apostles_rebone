@@ -38,6 +38,15 @@ function lazyProxy<T extends object>(factory: () => T): T {
   });
 }
 
-export const adminDb = lazyProxy(() => getApp().firestore());
+// preferRest: gRPC 대신 REST 사용 — Vercel(Node 18+/OpenSSL 3.x) gRPC 인증 오류 회피
+let _dbReady = false;
+export const adminDb = lazyProxy(() => {
+  const db = getApp().firestore();
+  if (!_dbReady) {
+    db.settings({ preferRest: true });
+    _dbReady = true;
+  }
+  return db;
+});
 export const adminAuth = lazyProxy(() => getApp().auth());
 export const adminMessaging = lazyProxy(() => getApp().messaging());

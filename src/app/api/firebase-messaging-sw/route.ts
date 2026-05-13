@@ -24,7 +24,6 @@ messaging.onBackgroundMessage(function(payload) {
     body: body,
     icon: '/rebon_logo_blue.png',
     badge: '/rebon_logo_blue.png',
-    tag: 'notice-notification',
   });
 });
 `;
