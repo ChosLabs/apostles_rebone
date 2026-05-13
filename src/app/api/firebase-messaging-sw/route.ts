@@ -5,15 +5,22 @@ export async function GET() {
   // onBackgroundMessage는 앱이 완전히 닫혔을 때 신뢰성 문제가 있어서 raw push 이벤트로 대체.
   // 포그라운드 탭이 있으면 postMessage로 페이지에 전달하고, 없으면 직접 showNotification.
   const script = `
+// 새 SW를 즉시 활성화 — 대기 상태 없이 바로 푸시 이벤트 처리
+self.addEventListener('install', function() { self.skipWaiting(); });
+self.addEventListener('activate', function(event) { event.waitUntil(self.clients.claim()); });
+
 self.addEventListener('push', function(event) {
-  if (!event.data) return;
+  var title = '📢 공지';
+  var body  = '';
 
-  var payload;
-  try { payload = event.data.json(); } catch(e) { return; }
-
-  var notif  = payload.notification || {};
-  var title  = notif.title || '📢 공지';
-  var body   = notif.body  || '';
+  if (event.data) {
+    try {
+      var d = event.data.json();
+      var n = d.notification || {};
+      title = n.title || title;
+      body  = n.body  || body;
+    } catch (e) {}
+  }
 
   event.waitUntil(
     self.clients.matchAll({ type: 'window' }).then(function(clients) {

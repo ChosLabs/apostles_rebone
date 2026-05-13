@@ -27,6 +27,7 @@ export async function POST(req: NextRequest) {
           tokens: chunk,
           notification: { title, body },
           webpush: {
+            headers: { Urgency: "high", TTL: "86400" },
             notification: {
               icon: "/rebon_logo_blue.png",
               badge: "/rebon_logo_blue.png",
