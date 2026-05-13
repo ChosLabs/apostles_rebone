@@ -15,7 +15,7 @@ import { DispatchedChurch } from "@/types/database";
 const COL = "dispatchedChurches";
 
 export function subscribeDispatchedChurches(callback: (churches: DispatchedChurch[]) => void) {
-  const q = query(collection(db, COL), orderBy("name", "asc"));
+  const q = query(collection(db, COL), orderBy("order", "asc"));
   return onSnapshot(q, (snap) => {
     callback(snap.docs.map((d) => ({ id: d.id, ...d.data() })) as DispatchedChurch[]);
   });

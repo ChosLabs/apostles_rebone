@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { ChevronRight, Users, MessageCircle, Map, Image, ClipboardCheck, Vote, X, Phone, MapPin, Zap } from "lucide-react";
+import { ChevronRight, Users, MessageCircle, Map, Image, ClipboardCheck, Vote, X, Phone, MapPin, Zap, CheckSquare } from "lucide-react";
 import Link from "next/link";
 import { clsx } from "clsx";
 import { db } from "@/lib/firebase/client";
@@ -229,6 +229,22 @@ export default function Home({
           <QuickLink href="/gallery" icon={<Image className="text-blue-600" />} label="포토앨범" desc="수련회 사진첩" />
           <QuickLink href="/emergency" icon={<Phone className="text-green-500" />} label="비상 연락처" desc="도움이 필요할 때" />
         </div>
+      </section>
+
+      {/* 6. 출석체크 */}
+      <section>
+        <Link href="/attendance">
+          <div className="bg-white dark:bg-surface p-4 rounded-toss shadow-sm border border-toss-border/40 flex items-center gap-4 active:scale-[0.98] transition-all cursor-pointer">
+            <div className="w-12 h-12 rounded-2xl bg-toss-blue/10 flex items-center justify-center shrink-0">
+              <CheckSquare size={22} className="text-toss-blue" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-[15px] font-bold text-toss-black">출석체크</p>
+              <p className="text-[12px] text-toss-gray">내 출석 상태 확인하기</p>
+            </div>
+            <ChevronRight size={18} className="text-toss-border shrink-0" />
+          </div>
+        </Link>
       </section>
 
       {/* 공지사항 상세 모달 */}

@@ -80,13 +80,83 @@ export interface Room {
   memberIds: string[];
 }
 
+export interface ScheduleItem {
+  time: string;
+  description: string;
+}
+
 export interface DispatchedChurch {
   id: string;
+  order: number;
   name: string;
-  address: string;
-  worshipTime: string;
-  activities: string;
-  assignedGroups: number[]; // Array of group numbers (조 번호)
+  departureTime: string;
+  travelTime: string;
+  assignedGroups: number[];
+  schedule: ScheduleItem[];
+  ministries: string[];
+  note?: string;
+}
+
+export interface AttendanceParticipant {
+  id: string;
+  name: string;
+  group?: number;
+  phone?: string;
+}
+
+export interface AttendanceRecord {
+  attended: boolean;
+  attendedAt: any;
+}
+
+export interface AttendanceManager {
+  id: string;
+  name: string;
+}
+
+export interface AttendanceGroup {
+  id: string;
+  name: string;
+  participants: AttendanceParticipant[];
+}
+
+export interface AttendanceSession {
+  id: string;
+  name: string;
+  order: number;
+  managers: AttendanceManager[];
+  groups: AttendanceGroup[];
+  records: { [participantId: string]: AttendanceRecord };
+  createdAt: any;
+}
+
+export interface Bus {
+  id: string;
+  name: string;
+  busNumber: string;
+  order: number;
+  createdAt: any;
+}
+
+export interface BusRosterParticipant {
+  id: string;
+  name: string;
+  group?: number;
+  phone?: string;
+}
+
+export interface BusRoster {
+  managerId: string | null;
+  managerName: string | null;
+  participants: BusRosterParticipant[];
+}
+
+export interface BusSchedule {
+  id: string;
+  name: string;
+  busIds: string[];
+  assignments: { [busId: string]: BusRoster };
+  createdAt: any;
 }
 
 export interface LuckyDraw {

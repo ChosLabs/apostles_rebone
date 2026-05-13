@@ -30,7 +30,7 @@ const allMenuItems: MenuItem[] = [
   { icon: <Zap className="text-rose-400" />, label: "실시간 추첨", desc: "추첨 확인하기", color: "text-rose-400", href: "/lucky-draw" },
   { icon: <Image className="text-blue-600" />, label: "포토앨범", desc: "수련회 사진첩", color: "text-blue-600", href: "/gallery" },
   { icon: <Phone className="text-green-500" />, label: "비상 연락처", desc: "도움이 필요할 때", color: "text-green-500", href: "/emergency" },
-  { icon: <Bus className="text-orange-400" />, label: "버스 배정", desc: "출발 버스 번호 확인", color: "text-orange-400", href: "/more" },
+  { icon: <Bus className="text-orange-400" />, label: "버스 배정", desc: "출발 버스 번호 확인", color: "text-orange-400", href: "/bus-schedule" },
   { icon: <PackageSearch className="text-teal-500" />, label: "분실물", desc: "분실물 확인 및 수령", color: "text-teal-500", href: "/lost-items" },
 ];
 
