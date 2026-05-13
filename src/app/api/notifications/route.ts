@@ -90,9 +90,9 @@ export async function DELETE() {
       { merge: true }
     );
     return NextResponse.json({ cleared: snap.size });
-  } catch (err) {
+  } catch (err: any) {
     console.error("[clear-tokens]", err);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    return NextResponse.json({ error: err?.message ?? "Internal server error" }, { status: 500 });
   }
 }
 
