@@ -20,16 +20,12 @@ export default function AdminNotificationsPage() {
   const [historyLoading, setHistoryLoading] = useState(true);
   const [resendingId, setResendingId] = useState<string | null>(null);
 
-  // 등록 기기 수
-  const refreshCount = () => {
-    fetch("/api/notifications")
-      .then((r) => r.json())
-      .then((d) => setDeviceCount(d.count ?? 0))
-      .catch(() => setDeviceCount(0));
-  };
-
+  // 등록 기기 수 — 실시간 구독
   useEffect(() => {
-    refreshCount();
+    const unsub = onSnapshot(collection(db, "fcmTokens"), (snap) => {
+      setDeviceCount(snap.size);
+    });
+    return unsub;
   }, []);
 
   // 히스토리 실시간 구독
@@ -68,7 +64,6 @@ export default function AdminNotificationsPage() {
       });
       setTitle("");
       setBody("");
-      refreshCount();
     } catch (e: any) {
       setResult({ type: "error", message: `전송 실패: ${e.message}` });
     } finally {
@@ -87,7 +82,6 @@ export default function AdminNotificationsPage() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
       setResult({ type: "success", message: `재전송 완료: ${data.sent}개 기기에 전송했습니다.` });
-      refreshCount();
     } catch (e: any) {
       setResult({ type: "error", message: `재전송 실패: ${e.message}` });
     } finally {
@@ -182,12 +176,6 @@ export default function AdminNotificationsPage() {
               : `${deviceCount}대`}
           </p>
         </div>
-        <button
-          onClick={refreshCount}
-          className="p-2 text-toss-gray hover:bg-toss-lightGray rounded-xl transition-colors"
-        >
-          <RefreshCw size={16} />
-        </button>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
