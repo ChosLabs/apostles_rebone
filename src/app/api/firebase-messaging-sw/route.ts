@@ -1,18 +1,28 @@
 import { NextResponse } from 'next/server';
 
 export async function GET() {
-  // Firebase compat SW를 제거하고 표준 push 이벤트 핸들러 사용.
-  // onBackgroundMessage는 앱이 완전히 닫혔을 때 신뢰성 문제가 있어서 raw push 이벤트로 대체.
-  // 포그라운드 탭이 있으면 postMessage로 페이지에 전달하고, 없으면 직접 showNotification.
+  const config = {
+    apiKey:            process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+    authDomain:        process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+    projectId:         process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+    storageBucket:     process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+    messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+    appId:             process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
+  };
+
   const script = `
-// 새 SW를 즉시 활성화 — 대기 상태 없이 바로 푸시 이벤트 처리
-self.addEventListener('install', function() { self.skipWaiting(); });
+// ── 즉시 활성화 ──────────────────────────────────────────────
+self.addEventListener('install',  function()      { self.skipWaiting(); });
 self.addEventListener('activate', function(event) { event.waitUntil(self.clients.claim()); });
 
+// ── push 핸들러를 Firebase보다 먼저 등록 ──────────────────────
+// Firebase compat도 push 리스너를 등록하는데, stopImmediatePropagation()으로
+// Firebase의 핸들러가 실행되지 않도록 막아 중복 알림을 방지.
 self.addEventListener('push', function(event) {
+  event.stopImmediatePropagation();
+
   var title = '📢 공지';
   var body  = '';
-
   if (event.data) {
     try {
       var d = event.data.json();
@@ -24,13 +34,16 @@ self.addEventListener('push', function(event) {
 
   event.waitUntil(
     self.clients.matchAll({ type: 'window' }).then(function(clients) {
-      var visible = clients.filter(function(c) { return c.visibilityState === 'visible'; });
-      if (visible.length > 0) {
-        visible.forEach(function(c) {
+      // focused: 탭이 실제 활성화된 경우만 페이지로 전달
+      // visibilityState는 백그라운드에서 'visible'로 오판될 수 있어 사용 안 함
+      var focused = clients.filter(function(c) { return c.focused; });
+      if (focused.length > 0) {
+        focused.forEach(function(c) {
           c.postMessage({ type: 'PUSH_RECEIVED', title: title, body: body });
         });
         return;
       }
+      // 포커스된 탭 없음 = 앱이 백그라운드/종료 상태 → SW가 직접 알림 표시
       return self.registration.showNotification(title, {
         body: body,
         icon: '/rebon_logo_blue.png',
@@ -39,6 +52,13 @@ self.addEventListener('push', function(event) {
     })
   );
 });
+
+// ── Firebase compat 초기화 (getToken 푸시 구독 유지 목적) ─────
+// push 핸들러는 위에서 이미 처리되므로 onBackgroundMessage는 등록하지 않음
+importScripts('https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js');
+importScripts('https://www.gstatic.com/firebasejs/10.14.1/firebase-messaging-compat.js');
+firebase.initializeApp(${JSON.stringify(config)});
+firebase.messaging();
 `;
 
   return new NextResponse(script, {
