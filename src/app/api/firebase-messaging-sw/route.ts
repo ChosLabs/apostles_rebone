@@ -18,13 +18,18 @@ firebase.initializeApp(${JSON.stringify(config)});
 const messaging = firebase.messaging();
 
 messaging.onBackgroundMessage(function(payload) {
-  const title = (payload.notification && payload.notification.title) || '📢 공지';
-  const body = (payload.notification && payload.notification.body) || '';
-  self.registration.showNotification(title, {
-    body: body,
-    icon: '/rebon_logo_blue.png',
-    badge: '/rebon_logo_blue.png',
-  });
+  // 포그라운드 탭이 열려있으면 페이지의 onForegroundMessage가 처리 — SW는 표시 생략(중복 방지)
+  return self.clients.matchAll({ type: 'window', includeUncontrolled: true })
+    .then(function(clients) {
+      if (clients.some(function(c) { return c.visibilityState === 'visible'; })) return;
+      var title = (payload.notification && payload.notification.title) || '📢 공지';
+      var body  = (payload.notification && payload.notification.body)  || '';
+      return self.registration.showNotification(title, {
+        body: body,
+        icon: '/rebon_logo_blue.png',
+        badge: '/rebon_logo_blue.png',
+      });
+    });
 });
 `;
 
