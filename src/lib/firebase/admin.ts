@@ -39,14 +39,16 @@ function lazyProxy<T extends object>(factory: () => T): T {
 }
 
 // preferRest: gRPC 대신 REST 사용 — Vercel(Node 18+/OpenSSL 3.x) gRPC 인증 오류 회피
-let _dbReady = false;
-export const adminDb = lazyProxy(() => {
+// settings()는 최초 1회만 허용 → db 인스턴스를 캐싱해 중복 호출 방지
+// 모듈 재평가로 캐시가 초기화되어도 try-catch로 방어
+let _cachedDb: admin.firestore.Firestore | null = null;
+function getAdminDb(): admin.firestore.Firestore {
+  if (_cachedDb) return _cachedDb;
   const db = getApp().firestore();
-  if (!_dbReady) {
-    db.settings({ preferRest: true });
-    _dbReady = true;
-  }
+  try { db.settings({ preferRest: true }); } catch { /* warm re-eval: already set */ }
+  _cachedDb = db;
   return db;
-});
+}
+export const adminDb = lazyProxy(getAdminDb);
 export const adminAuth = lazyProxy(() => getApp().auth());
 export const adminMessaging = lazyProxy(() => getApp().messaging());
