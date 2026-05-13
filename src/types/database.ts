@@ -113,8 +113,13 @@ export interface Poll {
   question: string;
   description?: string;
   options: Array<{ id: string; label: string }>;
-  votes: Record<string, string>; // { [userId]: optionId }
+  votes: Record<string, string>; // { [userId]: optionId } — single-choice
+  multiVotes: Record<string, string[]>; // { [userId]: [optionId, ...] } — multi-choice
+  allowMultiple?: boolean; // 중복 투표 허용
+  order?: number; // 유저 화면 표출 순서 (오름차순)
   isActive: boolean;
+  isClosed?: boolean; // 마감된 투표 — 재시작 불가
+  isVisible?: boolean; // 유저 화면 표출 여부
   createdAt: any;
 }
 
