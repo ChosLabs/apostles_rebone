@@ -84,11 +84,13 @@ export async function createPoll(data: {
   description?: string;
   options: Array<{ id: string; label: string }>;
   allowMultiple?: boolean;
+  isGuestOnly?: boolean;
 }): Promise<string> {
   const ref = await addDoc(collection(db, COL), {
     ...data,
     votes: {},
     multiVotes: {},
+    guestVoterInfo: {},
     isActive: false,
     order: Date.now(),
     createdAt: serverTimestamp(),
@@ -99,22 +101,26 @@ export async function createPoll(data: {
 export async function castVote(
   pollId: string,
   userId: string,
-  optionId: string
+  optionId: string,
+  voterInfo?: { name: string; team: string; phone: string }
 ): Promise<void> {
-  await updateDoc(doc(db, COL, pollId), {
-    [`votes.${userId}`]: optionId,
-  });
+  const update: Record<string, unknown> = { [`votes.${userId}`]: optionId };
+  if (voterInfo) update[`guestVoterInfo.${userId}`] = voterInfo;
+  await updateDoc(doc(db, COL, pollId), update);
 }
 
 export async function castMultiVote(
   pollId: string,
   userId: string,
   optionId: string,
-  selected: boolean
+  selected: boolean,
+  voterInfo?: { name: string; team: string; phone: string }
 ): Promise<void> {
-  await updateDoc(doc(db, COL, pollId), {
+  const update: Record<string, unknown> = {
     [`multiVotes.${userId}`]: selected ? arrayUnion(optionId) : arrayRemove(optionId),
-  });
+  };
+  if (voterInfo && selected) update[`guestVoterInfo.${userId}`] = voterInfo;
+  await updateDoc(doc(db, COL, pollId), update);
 }
 
 export async function togglePollActive(pollId: string, isActive: boolean): Promise<void> {

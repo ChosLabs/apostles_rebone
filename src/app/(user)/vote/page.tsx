@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import {
   Vote, ArrowLeft, Check, Users, Loader2, RefreshCw, Lock, Shuffle,
-  Maximize2, X, ChevronLeft, ChevronRight,
+  Maximize2, X, ChevronLeft, ChevronRight, UserSquare2,
 } from "lucide-react";
 import Link from "next/link";
 import { useAuth } from "@/components/providers/AuthProvider";
@@ -170,14 +170,32 @@ function PresentationView({ polls, onExit }: { polls: Poll[]; onExit: () => void
 
 // ── 유저용 투표 카드 ─────────────────────────────────────────
 function PollCard({
-  poll, userId, votingPollId, onSingleVote, onMultiVote,
+  poll, userId, isGuest, votingPollId, onSingleVote, onMultiVote,
 }: {
   poll: Poll;
   userId: string | undefined;
+  isGuest: boolean;
   votingPollId: string | null;
   onSingleVote: (poll: Poll, optionId: string) => void;
   onMultiVote: (poll: Poll, optionId: string) => void;
 }) {
+  // 게스트 전용 투표 — 비게스트 차단
+  if (poll.isGuestOnly && !isGuest) {
+    return (
+      <div className="bg-white dark:bg-surface rounded-toss p-6 shadow-sm border border-toss-border/40">
+        <div className="w-12 h-12 bg-orange-50 text-orange-400 rounded-2xl flex items-center justify-center mb-4">
+          <UserSquare2 size={26} />
+        </div>
+        <h2 className="text-xl font-bold text-toss-black mb-1">{poll.question}</h2>
+        {poll.description && <p className="text-sm text-toss-gray mb-3">{poll.description}</p>}
+        <p className="text-sm font-bold text-orange-500 bg-orange-50 px-4 py-3 rounded-xl">
+          게스트 모드에서만 투표할 수 있는 기능입니다.
+        </p>
+      </div>
+    );
+  }
+
+  // 여기 도달 시: 일반 투표 또는 (게스트 전용 + 게스트 유저)
   const canVote = !!poll.isActive && !poll.isClosed;
   const isVoting = votingPollId === poll.id;
 
@@ -290,7 +308,7 @@ function PollCard({
 
 // ── 메인 페이지 ──────────────────────────────────────────────
 export default function VotePage() {
-  const { user } = useAuth();
+  const { user, isGuest } = useAuth();
   const isAdmin = user?.role === "admin";
 
   const [polls, setPolls] = useState<Poll[]>([]);
@@ -343,12 +361,16 @@ export default function VotePage() {
     return () => document.removeEventListener("keydown", handler);
   }, [isPresenting, exitPresentation]);
 
+  const guestVoterInfo = isGuest && user
+    ? { name: user.name, team: user.team ?? "", phone: user.phone ?? "" }
+    : undefined;
+
   const handleSingleVote = async (poll: Poll, optionId: string) => {
     if (!user || votingPollId) return;
     if ((poll.votes?.[user.uid] ?? null) === optionId) return;
     try {
       setVotingPollId(poll.id);
-      await castVote(poll.id, user.uid, optionId);
+      await castVote(poll.id, user.uid, optionId, poll.isGuestOnly ? guestVoterInfo : undefined);
     } catch (e) {
       console.error(e);
       alert("투표 처리 중 오류가 발생했습니다.");
@@ -360,9 +382,10 @@ export default function VotePage() {
   const handleMultiVote = async (poll: Poll, optionId: string) => {
     if (!user || votingPollId) return;
     const myMultiVotes: string[] = poll.multiVotes?.[user.uid] ?? [];
+    const selecting = !myMultiVotes.includes(optionId);
     try {
       setVotingPollId(poll.id);
-      await castMultiVote(poll.id, user.uid, optionId, !myMultiVotes.includes(optionId));
+      await castMultiVote(poll.id, user.uid, optionId, selecting, poll.isGuestOnly ? guestVoterInfo : undefined);
     } catch (e) {
       console.error(e);
       alert("투표 처리 중 오류가 발생했습니다.");
@@ -423,6 +446,7 @@ export default function VotePage() {
                 key={poll.id}
                 poll={poll}
                 userId={user?.uid}
+                isGuest={isGuest}
                 votingPollId={votingPollId}
                 onSingleVote={handleSingleVote}
                 onMultiVote={handleMultiVote}

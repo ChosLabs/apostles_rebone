@@ -1,13 +1,21 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Plus, Trash2, X, Loader2, Users, Lock, Eye, EyeOff, ChevronUp, ChevronDown, Pencil, Check } from "lucide-react";
-import { subscribePolls, createPoll, updatePoll, togglePollActive, closePoll, setPollVisible, deletePoll, updatePollOrder } from "@/lib/services/pollService";
-import { Poll } from "@/types/database";
+import { useRouter } from "next/navigation";
+import {
+  Plus, Trash2, X, Loader2, Users, Lock, Eye, EyeOff, ChevronUp, ChevronDown,
+  Pencil, Check, Gift, ChevronRight, UserSquare2,
+} from "lucide-react";
+import {
+  subscribePolls, createPoll, updatePoll, togglePollActive, closePoll, setPollVisible, deletePoll, updatePollOrder,
+} from "@/lib/services/pollService";
+import { createGuestLuckyDraw } from "@/lib/services/luckyDrawService";
+import { GuestCandidate, Poll } from "@/types/database";
 
 type EditForm = { question: string; description: string; options: Array<{ id: string; label: string }> };
 
 export default function AdminVotePage() {
+  const router = useRouter();
   const [polls, setPolls] = useState<Poll[]>([]);
   const [loading, setLoading] = useState(true);
   const [isAdding, setIsAdding] = useState(false);
@@ -15,11 +23,14 @@ export default function AdminVotePage() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editForm, setEditForm] = useState<EditForm>({ question: "", description: "", options: [] });
   const [isSavingEdit, setIsSavingEdit] = useState(false);
-  const [newPoll, setNewPoll] = useState({ question: "", description: "", options: ["", ""], allowMultiple: false });
+  const [newPoll, setNewPoll] = useState({
+    question: "", description: "", options: ["", ""], allowMultiple: false, isGuestOnly: false,
+  });
+  const [expandedVoterOptionId, setExpandedVoterOptionId] = useState<string | null>(null);
+  const [creatingDrawFor, setCreatingDrawFor] = useState<string | null>(null);
 
   useEffect(() => {
     const unsub = subscribePolls((data) => {
-      // 정렬: order 있으면 우선, 없으면 Firestore 반환 순서(createdAt desc) 기반 인덱스로 fallback
       const sorted = data.map((p, i) => ({ poll: p, key: p.order ?? i * -1 }))
         .sort((a, b) => a.key - b.key)
         .map((x) => x.poll);
@@ -41,9 +52,10 @@ export default function AdminVotePage() {
         description: newPoll.description,
         options: newPoll.options.map((label, i) => ({ id: String(i + 1), label })),
         allowMultiple: newPoll.allowMultiple,
+        isGuestOnly: newPoll.isGuestOnly,
       });
       setIsAdding(false);
-      setNewPoll({ question: "", description: "", options: ["", ""], allowMultiple: false });
+      setNewPoll({ question: "", description: "", options: ["", ""], allowMultiple: false, isGuestOnly: false });
     } catch {
       alert("생성에 실패했습니다.");
     }
@@ -52,11 +64,7 @@ export default function AdminVotePage() {
   // ── 수정 ──────────────────────────────────────────
   const startEdit = (poll: Poll) => {
     setEditingId(poll.id);
-    setEditForm({
-      question: poll.question,
-      description: poll.description ?? "",
-      options: poll.options.map((o) => ({ ...o })),
-    });
+    setEditForm({ question: poll.question, description: poll.description ?? "", options: poll.options.map((o) => ({ ...o })) });
   };
 
   const handleSaveEdit = async () => {
@@ -67,11 +75,7 @@ export default function AdminVotePage() {
     }
     try {
       setIsSavingEdit(true);
-      await updatePoll(editingId, {
-        question: editForm.question,
-        description: editForm.description,
-        options: editForm.options,
-      });
+      await updatePoll(editingId, { question: editForm.question, description: editForm.description, options: editForm.options });
       setEditingId(null);
     } catch {
       alert("수정에 실패했습니다.");
@@ -138,15 +142,12 @@ export default function AdminVotePage() {
     }
   };
 
-  // ── 순서 조정: 이동 시 전체 인덱스를 정규화 ──────────
   const handleMoveOrder = async (poll: Poll, direction: "up" | "down") => {
     const idx = polls.findIndex((p) => p.id === poll.id);
     const swapIdx = direction === "up" ? idx - 1 : idx + 1;
     if (swapIdx < 0 || swapIdx >= polls.length) return;
-
     const reordered = [...polls];
     [reordered[idx], reordered[swapIdx]] = [reordered[swapIdx], reordered[idx]];
-
     try {
       setProcessingId(poll.id);
       await Promise.all(reordered.map((p, i) => updatePollOrder(p.id, i)));
@@ -154,6 +155,35 @@ export default function AdminVotePage() {
       alert("순서 변경에 실패했습니다.");
     } finally {
       setProcessingId(null);
+    }
+  };
+
+  // ── 게스트 투표 명단 ──────────────────────────────
+  const getOptionVoters = (poll: Poll, optionId: string): Array<GuestCandidate> => {
+    const voterInfo = poll.guestVoterInfo ?? {};
+    const voterIds = poll.allowMultiple
+      ? Object.entries(poll.multiVotes ?? {}).filter(([, opts]) => opts.includes(optionId)).map(([id]) => id)
+      : Object.entries(poll.votes ?? {}).filter(([, opt]) => opt === optionId).map(([id]) => id);
+    return voterIds.map((guestId) => {
+      const info = voterInfo[guestId];
+      return info ? { guestId, ...info } : null;
+    }).filter(Boolean) as GuestCandidate[];
+  };
+
+  const handleCreateDrawFromOption = async (poll: Poll, optionId: string, optionLabel: string) => {
+    const candidates = getOptionVoters(poll, optionId);
+    if (candidates.length === 0) { alert("해당 선택지에 투표한 게스트가 없습니다."); return; }
+    const title = prompt(`추첨 제목을 입력해주세요.\n기본값: ${poll.question} - ${optionLabel}`, `${poll.question} - ${optionLabel}`);
+    if (title === null) return;
+    try {
+      setCreatingDrawFor(optionId);
+      await createGuestLuckyDraw({ title: title.trim() || `${poll.question} - ${optionLabel}`, winnerCount: 1, candidates });
+      alert("추첨이 생성되었습니다. 추첨 관리 페이지에서 결과를 표출해주세요.");
+      router.push("/admin/lucky-draw");
+    } catch {
+      alert("추첨 생성에 실패했습니다.");
+    } finally {
+      setCreatingDrawFor(null);
     }
   };
 
@@ -168,7 +198,6 @@ export default function AdminVotePage() {
       ? Object.keys(poll.multiVotes ?? {}).length
       : Object.keys(poll.votes ?? {}).length;
 
-  // ── 공용 인풋 스타일 ───────────────────────────────
   const inputCls = "w-full bg-toss-lightGray/50 border border-toss-border/40 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-indigo-500 transition-colors";
 
   return (
@@ -199,7 +228,9 @@ export default function AdminVotePage() {
             description={newPoll.description}
             options={newPoll.options.map((label, i) => ({ id: String(i), label }))}
             allowMultiple={newPoll.allowMultiple}
+            isGuestOnly={newPoll.isGuestOnly}
             showAllowMultiple
+            showGuestOnly
             inputCls={inputCls}
             onChangeQuestion={(v) => setNewPoll((p) => ({ ...p, question: v }))}
             onChangeDescription={(v) => setNewPoll((p) => ({ ...p, description: v }))}
@@ -214,6 +245,7 @@ export default function AdminVotePage() {
               setNewPoll((p) => ({ ...p, options: p.options.filter((_, i) => i !== idx) }));
             }}
             onToggleAllowMultiple={(v) => setNewPoll((p) => ({ ...p, allowMultiple: v }))}
+            onToggleGuestOnly={(v) => setNewPoll((p) => ({ ...p, isGuestOnly: v }))}
           />
           <button
             onClick={handleCreate}
@@ -262,6 +294,11 @@ export default function AdminVotePage() {
                           <Eye size={9} />표출중
                         </span>
                       )}
+                      {poll.isGuestOnly && (
+                        <span className="shrink-0 text-[10px] bg-orange-50 text-orange-500 px-2 py-1 rounded-md font-bold flex items-center gap-1">
+                          <UserSquare2 size={9} />게스트 전용
+                        </span>
+                      )}
                       {poll.allowMultiple && (
                         <span className="shrink-0 text-[10px] bg-violet-50 text-violet-500 px-2 py-1 rounded-md font-bold">중복허용</span>
                       )}
@@ -279,13 +316,11 @@ export default function AdminVotePage() {
                     </div>
                   </div>
 
-                  {/* 순서 조정 버튼 */}
                   <div className="flex flex-col gap-1 ml-2 shrink-0">
                     <button
                       onClick={() => handleMoveOrder(poll, "up")}
                       disabled={idx === 0 || isProcessing}
                       className="p-1.5 rounded-lg text-toss-gray hover:bg-toss-lightGray disabled:opacity-20 transition-colors"
-                      aria-label="위로"
                     >
                       <ChevronUp size={16} />
                     </button>
@@ -293,7 +328,6 @@ export default function AdminVotePage() {
                       onClick={() => handleMoveOrder(poll, "down")}
                       disabled={idx === polls.length - 1 || isProcessing}
                       className="p-1.5 rounded-lg text-toss-gray hover:bg-toss-lightGray disabled:opacity-20 transition-colors"
-                      aria-label="아래로"
                     >
                       <ChevronDown size={16} />
                     </button>
@@ -343,18 +377,57 @@ export default function AdminVotePage() {
                     {poll.options.map((opt) => {
                       const count = getVoteCount(poll, opt.id);
                       const pct = total === 0 ? 0 : Math.round((count / total) * 100);
+                      const voters = poll.isGuestOnly && poll.isClosed ? getOptionVoters(poll, opt.id) : [];
+                      const isExpanded = expandedVoterOptionId === `${poll.id}-${opt.id}`;
+
                       return (
-                        <div key={opt.id} className="relative overflow-hidden rounded-xl border border-toss-border/40 bg-toss-lightGray/20">
-                          <div
-                            className="absolute inset-0 bg-indigo-50 transition-all duration-500"
-                            style={{ width: `${pct}%` }}
-                          />
-                          <div className="relative z-10 px-4 py-2.5 flex justify-between items-center">
-                            <span className="text-sm font-bold text-toss-black">{opt.label}</span>
-                            <span className="text-sm font-black text-indigo-600">
-                              {pct}% <span className="text-xs font-medium text-toss-gray">({count})</span>
-                            </span>
+                        <div key={opt.id}>
+                          <div className="relative overflow-hidden rounded-xl border border-toss-border/40 bg-toss-lightGray/20">
+                            <div className="absolute inset-0 bg-indigo-50 transition-all duration-500" style={{ width: `${pct}%` }} />
+                            <div className="relative z-10 px-4 py-2.5 flex justify-between items-center">
+                              <span className="text-sm font-bold text-toss-black">{opt.label}</span>
+                              <div className="flex items-center gap-2">
+                                <span className="text-sm font-black text-indigo-600">
+                                  {pct}% <span className="text-xs font-medium text-toss-gray">({count})</span>
+                                </span>
+                                {poll.isGuestOnly && poll.isClosed && voters.length > 0 && (
+                                  <button
+                                    onClick={() => setExpandedVoterOptionId(isExpanded ? null : `${poll.id}-${opt.id}`)}
+                                    className="text-[10px] font-bold text-orange-500 bg-orange-50 px-2 py-1 rounded-md flex items-center gap-1 hover:bg-orange-100 transition-colors"
+                                  >
+                                    명단 {isExpanded ? "접기" : "보기"}
+                                    <ChevronRight size={10} className={isExpanded ? "rotate-90 transition-transform" : "transition-transform"} />
+                                  </button>
+                                )}
+                              </div>
+                            </div>
                           </div>
+
+                          {/* 게스트 투표자 명단 */}
+                          {poll.isGuestOnly && poll.isClosed && isExpanded && (
+                            <div className="mt-1 p-3 bg-orange-50/50 border border-orange-100 rounded-xl">
+                              <div className="flex items-center justify-between mb-2">
+                                <p className="text-[11px] font-bold text-orange-700">{opt.label} 선택 명단 ({voters.length}명)</p>
+                                <button
+                                  onClick={() => handleCreateDrawFromOption(poll, opt.id, opt.label)}
+                                  disabled={creatingDrawFor === opt.id}
+                                  className="flex items-center gap-1 text-[10px] font-bold text-toss-blue bg-toss-blue/10 px-2.5 py-1.5 rounded-lg hover:bg-toss-blue/20 transition-colors disabled:opacity-50"
+                                >
+                                  {creatingDrawFor === opt.id ? <Loader2 size={10} className="animate-spin" /> : <Gift size={10} />}
+                                  추첨 생성
+                                </button>
+                              </div>
+                              <div className="flex flex-col gap-1">
+                                {voters.map((v, i) => (
+                                  <div key={i} className="flex items-center gap-2 text-[12px] text-toss-black py-1.5 border-b border-orange-100/60 last:border-0">
+                                    <span className="font-bold">{v.name}</span>
+                                    <span className="text-toss-gray text-[11px]">{v.team}</span>
+                                    <span className="text-toss-gray text-[11px]">{v.phone}</span>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
                         </div>
                       );
                     })}
@@ -363,7 +436,6 @@ export default function AdminVotePage() {
 
                 {/* 액션 버튼 행 */}
                 <div className="flex gap-2">
-                  {/* 표출 토글 */}
                   <button
                     onClick={() => handleSetVisible(poll)}
                     disabled={isProcessing}
@@ -376,7 +448,6 @@ export default function AdminVotePage() {
                     {isProcessing ? <Loader2 className="animate-spin" size={13} /> : poll.isVisible ? <><Eye size={13} />표출중</> : <><EyeOff size={13} />표출</>}
                   </button>
 
-                  {/* 시작/종료 or 마감됨 */}
                   {poll.isClosed ? (
                     <div className="flex-1 py-2.5 text-xs font-bold rounded-lg bg-toss-lightGray text-toss-gray text-center flex items-center justify-center gap-1.5">
                       <Lock size={12} />마감됨
@@ -404,20 +475,15 @@ export default function AdminVotePage() {
                     </>
                   )}
 
-                  {/* 수정 */}
                   <button
                     onClick={() => isEditing ? setEditingId(null) : startEdit(poll)}
                     className={`p-2.5 rounded-lg transition-colors ${
-                      isEditing
-                        ? "bg-indigo-100 text-indigo-500"
-                        : "text-toss-gray hover:text-indigo-500 hover:bg-indigo-50"
+                      isEditing ? "bg-indigo-100 text-indigo-500" : "text-toss-gray hover:text-indigo-500 hover:bg-indigo-50"
                     }`}
-                    aria-label="수정"
                   >
                     <Pencil size={16} />
                   </button>
 
-                  {/* 삭제 */}
                   <button
                     onClick={() => handleDelete(poll.id)}
                     className="p-2.5 text-toss-gray hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
@@ -436,14 +502,17 @@ export default function AdminVotePage() {
 
 // ── 공용 폼 컴포넌트 ────────────────────────────────────────
 function PollForm({
-  question, description, options, allowMultiple, showAllowMultiple, inputCls,
-  onChangeQuestion, onChangeDescription, onChangeOption, onAddOption, onRemoveOption, onToggleAllowMultiple,
+  question, description, options, allowMultiple, isGuestOnly, showAllowMultiple, showGuestOnly, inputCls,
+  onChangeQuestion, onChangeDescription, onChangeOption, onAddOption, onRemoveOption,
+  onToggleAllowMultiple, onToggleGuestOnly,
 }: {
   question: string;
   description: string;
   options: Array<{ id: string; label: string }>;
   allowMultiple?: boolean;
+  isGuestOnly?: boolean;
   showAllowMultiple?: boolean;
+  showGuestOnly?: boolean;
   inputCls: string;
   onChangeQuestion: (v: string) => void;
   onChangeDescription: (v: string) => void;
@@ -451,6 +520,7 @@ function PollForm({
   onAddOption: () => void;
   onRemoveOption: (idx: number) => void;
   onToggleAllowMultiple?: (v: boolean) => void;
+  onToggleGuestOnly?: (v: boolean) => void;
 }) {
   return (
     <div className="flex flex-col gap-4">
@@ -511,6 +581,18 @@ function PollForm({
           />
           <span className="text-sm font-bold text-toss-black">중복 투표 허용</span>
           <span className="text-xs text-toss-gray">(복수 선택 가능)</span>
+        </label>
+      )}
+      {showGuestOnly && onToggleGuestOnly && (
+        <label className="flex items-center gap-3 px-1 cursor-pointer select-none">
+          <input
+            type="checkbox"
+            checked={!!isGuestOnly}
+            onChange={(e) => onToggleGuestOnly(e.target.checked)}
+            className="w-4 h-4 rounded accent-orange-500"
+          />
+          <span className="text-sm font-bold text-toss-black">게스트 전용 투표</span>
+          <span className="text-xs text-toss-gray">(일반 참가자는 투표 불가)</span>
         </label>
       )}
     </div>

@@ -90,6 +90,25 @@ export const getParticipantPin = async (userId: string): Promise<string | null> 
   return (snap.data() as { pin?: string }).pin ?? null;
 };
 
+export const loginAsGuest = (name: string, team: string, phone: string): User => {
+  let id = localStorage.getItem("rebone_guest_id");
+  if (!id) {
+    id = `guest_${crypto.randomUUID()}`;
+    localStorage.setItem("rebone_guest_id", id);
+  }
+  const user: User = {
+    uid: id,
+    email: "",
+    name,
+    role: "user",
+    createdAt: new Date().toISOString(),
+    team: team as any,
+    phone,
+  };
+  saveSession(user);
+  return user;
+};
+
 export const logout = () => {
   localStorage.removeItem(SESSION_KEY);
   window.location.href = "/login";

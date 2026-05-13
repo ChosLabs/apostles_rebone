@@ -167,6 +167,8 @@ export interface LuckyDraw {
   winnerCount: number;
   status: 'pending' | 'drawing' | 'completed';
   winners: LuckyDrawWinner[];
+  isGuestDraw?: boolean;
+  candidates?: GuestCandidate[];
   createdAt: any;
 }
 
@@ -186,11 +188,20 @@ export interface Poll {
   votes: Record<string, string>; // { [userId]: optionId } — single-choice
   multiVotes: Record<string, string[]>; // { [userId]: [optionId, ...] } — multi-choice
   allowMultiple?: boolean; // 중복 투표 허용
+  isGuestOnly?: boolean; // 게스트 전용 투표
+  guestVoterInfo?: Record<string, { name: string; team: string; phone: string }>; // { [guestId]: info }
   order?: number; // 유저 화면 표출 순서 (오름차순)
   isActive: boolean;
   isClosed?: boolean; // 마감된 투표 — 재시작 불가
   isVisible?: boolean; // 유저 화면 표출 여부
   createdAt: any;
+}
+
+export interface GuestCandidate {
+  guestId: string;
+  name: string;
+  team: string;
+  phone: string;
 }
 
 export type LectureType = "실천형" | "나눔형" | "이론형" | "상담형";

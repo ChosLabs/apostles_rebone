@@ -27,9 +27,80 @@ import {
   Archive,
   Bus,
   ClipboardCheck,
+  KeyRound,
+  ArrowRight,
+  Loader2,
 } from "lucide-react";
 import { useAuth } from "@/components/providers/AuthProvider";
-import { logout } from "@/lib/services/authService";
+import { login, logout } from "@/lib/services/authService";
+
+function AdminLoginGate() {
+  const { loginState } = useAuth();
+  const [name, setName] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!name || !password) { setError("아이디와 비밀번호를 입력해주세요."); return; }
+    setIsSubmitting(true);
+    setError("");
+    try {
+      const user = await login(name, password);
+      if (user?.role === "admin") {
+        loginState(user);
+      } else {
+        setError("관리자 계정이 아닙니다.");
+      }
+    } catch {
+      setError("로그인 처리 중 오류가 발생했습니다.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-toss-black flex items-center justify-center p-6">
+      <div className="w-full max-w-[360px] space-y-8">
+        <div className="text-center">
+          <p className="text-toss-blue font-black text-2xl italic mb-1">Re:본 ADMIN</p>
+          <p className="text-white/40 text-sm font-medium">관리자 계정으로 로그인해주세요.</p>
+        </div>
+        <form onSubmit={handleLogin} className="space-y-3">
+          <div className="relative group">
+            <User className="absolute left-4 top-1/2 -translate-y-1/2 text-white/30 group-focus-within:text-toss-blue transition-colors" size={20} />
+            <input
+              type="text"
+              placeholder="아이디"
+              className="w-full pl-12 pr-4 py-4 rounded-2xl bg-white/5 border border-white/10 focus:border-toss-blue outline-none transition-all font-bold text-white placeholder:text-white/20"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+            />
+          </div>
+          <div className="relative group">
+            <KeyRound className="absolute left-4 top-1/2 -translate-y-1/2 text-white/30 group-focus-within:text-toss-blue transition-colors" size={20} />
+            <input
+              type="password"
+              placeholder="비밀번호"
+              className="w-full pl-12 pr-4 py-4 rounded-2xl bg-white/5 border border-white/10 focus:border-toss-blue outline-none transition-all font-bold text-white placeholder:text-white/20"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+          </div>
+          {error && <p className="text-xs font-bold text-red-400 text-center">{error}</p>}
+          <button
+            type="submit"
+            disabled={isSubmitting}
+            className="w-full bg-toss-blue text-white py-4 rounded-2xl font-bold flex items-center justify-center gap-2 shadow-lg shadow-toss-blue/20 active:scale-[0.98] transition-all disabled:opacity-50"
+          >
+            {isSubmitting ? <Loader2 className="animate-spin" size={20} /> : <><ArrowRight size={20} />로그인</>}
+          </button>
+        </form>
+      </div>
+    </div>
+  );
+}
 
 export default function AdminLayout({
   children,
@@ -140,6 +211,10 @@ export default function AdminLayout({
       </div>
     </>
   );
+
+  if (!user || user.role !== "admin") {
+    return <AdminLoginGate />;
+  }
 
   return (
     <div className="flex h-screen bg-[#f8f9fa] overflow-hidden">

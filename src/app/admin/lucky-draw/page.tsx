@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import {
   Plus, Trash2, Gift, Users,
-  X, Save, Check, Sparkles, UserPlus, Loader2
+  X, Save, Check, Sparkles, UserPlus, Loader2, RefreshCw,
 } from "lucide-react";
 import { clsx } from "clsx";
 import {
@@ -81,6 +81,19 @@ export default function AdminLuckyDrawPage() {
     }
   };
 
+  const handleRedraw = async (draw: LuckyDraw) => {
+    if (!confirm("다시 추첨하시겠습니까? 기존 당첨자가 변경됩니다.")) return;
+    try {
+      setProcessingId(draw.id);
+      await startDraw(draw.id);
+      await completeDraw(draw);
+    } catch {
+      alert("추첨 중 오류가 발생했습니다.");
+    } finally {
+      setProcessingId(null);
+    }
+  };
+
   const handleDelete = async (id: string) => {
     if (!confirm("정말 이 추첨을 삭제하시겠습니까?")) return;
     try {
@@ -152,12 +165,18 @@ export default function AdminLuckyDrawPage() {
                       disabled={processingId === draw.id}
                       className="flex-1 lg:flex-none px-6 py-3 bg-toss-blue text-white text-sm font-bold rounded-xl flex items-center justify-center gap-2 hover:bg-blue-600 transition-all shadow-md shadow-toss-blue/10 active:scale-95 disabled:opacity-60"
                     >
-                      {processingId === draw.id ? (
-                        <Loader2 className="animate-spin" size={18} />
-                      ) : (
-                        <Sparkles size={18} />
-                      )}
+                      {processingId === draw.id ? <Loader2 className="animate-spin" size={18} /> : <Sparkles size={18} />}
                       결과 표출
+                    </button>
+                  )}
+                  {draw.status === "completed" && (
+                    <button
+                      onClick={() => handleRedraw(draw)}
+                      disabled={processingId === draw.id}
+                      className="flex-1 lg:flex-none px-6 py-3 bg-toss-lightGray text-toss-gray text-sm font-bold rounded-xl flex items-center justify-center gap-2 hover:bg-orange-50 hover:text-orange-500 transition-all active:scale-95 disabled:opacity-60"
+                    >
+                      {processingId === draw.id ? <Loader2 className="animate-spin" size={18} /> : <RefreshCw size={18} />}
+                      다시 뽑기
                     </button>
                   )}
                   <button
@@ -211,7 +230,9 @@ export default function AdminLuckyDrawPage() {
                             </div>
                             <div className="flex items-center gap-2">
                               <span className="text-[11px] font-bold text-toss-blue bg-toss-blue/5 px-2 py-0.5 rounded-md">{w.userTeam}</span>
-                              <span className="text-[11px] font-bold text-toss-gray bg-toss-lightGray px-2 py-0.5 rounded-md">{w.userGroup}조</span>
+                              {!draw.isGuestDraw && w.userGroup > 0 && (
+                                <span className="text-[11px] font-bold text-toss-gray bg-toss-lightGray px-2 py-0.5 rounded-md">{w.userGroup}조</span>
+                              )}
                               {w.userPhone && <span className="text-[11px] font-bold text-toss-gray bg-toss-lightGray px-2 py-0.5 rounded-md">{w.userPhone}</span>}
                             </div>
                           </div>
