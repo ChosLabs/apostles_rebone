@@ -40,25 +40,10 @@ export async function POST(req: NextRequest) {
         });
       }
 
-      // 유효하지 않은 토큰 정리
-      if (invalidTokens.length > 0) {
-        for (let i = 0; i < invalidTokens.length; i += 400) {
-          const batch = adminDb.batch();
-          const chunk = invalidTokens.slice(i, i + 400);
-          for (const token of chunk) {
-            const tokenSnap = await adminDb
-              .collection("fcmTokens")
-              .where("token", "==", token)
-              .get();
-            tokenSnap.docs.forEach((d) => batch.delete(d.ref));
-          }
-          await batch.commit();
-        }
-      }
     }
 
-    // 전송 히스토리 저장
-    await adminDb.collection("notificationHistory").add({
+    // 히스토리 저장 — FCM 전송 완료 즉시 응답, 토큰 정리는 백그라운드 처리
+    const historyPromise = adminDb.collection("notificationHistory").add({
       title,
       body,
       sentAt: new Date(),
@@ -67,6 +52,20 @@ export async function POST(req: NextRequest) {
       failed: failureCount,
       source,
     });
+
+    // 무효 토큰 정리: doc ID = token 이므로 쿼리 없이 직접 삭제
+    const cleanupPromise = (async () => {
+      if (invalidTokens.length === 0) return;
+      for (let i = 0; i < invalidTokens.length; i += 400) {
+        const batch = adminDb.batch();
+        invalidTokens.slice(i, i + 400).forEach((token) => {
+          batch.delete(adminDb.collection("fcmTokens").doc(token));
+        });
+        await batch.commit();
+      }
+    })();
+
+    await Promise.all([historyPromise, cleanupPromise]);
 
     return NextResponse.json({ sent: successCount, failed: failureCount });
   } catch (err) {
