@@ -95,6 +95,10 @@ export const logout = () => {
   window.location.href = "/login";
 };
 
+export const clearSession = () => {
+  localStorage.removeItem(SESSION_KEY);
+};
+
 export const getSession = (): User | null => {
   if (typeof window === "undefined") return null;
   const session = localStorage.getItem(SESSION_KEY);

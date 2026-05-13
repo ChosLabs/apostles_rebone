@@ -12,11 +12,14 @@ import {
   Vote,
   Image,
   Loader2,
-  MapPin
+  MapPin,
+  Eye,
+  Wifi,
 } from "lucide-react";
 import { collection, getDocs, query, orderBy, limit } from "firebase/firestore";
 import { db } from "@/lib/firebase/client";
 import { PrayerRequest } from "@/types/database";
+import { subscribeGuestMode, setGuestMode } from "@/lib/services/appConfigService";
 
 function formatRelativeTime(timestamp: any): string {
   if (!timestamp) return "방금 전";
@@ -40,6 +43,13 @@ export default function AdminDashboard() {
   });
   const [recentPrayers, setRecentPrayers] = useState<PrayerRequest[]>([]);
   const [loading, setLoading] = useState(true);
+  const [guestMode, setGuestModeState] = useState(false);
+  const [guestModeToggling, setGuestModeToggling] = useState(false);
+
+  useEffect(() => {
+    const unsub = subscribeGuestMode(setGuestModeState);
+    return unsub;
+  }, []);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -98,6 +108,15 @@ export default function AdminDashboard() {
     },
   ];
 
+  const handleGuestModeToggle = async () => {
+    setGuestModeToggling(true);
+    try {
+      await setGuestMode(!guestMode);
+    } finally {
+      setGuestModeToggling(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
@@ -108,6 +127,40 @@ export default function AdminDashboard() {
 
   return (
     <div className="space-y-8">
+      {/* 게스트 모드 배너 */}
+      <div className={`rounded-2xl border p-5 flex items-center justify-between gap-4 transition-colors ${
+        guestMode
+          ? "bg-amber-50 border-amber-200"
+          : "bg-white border-toss-border"
+      }`}>
+        <div className="flex items-center gap-3">
+          <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
+            guestMode ? "bg-amber-100 text-amber-600" : "bg-toss-lightGray text-toss-gray"
+          }`}>
+            {guestMode ? <Wifi size={20} /> : <Eye size={20} />}
+          </div>
+          <div>
+            <p className="text-sm font-bold text-toss-black">게스트 모드</p>
+            <p className="text-xs text-toss-gray mt-0.5">
+              {guestMode
+                ? "활성화됨 — 로그인 없이 앱에 접근할 수 있습니다"
+                : "비활성화 — 로그인해야 앱에 접근할 수 있습니다"}
+            </p>
+          </div>
+        </div>
+        <button
+          onClick={handleGuestModeToggle}
+          disabled={guestModeToggling}
+          className={`relative inline-flex h-7 w-12 shrink-0 items-center rounded-full transition-colors focus:outline-none disabled:opacity-60 ${
+            guestMode ? "bg-amber-500" : "bg-toss-border"
+          }`}
+        >
+          <span className={`inline-block h-5 w-5 rounded-full bg-white shadow transition-transform ${
+            guestMode ? "translate-x-6" : "translate-x-1"
+          }`} />
+        </button>
+      </div>
+
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {stats.map((stat) => (

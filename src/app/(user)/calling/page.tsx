@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Globe, Briefcase, Users, Mic2, Sparkles, CheckCircle2, Loader2, Coffee, ChevronDown, ChevronUp, Clock } from "lucide-react";
+import { Globe, Briefcase, Users, Mic2, Sparkles, CheckCircle2, Loader2, Coffee, ChevronDown, ChevronUp, Clock, Lock } from "lucide-react";
 import { clsx } from "clsx";
 import { useAuth } from "@/components/providers/AuthProvider";
 import {
@@ -116,7 +116,7 @@ const TIMELINE = [
 ];
 
 export default function CallingPage() {
-  const { user } = useAuth();
+  const { user, isGuest } = useAuth();
   const [config, setConfig] = useState<CallingZoneConfig | null>(null);
   const [stamps, setStamps] = useState<string[]>([]);
   const [selectedZone, setSelectedZone] = useState<Zone | null>(null);
@@ -141,6 +141,10 @@ export default function CallingPage() {
 
   const handleStampClick = (zone: Zone) => {
     if (stamps.includes(zone.id)) return;
+    if (isGuest) {
+      alert("로그인이 필요한 기능입니다.");
+      return;
+    }
     setSelectedZone(zone);
     setCode("");
     setError(false);
@@ -281,14 +285,17 @@ export default function CallingPage() {
                   <button
                     onClick={() => handleStampClick(zone)}
                     disabled={isStamped}
-                    className="w-full py-2.5 rounded-xl font-bold text-sm transition-all active:scale-95 disabled:opacity-50"
+                    className="w-full py-2.5 rounded-xl font-bold text-sm transition-all active:scale-95 disabled:opacity-50 flex items-center justify-center gap-1.5"
                     style={
                       isStamped
                         ? { backgroundColor: zone.bg, color: zone.color }
+                        : isGuest
+                        ? { backgroundColor: "rgb(242 244 246)", color: "rgb(78 89 104)" }
                         : { backgroundColor: zone.color, color: "white" }
                     }
                   >
-                    {isStamped ? "✓ 스탬프 완료" : "스탬프 인증하기"}
+                    {isGuest && !isStamped && <Lock size={13} />}
+                    {isStamped ? "✓ 스탬프 완료" : isGuest ? "로그인이 필요한 기능입니다" : "스탬프 인증하기"}
                   </button>
                 </div>
               )}
@@ -317,9 +324,16 @@ export default function CallingPage() {
             <CheckCircle2 size={13} className="text-toss-blue" />
             Calling Passport
           </h3>
-          <span className="text-[10px] font-bold text-toss-blue bg-toss-blue/5 px-2 py-1 rounded-md">
-            {stamps.length} / 5 완료
-          </span>
+          {isGuest ? (
+            <span className="text-[10px] font-bold text-toss-gray bg-toss-lightGray px-2 py-1 rounded-md flex items-center gap-1">
+              <Lock size={9} />
+              로그인 필요
+            </span>
+          ) : (
+            <span className="text-[10px] font-bold text-toss-blue bg-toss-blue/5 px-2 py-1 rounded-md">
+              {stamps.length} / 5 완료
+            </span>
+          )}
         </div>
 
         <div className="grid grid-cols-5 gap-1.5">

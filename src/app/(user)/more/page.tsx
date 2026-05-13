@@ -35,7 +35,7 @@ const allMenuItems: MenuItem[] = [
 ];
 
 export default function MorePage() {
-  const { user } = useAuth();
+  const { user, isGuest } = useAuth();
   const [isManager, setIsManager] = useState(false);
 
   useEffect(() => {
@@ -54,7 +54,7 @@ export default function MorePage() {
             </div>
             <div>
               <div className="flex items-center gap-2 mb-0.5">
-                <h2 className="text-lg font-bold text-toss-black flex items-center">{user?.name || "참가자"}<span className="font-medium text-toss-gray ml-0.5">님</span></h2>
+                <h2 className="text-lg font-bold text-toss-black flex items-center">{isGuest ? "게스트" : (user?.name || "참가자")}<span className="font-medium text-toss-gray ml-0.5">님</span></h2>
                 {user?.group && (
                   <span className="text-[10px] font-bold bg-toss-blue/10 text-toss-blue px-1.5 py-0.5 rounded-md">{user.group}조</span>
                 )}
@@ -107,7 +107,7 @@ export default function MorePage() {
           <ChevronRight size={20} className="text-toss-gray/30 group-hover:text-toss-blue transition-colors" />
         </Link>
 
-        {isManager && (
+        {isManager && !isGuest && (
           <Link href="/inventory" className="flex items-center justify-between w-full p-5 bg-white dark:bg-surface border border-toss-border/40 rounded-2xl active:scale-[0.98] transition-all group">
             <div className="flex items-center gap-4">
               <div className="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-600">

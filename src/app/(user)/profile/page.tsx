@@ -18,6 +18,7 @@ import {
   Loader2,
   Eye,
   EyeOff,
+  LogIn,
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -27,7 +28,7 @@ import { logout, verifyPassword, changePassword } from "@/lib/services/authServi
 
 export default function MyProfilePage() {
   const router = useRouter();
-  const { user } = useAuth();
+  const { user, isGuest } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [currentPw, setCurrentPw] = useState("");
@@ -77,7 +78,7 @@ export default function MyProfilePage() {
       {/* Header */}
       <div className="bg-white dark:bg-surface px-5 pt-8 pb-6 border-b border-toss-border/50">
         <div className="flex items-center justify-between mb-6">
-          <button 
+          <button
             onClick={() => router.back()}
             className="p-1 -ml-1 text-toss-gray"
           >
@@ -92,18 +93,22 @@ export default function MyProfilePage() {
         <div className="flex items-center gap-5">
           <div className="w-20 h-20 rounded-full bg-toss-lightGray flex items-center justify-center text-toss-gray/40 relative">
             <User size={40} />
-            <button className="absolute bottom-0 right-0 w-7 h-7 bg-white rounded-full border border-toss-border shadow-sm flex items-center justify-center text-toss-gray">
-              <Tag size={14} />
-            </button>
+            {!isGuest && (
+              <button className="absolute bottom-0 right-0 w-7 h-7 bg-white rounded-full border border-toss-border shadow-sm flex items-center justify-center text-toss-gray">
+                <Tag size={14} />
+              </button>
+            )}
           </div>
           <div>
             <h2 className="text-2xl font-black text-toss-black flex items-center gap-2">
-              {user.name}
+              {isGuest ? "게스트" : user.name}
               <span className="text-xs bg-toss-blue/10 text-toss-blue px-2 py-0.5 rounded-lg font-bold">
-                {user.role === 'admin' ? '관리자' : '참가자'}
+                {isGuest ? "미로그인" : user.role === "admin" ? "관리자" : "참가자"}
               </span>
             </h2>
-            <p className="text-sm text-toss-gray font-medium mt-1">{user.phone || "-"}</p>
+            {!isGuest && (
+              <p className="text-sm text-toss-gray font-medium mt-1">{user.phone || "-"}</p>
+            )}
           </div>
         </div>
       </div>
@@ -116,13 +121,29 @@ export default function MyProfilePage() {
             <ShieldCheck size={14} className="text-toss-blue" />
             수련회 배정 정보
           </h3>
-          <div className="grid grid-cols-2 gap-y-6">
-            <InfoItem icon={<Users size={18} />} label="소속 팀" value={user.team || "미배정"} />
-            <InfoItem icon={<Users size={18} />} label="또래" value={user.birthYear ? `${user.birthYear}또래` : "미배정"} />
-            <InfoItem icon={<Users size={18} />} label="배정 조" value={user.group ? `${user.group}조` : "미배정"} />
-            <InfoItem icon={<Home size={18} />} label="배정 숙소" value={user.room || "미배정"} />
-            <InfoItem icon={<Tag size={18} />} label="참석 구분" value={user.attendanceType || "미배정"} />
-          </div>
+          {isGuest ? (
+            <div className="flex flex-col items-center justify-center py-6 gap-3 text-center">
+              <div className="w-12 h-12 rounded-2xl bg-toss-lightGray flex items-center justify-center text-toss-gray/40">
+                <Lock size={22} />
+              </div>
+              <p className="text-sm font-bold text-toss-black">로그인 후 참가자 정보가 표시됩니다</p>
+              <Link
+                href="/login"
+                className="text-xs font-bold text-white bg-toss-blue px-4 py-2 rounded-xl flex items-center gap-1.5"
+              >
+                <LogIn size={13} />
+                로그인하기
+              </Link>
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 gap-y-6">
+              <InfoItem icon={<Users size={18} />} label="소속 팀" value={user.team || "미배정"} />
+              <InfoItem icon={<Users size={18} />} label="또래" value={user.birthYear ? `${user.birthYear}또래` : "미배정"} />
+              <InfoItem icon={<Users size={18} />} label="배정 조" value={user.group ? `${user.group}조` : "미배정"} />
+              <InfoItem icon={<Home size={18} />} label="배정 숙소" value={user.room || "미배정"} />
+              <InfoItem icon={<Tag size={18} />} label="참석 구분" value={user.attendanceType || "미배정"} />
+            </div>
+          )}
         </section>
 
         {/* Action List */}
@@ -132,79 +153,94 @@ export default function MyProfilePage() {
             label={theme === "dark" ? "라이트 모드" : "다크 모드"}
             onClick={toggleTheme}
           />
-          {user.role !== "admin" && (
+          {!isGuest && user.role !== "admin" && (
             <MenuLink
               icon={<Lock size={18} />}
               label="비밀번호 변경"
               onClick={() => setShowPasswordModal(true)}
             />
           )}
-          <MenuLink
-            icon={<LogOut size={18} />}
-            label="로그아웃"
-            danger
-            onClick={() => logout()}
-          />
+          {isGuest ? (
+            <Link href="/login">
+              <div className="w-full px-6 py-5 flex items-center justify-between hover:bg-toss-lightGray/30 transition-colors border-b border-toss-border/30 last:border-0">
+                <div className="flex items-center gap-4">
+                  <div className="p-2 rounded-xl bg-toss-blue/10 text-toss-blue">
+                    <LogIn size={18} />
+                  </div>
+                  <span className="text-[15px] font-bold text-toss-blue">로그인하기</span>
+                </div>
+                <ChevronRight size={18} className="text-toss-border" />
+              </div>
+            </Link>
+          ) : (
+            <MenuLink
+              icon={<LogOut size={18} />}
+              label="로그아웃"
+              danger
+              onClick={() => logout()}
+            />
+          )}
         </div>
 
-      {/* 비밀번호 변경 모달 */}
-      {showPasswordModal && (
-        <div className="fixed inset-0 z-[100] flex items-end justify-center bg-black/40 backdrop-blur-sm" onClick={closeModal}>
-          <div className="bg-white dark:bg-surface w-full max-w-[420px] rounded-t-3xl p-6 shadow-2xl animate-in slide-in-from-bottom duration-300" onClick={(e) => e.stopPropagation()}>
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-lg font-bold text-toss-black">비밀번호 변경</h2>
-              <button onClick={closeModal} className="p-2 hover:bg-toss-lightGray rounded-full transition-colors">
-                <X size={20} className="text-toss-gray" />
+        {/* 비밀번호 변경 모달 */}
+        {showPasswordModal && (
+          <div className="fixed inset-0 z-[100] flex items-end justify-center bg-black/40 backdrop-blur-sm" onClick={closeModal}>
+            <div className="bg-white dark:bg-surface w-full max-w-[420px] rounded-t-3xl p-6 shadow-2xl animate-in slide-in-from-bottom duration-300" onClick={(e) => e.stopPropagation()}>
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-lg font-bold text-toss-black">비밀번호 변경</h2>
+                <button onClick={closeModal} className="p-2 hover:bg-toss-lightGray rounded-full transition-colors">
+                  <X size={20} className="text-toss-gray" />
+                </button>
+              </div>
+
+              <p className="text-xs text-toss-gray mb-5 leading-relaxed">
+                로그인 시 사용하는 숫자 4자리 비밀번호를 변경합니다.
+              </p>
+
+              <div className="space-y-3 mb-4">
+                <PwInput
+                  label="현재 비밀번호"
+                  value={currentPw}
+                  show={showCurrent}
+                  onChange={(v) => { setCurrentPw(v); setError(""); }}
+                  onToggle={() => setShowCurrent((p) => !p)}
+                />
+                <PwInput
+                  label="새 비밀번호"
+                  value={newPw}
+                  show={showNew}
+                  onChange={(v) => { setNewPw(v); setError(""); }}
+                  onToggle={() => setShowNew((p) => !p)}
+                />
+                <PwInput
+                  label="새 비밀번호 확인"
+                  value={confirmPw}
+                  show={showConfirm}
+                  onChange={(v) => { setConfirmPw(v); setError(""); }}
+                  onToggle={() => setShowConfirm((p) => !p)}
+                />
+              </div>
+
+              {error && <p className="text-xs text-red-500 font-medium mb-4">{error}</p>}
+
+              <button
+                onClick={handleChangePassword}
+                disabled={submitting}
+                className="w-full bg-toss-blue text-white font-bold py-4 rounded-2xl active:scale-95 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+              >
+                {submitting && <Loader2 size={16} className="animate-spin" />}
+                변경하기
               </button>
             </div>
-
-            <p className="text-xs text-toss-gray mb-5 leading-relaxed">
-              로그인 시 사용하는 숫자 4자리 비밀번호를 변경합니다.
-            </p>
-
-            <div className="space-y-3 mb-4">
-              <PwInput
-                label="현재 비밀번호"
-                value={currentPw}
-                show={showCurrent}
-                onChange={(v) => { setCurrentPw(v); setError(""); }}
-                onToggle={() => setShowCurrent((p) => !p)}
-              />
-              <PwInput
-                label="새 비밀번호"
-                value={newPw}
-                show={showNew}
-                onChange={(v) => { setNewPw(v); setError(""); }}
-                onToggle={() => setShowNew((p) => !p)}
-              />
-              <PwInput
-                label="새 비밀번호 확인"
-                value={confirmPw}
-                show={showConfirm}
-                onChange={(v) => { setConfirmPw(v); setError(""); }}
-                onToggle={() => setShowConfirm((p) => !p)}
-              />
-            </div>
-
-            {error && <p className="text-xs text-red-500 font-medium mb-4">{error}</p>}
-
-            <button
-              onClick={handleChangePassword}
-              disabled={submitting}
-              className="w-full bg-toss-blue text-white font-bold py-4 rounded-2xl active:scale-95 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
-            >
-              {submitting && <Loader2 size={16} className="animate-spin" />}
-              변경하기
-            </button>
           </div>
-        </div>
-      )}
+        )}
 
-        {/* Footer Info */}
-        <p className="text-center text-[11px] text-toss-gray pt-4 leading-relaxed">
-          정보가 실제와 다를 경우 <br />
-          <span className="font-bold underline cursor-pointer">운영국(임원단)</span>에 문의해 주세요.
-        </p>
+        {!isGuest && (
+          <p className="text-center text-[11px] text-toss-gray pt-4 leading-relaxed">
+            정보가 실제와 다를 경우 <br />
+            <span className="font-bold underline cursor-pointer">운영국(임원단)</span>에 문의해 주세요.
+          </p>
+        )}
       </div>
     </div>
   );
@@ -249,7 +285,7 @@ function PwInput({ label, value, show, onChange, onToggle }: {
 
 function MenuLink({ icon, label, danger = false, onClick }: { icon: React.ReactNode; label: string; danger?: boolean; onClick?: () => void }) {
   return (
-    <button 
+    <button
       onClick={onClick}
       className="w-full px-6 py-5 flex items-center justify-between hover:bg-toss-lightGray/30 transition-colors border-b border-toss-border/30 last:border-0"
     >
