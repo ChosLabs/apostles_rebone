@@ -34,3 +34,4 @@ function lazyProxy<T extends object>(factory: () => T): T {
 
 export const adminDb = lazyProxy(() => getApp().firestore());
 export const adminAuth = lazyProxy(() => getApp().auth());
+export const adminMessaging = lazyProxy(() => getApp().messaging());

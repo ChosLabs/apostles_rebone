@@ -208,6 +208,17 @@ export interface InventoryManager {
   addedAt: any;
 }
 
+export interface NotificationHistory {
+  id: string;
+  title: string;
+  body: string;
+  sentAt: any;
+  totalTokens: number;
+  sent: number;
+  failed: number;
+  source: "manual" | "notice";
+}
+
 export interface LostItem {
   id: string;
   imageUrl: string;

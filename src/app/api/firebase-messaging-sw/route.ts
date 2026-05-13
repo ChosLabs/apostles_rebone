@@ -18,7 +18,7 @@ firebase.initializeApp(${JSON.stringify(config)});
 const messaging = firebase.messaging();
 
 messaging.onBackgroundMessage(function(payload) {
-  const title = (payload.notification && payload.notification.title) || '새 공지사항';
+  const title = (payload.notification && payload.notification.title) || '📢 공지';
   const body = (payload.notification && payload.notification.body) || '';
   self.registration.showNotification(title, {
     body: body,

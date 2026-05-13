@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import {
   LayoutDashboard,
   Bell,
+  BellRing,
   Calendar,
   MessageSquare,
   Users,
@@ -63,6 +64,7 @@ export default function AdminLayout({
     { name: "참가자 관리", icon: <User size={20} />, href: "/admin/users" },
     { name: "조 관리", icon: <Users size={20} />, href: "/admin/groups" },
     { name: "숙소 관리", icon: <Home size={20} />, href: "/admin/accommodations" },
+    { name: "알림 관리", icon: <BellRing size={20} />, href: "/admin/notifications" },
     { name: "공지사항 관리", icon: <Bell size={20} />, href: "/admin/notices" },
     { name: "타임테이블 관리", icon: <Calendar size={20} />, href: "/admin/timetable" },
     { name: "문의 관리", icon: <MessageSquare size={20} />, href: "/admin/inquiry" },

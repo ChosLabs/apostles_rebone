@@ -82,14 +82,35 @@ export default function AdminNoticesPage() {
         });
         alert("수정되었습니다.");
       } else {
+        // resetForm()이 호출되기 전에 title 캡처
+        const noticeTitle = title;
         await addDoc(collection(db, "notices"), {
           title,
           content,
           type,
           createdAt: serverTimestamp(),
-          author: "관리자", 
+          author: "관리자",
         });
-        alert("등록되었습니다.");
+        resetForm();
+        // 푸시 알림 전송 (공지 저장 완료 후, 별도 try-catch로 독립 처리)
+        try {
+          const res = await fetch("/api/notifications", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ title: "📢 공지", body: noticeTitle, source: "notice" }),
+          });
+          if (!res.ok) {
+            const err = await res.json().catch(() => ({}));
+            console.error("[FCM] notice push failed:", err);
+            alert(`공지 등록 완료\n알림 전송 실패: ${err.error ?? res.status}`);
+          } else {
+            alert("등록되었습니다.");
+          }
+        } catch (e) {
+          console.error("[FCM] notice push network error:", e);
+          alert("공지 등록 완료\n알림 전송 중 네트워크 오류가 발생했습니다.");
+        }
+        return; // resetForm은 위에서 이미 호출
       }
       resetForm();
     } catch (error: any) {
