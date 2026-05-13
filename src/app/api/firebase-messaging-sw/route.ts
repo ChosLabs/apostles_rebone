@@ -18,12 +18,13 @@ firebase.initializeApp(${JSON.stringify(config)});
 const messaging = firebase.messaging();
 
 messaging.onBackgroundMessage(function(payload) {
-  // 포그라운드 탭이 열려있으면 페이지의 onForegroundMessage가 처리 — SW는 표시 생략(중복 방지)
-  return self.clients.matchAll({ type: 'window', includeUncontrolled: true })
+  var title = (payload.notification && payload.notification.title) || '📢 공지';
+  var body  = (payload.notification && payload.notification.body)  || '';
+  // SW가 제어하는 탭(앱 자체)만 확인 — includeUncontrolled 제외로 시스템 클라이언트 오판 방지
+  return self.clients.matchAll({ type: 'window' })
     .then(function(clients) {
+      // 포그라운드 탭이 있으면 페이지의 onForegroundMessage가 처리
       if (clients.some(function(c) { return c.visibilityState === 'visible'; })) return;
-      var title = (payload.notification && payload.notification.title) || '📢 공지';
-      var body  = (payload.notification && payload.notification.body)  || '';
       return self.registration.showNotification(title, {
         body: body,
         icon: '/rebon_logo_blue.png',
