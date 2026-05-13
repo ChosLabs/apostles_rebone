@@ -8,7 +8,7 @@ import {
   type ReactNode,
 } from 'react';
 import { useAuth } from './AuthProvider';
-import { requestFcmToken, onForegroundMessage } from '@/lib/firebase/messaging';
+import { requestFcmToken } from '@/lib/firebase/messaging';
 import { saveFcmToken } from '@/lib/services/notifications';
 import { getNotifResetAt } from '@/lib/services/appConfigService';
 
@@ -67,18 +67,17 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
   const tokenRegistered = useRef(false);
 
-  // 포어그라운드 메시지 핸들러 — 마운트 1회만 등록
+  // 포어그라운드 메시지 핸들러 — SW가 postMessage로 전달한 PUSH_RECEIVED 수신
   useEffect(() => {
-    if (typeof window === 'undefined') return;
-    if (!('Notification' in window) || !('serviceWorker' in navigator)) return;
+    if (typeof window === 'undefined' || !('serviceWorker' in navigator)) return;
 
-    const unsubscribe = onForegroundMessage((payload) => {
-      const title = payload.notification?.title ?? '📢 공지';
-      const body = payload.notification?.body ?? '';
-      showNotification(title, body);
-    });
+    const handler = (event: MessageEvent) => {
+      if (event.data?.type !== 'PUSH_RECEIVED') return;
+      showNotification(event.data.title ?? '📢 공지', event.data.body ?? '');
+    };
 
-    return unsubscribe;
+    navigator.serviceWorker.addEventListener('message', handler);
+    return () => navigator.serviceWorker.removeEventListener('message', handler);
   }, []);
 
   // FCM 토큰 자동 등록

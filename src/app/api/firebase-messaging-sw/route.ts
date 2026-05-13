@@ -1,33 +1,36 @@
 import { NextResponse } from 'next/server';
 
 export async function GET() {
-  const config = {
-    apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-    authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
-    projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-    storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
-    messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-    appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
-  };
-
+  // Firebase compat SW를 제거하고 표준 push 이벤트 핸들러 사용.
+  // onBackgroundMessage는 앱이 완전히 닫혔을 때 신뢰성 문제가 있어서 raw push 이벤트로 대체.
+  // 포그라운드 탭이 있으면 postMessage로 페이지에 전달하고, 없으면 직접 showNotification.
   const script = `
-importScripts('https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js');
-importScripts('https://www.gstatic.com/firebasejs/10.14.1/firebase-messaging-compat.js');
+self.addEventListener('push', function(event) {
+  if (!event.data) return;
 
-firebase.initializeApp(${JSON.stringify(config)});
-const messaging = firebase.messaging();
+  var payload;
+  try { payload = event.data.json(); } catch(e) { return; }
 
-// Firebase compat은 앱이 포그라운드일 때 onMessage(페이지)로 라우팅하고
-// 백그라운드/종료 상태일 때만 onBackgroundMessage를 호출한다.
-// 따라서 여기서는 추가 클라이언트 확인 없이 즉시 알림 표시.
-messaging.onBackgroundMessage(function(payload) {
-  var title = (payload.notification && payload.notification.title) || '📢 공지';
-  var body  = (payload.notification && payload.notification.body)  || '';
-  return self.registration.showNotification(title, {
-    body: body,
-    icon: '/rebon_logo_blue.png',
-    badge: '/rebon_logo_blue.png',
-  });
+  var notif  = payload.notification || {};
+  var title  = notif.title || '📢 공지';
+  var body   = notif.body  || '';
+
+  event.waitUntil(
+    self.clients.matchAll({ type: 'window' }).then(function(clients) {
+      var visible = clients.filter(function(c) { return c.visibilityState === 'visible'; });
+      if (visible.length > 0) {
+        visible.forEach(function(c) {
+          c.postMessage({ type: 'PUSH_RECEIVED', title: title, body: body });
+        });
+        return;
+      }
+      return self.registration.showNotification(title, {
+        body: body,
+        icon: '/rebon_logo_blue.png',
+        badge: '/rebon_logo_blue.png',
+      });
+    })
+  );
 });
 `;
 
