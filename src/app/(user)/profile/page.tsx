@@ -19,51 +19,18 @@ import {
   Eye,
   EyeOff,
   LogIn,
-  Bell,
-  BellOff,
-  BellRing,
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { useTheme } from "@/components/providers/ThemeProvider";
-import { useNotification } from "@/components/providers/NotificationProvider";
 import { logout, verifyPassword, changePassword } from "@/lib/services/authService";
 
 export default function MyProfilePage() {
   const router = useRouter();
   const { user, isGuest } = useAuth();
   const { theme, toggleTheme } = useTheme();
-  const { requestPermissionAndRegister } = useNotification();
-  const [notifPermission, setNotifPermission] = useState<NotificationPermission | "unsupported">("default");
-  const [notifRequesting, setNotifRequesting] = useState(false);
-  const [isIosNonPwa, setIsIosNonPwa] = useState(false);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
-
-  React.useEffect(() => {
-    if (typeof window === "undefined") return;
-    const ios = /iPad|iPhone|iPod/.test(navigator.userAgent);
-    const standalone = window.matchMedia("(display-mode: standalone)").matches;
-    if (ios && !standalone) { setIsIosNonPwa(true); return; }
-    if (!("Notification" in window)) { setNotifPermission("unsupported" as any); return; }
-    setNotifPermission(Notification.permission);
-  }, []);
-
-  const handleNotifClick = async () => {
-    if (isIosNonPwa) {
-      alert("iOS Safari에서는 홈 화면에 추가(PWA) 후 알림을 허용할 수 있습니다.\n\n공유 버튼 → 홈 화면에 추가 → 앱으로 열기");
-      return;
-    }
-    if (notifPermission === "granted") return;
-    if (notifPermission === "denied") {
-      alert("브라우저 설정에서 알림을 허용해주세요.\n주소창 왼쪽 자물쇠(또는 설정) 아이콘 → 알림 → 허용");
-      return;
-    }
-    setNotifRequesting(true);
-    const granted = await requestPermissionAndRegister();
-    setNotifPermission(granted ? "granted" : Notification.permission);
-    setNotifRequesting(false);
-  };
   const [currentPw, setCurrentPw] = useState("");
   const [newPw, setNewPw] = useState("");
   const [confirmPw, setConfirmPw] = useState("");
@@ -186,44 +153,6 @@ export default function MyProfilePage() {
             label={theme === "dark" ? "라이트 모드" : "다크 모드"}
             onClick={toggleTheme}
           />
-          {!isGuest && (
-            <button
-              onClick={handleNotifClick}
-              disabled={notifRequesting || notifPermission === "granted"}
-              className="w-full px-6 py-5 flex items-center justify-between hover:bg-toss-lightGray/30 transition-colors border-b border-toss-border/30 disabled:opacity-100"
-            >
-              <div className="flex items-center gap-4">
-                <div className={`p-2 rounded-xl ${
-                  notifPermission === "granted" ? "bg-emerald-50 text-emerald-500" :
-                  notifPermission === "denied" || isIosNonPwa ? "bg-amber-50 text-amber-500" :
-                  "bg-toss-lightGray/50 text-toss-gray"
-                }`}>
-                  {notifPermission === "granted" ? <Bell size={18} /> :
-                   notifPermission === "denied"  ? <BellOff size={18} /> :
-                   <BellRing size={18} />}
-                </div>
-                <div className="text-left">
-                  <span className="text-[15px] font-bold text-toss-black block">알림 권한</span>
-                  <span className={`text-xs font-medium ${
-                    notifPermission === "granted" ? "text-emerald-500" :
-                    notifPermission === "denied" || isIosNonPwa ? "text-amber-500" :
-                    "text-toss-gray"
-                  }`}>
-                    {notifPermission === "granted" ? "허용됨" :
-                     isIosNonPwa                   ? "iOS — 홈 화면에 추가 후 허용 가능" :
-                     notifPermission === "denied"  ? "거부됨 — 브라우저 설정에서 변경" :
-                     notifRequesting               ? "요청 중..." :
-                     "탭하여 알림 허용"}
-                  </span>
-                </div>
-              </div>
-              {notifPermission !== "granted" && (
-                notifRequesting
-                  ? <Loader2 size={16} className="animate-spin text-toss-gray" />
-                  : <ChevronRight size={18} className="text-toss-border" />
-              )}
-            </button>
-          )}
           {!isGuest && user.role !== "admin" && (
             <MenuLink
               icon={<Lock size={18} />}
