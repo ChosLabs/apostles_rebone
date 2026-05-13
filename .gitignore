@@ -19,6 +19,7 @@ Thumbs.db
 .env.production.local
 
 # Firebase 관련
+*-firebase-adminsdk-*.json
 .firebase/
 firebase-debug.log*
 firestore-debug.log*
