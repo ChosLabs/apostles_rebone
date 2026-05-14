@@ -19,6 +19,7 @@ import {
   Eye,
   EyeOff,
   LogIn,
+  UserSquare2,
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -161,17 +162,24 @@ export default function MyProfilePage() {
             />
           )}
           {isGuest ? (
-            <Link href="/login">
-              <div className="w-full px-6 py-5 flex items-center justify-between hover:bg-toss-lightGray/30 transition-colors border-b border-toss-border/30 last:border-0">
-                <div className="flex items-center gap-4">
-                  <div className="p-2 rounded-xl bg-toss-blue/10 text-toss-blue">
-                    <LogIn size={18} />
+            <>
+              <MenuLink
+                icon={<UserSquare2 size={18} />}
+                label="게스트 정보 다시 입력"
+                onClick={() => logout()}
+              />
+              <Link href="/login">
+                <div className="w-full px-6 py-5 flex items-center justify-between hover:bg-toss-lightGray/30 transition-colors border-b border-toss-border/30 last:border-0">
+                  <div className="flex items-center gap-4">
+                    <div className="p-2 rounded-xl bg-toss-blue/10 text-toss-blue">
+                      <LogIn size={18} />
+                    </div>
+                    <span className="text-[15px] font-bold text-toss-blue">로그인하기</span>
                   </div>
-                  <span className="text-[15px] font-bold text-toss-blue">로그인하기</span>
+                  <ChevronRight size={18} className="text-toss-border" />
                 </div>
-                <ChevronRight size={18} className="text-toss-border" />
-              </div>
-            </Link>
+              </Link>
+            </>
           ) : (
             <MenuLink
               icon={<LogOut size={18} />}
