@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import {
   Vote, ArrowLeft, Check, Users, Loader2, RefreshCw, Lock, Shuffle,
-  Maximize2, X, ChevronLeft, ChevronRight, UserSquare2,
+  X, ChevronLeft, ChevronRight, UserSquare2,
 } from "lucide-react";
 import Link from "next/link";
 import { useAuth } from "@/components/providers/AuthProvider";
@@ -309,7 +309,6 @@ function PollCard({
 // ── 메인 페이지 ──────────────────────────────────────────────
 export default function VotePage() {
   const { user, isGuest } = useAuth();
-  const isAdmin = user?.role === "admin";
 
   const [polls, setPolls] = useState<Poll[]>([]);
   const [loading, setLoading] = useState(true);
@@ -326,16 +325,6 @@ export default function VotePage() {
     return unsub;
   }, [subKey]);
 
-  // Fullscreen API 연동
-  const enterPresentation = useCallback(async () => {
-    try {
-      await document.documentElement.requestFullscreen();
-    } catch {
-      // 풀스크린 미지원 환경도 발표 모드는 동작
-    }
-    setIsPresenting(true);
-  }, []);
-
   const exitPresentation = useCallback(() => {
     if (document.fullscreenElement) {
       document.exitFullscreen().catch(() => {});
@@ -351,7 +340,6 @@ export default function VotePage() {
     return () => document.removeEventListener("fullscreenchange", handler);
   }, []);
 
-  // ESC 키로 발표 모드 종료
   useEffect(() => {
     if (!isPresenting) return;
     const handler = (e: KeyboardEvent) => {
@@ -405,18 +393,6 @@ export default function VotePage() {
             <ArrowLeft size={24} className="text-toss-black" />
           </Link>
           <h1 className="text-lg font-bold text-toss-black flex-1">실시간 투표</h1>
-
-          {/* 어드민 전용 발표 모드 버튼 */}
-          {isAdmin && polls.length > 0 && (
-            <button
-              onClick={enterPresentation}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-50 text-indigo-600 hover:bg-indigo-100 rounded-lg text-xs font-bold transition-colors"
-              aria-label="전체화면 발표 모드"
-            >
-              <Maximize2 size={14} />
-              발표
-            </button>
-          )}
 
           <button
             onClick={() => setSubKey((k) => k + 1)}

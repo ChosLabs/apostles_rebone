@@ -109,6 +109,10 @@ export async function completeDraw(draw: LuckyDraw): Promise<void> {
   await updateDoc(doc(db, COL, draw.id), { status: "completed", winners });
 }
 
+export async function updateLuckyDrawWinnerCount(id: string, winnerCount: number): Promise<void> {
+  await updateDoc(doc(db, COL, id), { winnerCount });
+}
+
 export async function deleteLuckyDraw(id: string): Promise<void> {
   await deleteDoc(doc(db, COL, id));
 }

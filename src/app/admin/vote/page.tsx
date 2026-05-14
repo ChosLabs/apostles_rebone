@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import {
   Plus, Trash2, X, Loader2, Users, Lock, Eye, EyeOff, ChevronUp, ChevronDown,
-  Pencil, Check, Gift, ChevronRight, UserSquare2,
+  Pencil, Check, Gift, ChevronRight, UserSquare2, Maximize2, Shuffle,
+  ChevronLeft, ChevronRight as ChevronRightIcon,
 } from "lucide-react";
 import {
   subscribePolls, createPoll, updatePoll, togglePollActive, closePoll, setPollVisible, deletePoll, updatePollOrder,
@@ -13,6 +14,149 @@ import { createGuestLuckyDraw } from "@/lib/services/luckyDrawService";
 import { GuestCandidate, Poll } from "@/types/database";
 
 type EditForm = { question: string; description: string; options: Array<{ id: string; label: string }> };
+
+// ── 발표용 전체화면 뷰 ────────────────────────────────────────
+function PresentationView({ polls, onExit }: { polls: Poll[]; onExit: () => void }) {
+  const [current, setCurrent] = useState(0);
+  const poll = polls[current] ?? null;
+
+  const getTotalVotes = (p: Poll) =>
+    p.allowMultiple ? Object.keys(p.multiVotes ?? {}).length : Object.keys(p.votes ?? {}).length;
+
+  const getVoteCount = (p: Poll, optionId: string) =>
+    p.allowMultiple
+      ? Object.values(p.multiVotes ?? {}).filter((arr) => arr.includes(optionId)).length
+      : Object.values(p.votes ?? {}).filter((v) => v === optionId).length;
+
+  if (!poll) return null;
+
+  const total = getTotalVotes(poll);
+  const maxCount = Math.max(0, ...poll.options.map((o) => getVoteCount(poll, o.id)));
+
+  return (
+    <div className="fixed inset-0 z-[200] bg-white flex flex-col overflow-hidden select-none">
+      <div className="shrink-0 flex items-center justify-between px-8 py-4 border-b border-toss-border/40 bg-white">
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 bg-indigo-50 rounded-xl flex items-center justify-center">
+            <Maximize2 size={20} className="text-indigo-500" />
+          </div>
+          <span className="text-base font-bold text-toss-black">실시간 투표</span>
+        </div>
+
+        {polls.length > 1 && (
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setCurrent((c) => Math.max(0, c - 1))}
+              disabled={current === 0}
+              className="p-2 rounded-xl text-toss-gray hover:bg-toss-lightGray disabled:opacity-20 transition-colors"
+            >
+              <ChevronLeft size={20} />
+            </button>
+            <span className="text-sm font-bold text-toss-gray px-1">
+              {current + 1} / {polls.length}
+            </span>
+            <button
+              onClick={() => setCurrent((c) => Math.min(polls.length - 1, c + 1))}
+              disabled={current === polls.length - 1}
+              className="p-2 rounded-xl text-toss-gray hover:bg-toss-lightGray disabled:opacity-20 transition-colors"
+            >
+              <ChevronRightIcon size={20} />
+            </button>
+          </div>
+        )}
+
+        <button
+          onClick={onExit}
+          className="p-2 rounded-xl text-toss-gray hover:bg-toss-lightGray transition-colors"
+          aria-label="발표 모드 종료"
+        >
+          <X size={22} />
+        </button>
+      </div>
+
+      <div className="flex-1 flex flex-col overflow-hidden px-12 lg:px-20 xl:px-32 pt-8 pb-6">
+        <div className="shrink-0 mb-6">
+          <div className="flex items-center gap-2 mb-3 flex-wrap">
+            {poll.allowMultiple && (
+              <span className="inline-flex items-center gap-1.5 text-violet-600 text-xs font-bold bg-violet-50 px-3 py-1.5 rounded-lg">
+                <Shuffle size={12} />중복 투표 가능
+              </span>
+            )}
+            {!poll.isActive && (
+              <span className={`inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-lg ${
+                poll.isClosed ? "bg-toss-lightGray text-toss-gray" : "bg-amber-50 text-amber-600"
+              }`}>
+                <Lock size={12} />
+                {poll.isClosed ? "마감된 투표" : "일시 중단"}
+              </span>
+            )}
+          </div>
+          <h2 className="text-3xl lg:text-4xl xl:text-5xl font-black text-toss-black leading-tight line-clamp-3">
+            {poll.question}
+          </h2>
+          {poll.description && (
+            <p className="text-toss-gray text-base lg:text-lg mt-2 line-clamp-2">{poll.description}</p>
+          )}
+        </div>
+
+        <div className="flex-1 flex flex-col gap-3 min-h-0">
+          {poll.options.map((option) => {
+            const count = getVoteCount(poll, option.id);
+            const pct = total === 0 ? 0 : Math.round((count / total) * 100);
+            const isWinner = count > 0 && count === maxCount;
+
+            return (
+              <div key={option.id} className="flex-1 flex flex-col justify-center min-h-0">
+                <div className="flex justify-between items-baseline mb-2">
+                  <span className={`text-lg lg:text-xl xl:text-2xl font-black truncate mr-4 ${
+                    isWinner ? "text-toss-black" : "text-toss-gray"
+                  }`}>
+                    {option.label}
+                  </span>
+                  <div className="flex items-baseline gap-2 shrink-0">
+                    <span className={`text-2xl lg:text-3xl xl:text-4xl font-black tabular-nums ${
+                      isWinner ? "text-indigo-600" : "text-toss-gray/50"
+                    }`}>
+                      {pct}%
+                    </span>
+                    <span className="text-sm text-toss-gray font-medium">({count}명)</span>
+                  </div>
+                </div>
+                <div className="h-10 lg:h-12 xl:h-14 bg-toss-lightGray rounded-2xl overflow-hidden">
+                  <div
+                    className={`h-full rounded-2xl transition-all duration-700 ease-out ${
+                      isWinner ? "bg-indigo-500" : "bg-gray-200"
+                    }`}
+                    style={{ width: `${pct}%` }}
+                  />
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        <div className="shrink-0 flex items-center justify-center gap-2 text-toss-gray text-sm font-bold mt-4">
+          <Users size={15} />
+          총 {total}명 참여
+        </div>
+      </div>
+
+      {polls.length > 1 && (
+        <div className="shrink-0 flex justify-center gap-2 pb-4">
+          {polls.map((_, i) => (
+            <button
+              key={i}
+              onClick={() => setCurrent(i)}
+              className={`rounded-full transition-all ${
+                i === current ? "w-6 h-2 bg-indigo-500" : "w-2 h-2 bg-toss-lightGray hover:bg-gray-300"
+              }`}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function AdminVotePage() {
   const router = useRouter();
@@ -28,6 +172,40 @@ export default function AdminVotePage() {
   });
   const [expandedVoterOptionId, setExpandedVoterOptionId] = useState<string | null>(null);
   const [creatingDrawFor, setCreatingDrawFor] = useState<string | null>(null);
+  const [presentingPoll, setPresentingPoll] = useState<Poll | null>(null);
+
+  const enterPresentation = useCallback(async (poll: Poll) => {
+    try {
+      await document.documentElement.requestFullscreen();
+    } catch {
+      // 풀스크린 미지원 환경도 발표 모드는 동작
+    }
+    setPresentingPoll(poll);
+  }, []);
+
+  const exitPresentation = useCallback(() => {
+    if (document.fullscreenElement) {
+      document.exitFullscreen().catch(() => {});
+    }
+    setPresentingPoll(null);
+  }, []);
+
+  useEffect(() => {
+    const handler = () => {
+      if (!document.fullscreenElement) setPresentingPoll(null);
+    };
+    document.addEventListener("fullscreenchange", handler);
+    return () => document.removeEventListener("fullscreenchange", handler);
+  }, []);
+
+  useEffect(() => {
+    if (!presentingPoll) return;
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === "Escape") exitPresentation();
+    };
+    document.addEventListener("keydown", handler);
+    return () => document.removeEventListener("keydown", handler);
+  }, [presentingPoll, exitPresentation]);
 
   useEffect(() => {
     const unsub = subscribePolls((data) => {
@@ -201,6 +379,10 @@ export default function AdminVotePage() {
   const inputCls = "w-full bg-toss-lightGray/50 border border-toss-border/40 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-indigo-500 transition-colors";
 
   return (
+    <>
+      {presentingPoll && (
+        <PresentationView polls={[presentingPoll]} onExit={exitPresentation} />
+      )}
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
         <div>
@@ -476,6 +658,14 @@ export default function AdminVotePage() {
                   )}
 
                   <button
+                    onClick={() => enterPresentation(poll)}
+                    className="flex items-center gap-1.5 px-3 py-2.5 text-xs font-bold rounded-lg bg-toss-lightGray text-toss-gray hover:bg-indigo-50 hover:text-indigo-600 transition-colors"
+                  >
+                    <Maximize2 size={13} />
+                    발표
+                  </button>
+
+                  <button
                     onClick={() => isEditing ? setEditingId(null) : startEdit(poll)}
                     className={`p-2.5 rounded-lg transition-colors ${
                       isEditing ? "bg-indigo-100 text-indigo-500" : "text-toss-gray hover:text-indigo-500 hover:bg-indigo-50"
@@ -497,6 +687,7 @@ export default function AdminVotePage() {
         </div>
       )}
     </div>
+    </>
   );
 }
 
