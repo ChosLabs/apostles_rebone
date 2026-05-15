@@ -114,6 +114,12 @@ export const logout = () => {
   window.location.href = "/login";
 };
 
+export const logoutGuest = () => {
+  localStorage.removeItem(SESSION_KEY);
+  localStorage.removeItem("rebone_guest_id");
+  window.location.href = "/login";
+};
+
 export const clearSession = () => {
   localStorage.removeItem(SESSION_KEY);
 };

@@ -18,14 +18,11 @@ import {
   Loader2,
   Eye,
   EyeOff,
-  LogIn,
-  UserSquare2,
 } from "lucide-react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { useTheme } from "@/components/providers/ThemeProvider";
-import { logout, verifyPassword, changePassword } from "@/lib/services/authService";
+import { logout, logoutGuest, verifyPassword, changePassword } from "@/lib/services/authService";
 
 export default function MyProfilePage() {
   const router = useRouter();
@@ -128,13 +125,6 @@ export default function MyProfilePage() {
                 <Lock size={22} />
               </div>
               <p className="text-sm font-bold text-toss-black">로그인 후 참가자 정보가 표시됩니다</p>
-              <Link
-                href="/login"
-                className="text-xs font-bold text-white bg-toss-blue px-4 py-2 rounded-xl flex items-center gap-1.5"
-              >
-                <LogIn size={13} />
-                로그인하기
-              </Link>
             </div>
           ) : (
             <div className="grid grid-cols-2 gap-y-6">
@@ -162,24 +152,12 @@ export default function MyProfilePage() {
             />
           )}
           {isGuest ? (
-            <>
-              <MenuLink
-                icon={<UserSquare2 size={18} />}
-                label="게스트 정보 다시 입력"
-                onClick={() => logout()}
-              />
-              <Link href="/login">
-                <div className="w-full px-6 py-5 flex items-center justify-between hover:bg-toss-lightGray/30 transition-colors border-b border-toss-border/30 last:border-0">
-                  <div className="flex items-center gap-4">
-                    <div className="p-2 rounded-xl bg-toss-blue/10 text-toss-blue">
-                      <LogIn size={18} />
-                    </div>
-                    <span className="text-[15px] font-bold text-toss-blue">로그인하기</span>
-                  </div>
-                  <ChevronRight size={18} className="text-toss-border" />
-                </div>
-              </Link>
-            </>
+            <MenuLink
+              icon={<LogOut size={18} />}
+              label="게스트 로그아웃"
+              danger
+              onClick={() => logoutGuest()}
+            />
           ) : (
             <MenuLink
               icon={<LogOut size={18} />}
