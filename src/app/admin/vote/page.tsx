@@ -214,6 +214,10 @@ export default function AdminVotePage() {
         .map((x) => x.poll);
       setPolls(sorted);
       setLoading(false);
+      setPresentingPoll((prev) => {
+        if (!prev) return null;
+        return data.find((p) => p.id === prev.id) ?? prev;
+      });
     });
     return unsub;
   }, []);
