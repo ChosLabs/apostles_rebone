@@ -159,6 +159,12 @@ export interface BusSchedule {
   createdAt: any;
 }
 
+export interface DrawHistoryEntry {
+  drawVersion: number;
+  winners: LuckyDrawWinner[];
+  drawnAt: number; // ms timestamp
+}
+
 export interface LuckyDraw {
   id: string;
   title: string;
@@ -167,6 +173,8 @@ export interface LuckyDraw {
   winnerCount: number;
   status: 'pending' | 'drawing' | 'completed';
   winners: LuckyDrawWinner[];
+  drawVersion?: number;
+  drawHistory?: DrawHistoryEntry[];
   isGuestDraw?: boolean;
   candidates?: GuestCandidate[];
   createdAt: any;

@@ -10,8 +10,9 @@ import {
   doc,
   serverTimestamp,
   getDocs,
+  runTransaction,
 } from "firebase/firestore";
-import { GuestCandidate, LuckyDraw, LuckyDrawWinner, Participant } from "@/types/database";
+import { DrawHistoryEntry, GuestCandidate, LuckyDraw, LuckyDrawWinner, Participant } from "@/types/database";
 
 const COL = "luckyDraws";
 
@@ -106,7 +107,24 @@ export async function completeDraw(draw: LuckyDraw): Promise<void> {
     userPhone: p.phone,
   }));
 
-  await updateDoc(doc(db, COL, draw.id), { status: "completed", winners });
+  const ref = doc(db, COL, draw.id);
+  await runTransaction(db, async (tx) => {
+    const snap = await tx.get(ref);
+    const data = snap.data() ?? {};
+    const newVersion = ((data.drawVersion as number) ?? 0) + 1;
+    const currentHistory = (data.drawHistory as DrawHistoryEntry[]) ?? [];
+    const historyEntry: DrawHistoryEntry = { drawVersion: newVersion, winners, drawnAt: Date.now() };
+    tx.update(ref, {
+      status: "completed",
+      winners,
+      drawVersion: newVersion,
+      drawHistory: [...currentHistory, historyEntry],
+    });
+  });
+}
+
+export async function resetLuckyDraw(id: string): Promise<void> {
+  await updateDoc(doc(db, COL, id), { status: "pending", winners: [], drawVersion: 0 });
 }
 
 export async function updateLuckyDrawWinnerCount(id: string, winnerCount: number): Promise<void> {

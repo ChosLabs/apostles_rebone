@@ -15,17 +15,18 @@ const COUNTDOWN_COLOR: Record<number, string> = {
 
 // ── 추첨 카드 (카운트다운 포함) ──────────────────────────────
 function DrawCard({ draw }: { draw: LuckyDraw }) {
-  const prevStatus = useRef(draw.status);
+  const prevDrawVersion = useRef(draw.drawVersion ?? 0);
   const [revision, setRevision] = useState(0);
   const [countdown, setCountdown] = useState<3 | 2 | 1 | null>(null);
   const [showWinners, setShowWinners] = useState(draw.status === "completed");
 
   useEffect(() => {
-    if (draw.status === "completed" && prevStatus.current !== "completed") {
+    const current = draw.drawVersion ?? 0;
+    if (draw.status === "completed" && current > prevDrawVersion.current) {
       setRevision((r) => r + 1);
     }
-    prevStatus.current = draw.status;
-  }, [draw.status]);
+    prevDrawVersion.current = current;
+  }, [draw.status, draw.drawVersion]);
 
   useEffect(() => {
     if (revision === 0) return;

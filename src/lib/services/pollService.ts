@@ -131,6 +131,10 @@ export async function closePoll(pollId: string): Promise<void> {
   await updateDoc(doc(db, COL, pollId), { isActive: false, isClosed: true });
 }
 
+export async function unclosePoll(pollId: string): Promise<void> {
+  await updateDoc(doc(db, COL, pollId), { isClosed: false });
+}
+
 export async function deletePoll(pollId: string): Promise<void> {
   await deleteDoc(doc(db, COL, pollId));
 }

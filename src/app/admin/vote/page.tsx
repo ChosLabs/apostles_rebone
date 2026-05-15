@@ -8,7 +8,7 @@ import {
   ChevronLeft, ChevronRight as ChevronRightIcon,
 } from "lucide-react";
 import {
-  subscribePolls, createPoll, updatePoll, togglePollActive, closePoll, setPollVisible, deletePoll, updatePollOrder,
+  subscribePolls, createPoll, updatePoll, togglePollActive, closePoll, unclosePoll, setPollVisible, deletePoll, updatePollOrder,
 } from "@/lib/services/pollService";
 import { createGuestLuckyDraw } from "@/lib/services/luckyDrawService";
 import { GuestCandidate, Poll } from "@/types/database";
@@ -305,6 +305,18 @@ export default function AdminVotePage() {
       await closePoll(poll.id);
     } catch {
       alert("마감에 실패했습니다.");
+    } finally {
+      setProcessingId(null);
+    }
+  };
+
+  const handleUnclose = async (poll: Poll) => {
+    if (!confirm(`"${poll.question}" 투표의 마감을 해제하시겠습니까?`)) return;
+    try {
+      setProcessingId(poll.id);
+      await unclosePoll(poll.id);
+    } catch {
+      alert("마감 해제에 실패했습니다.");
     } finally {
       setProcessingId(null);
     }
@@ -631,9 +643,14 @@ export default function AdminVotePage() {
                   </button>
 
                   {poll.isClosed ? (
-                    <div className="flex-1 py-2.5 text-xs font-bold rounded-lg bg-toss-lightGray text-toss-gray text-center flex items-center justify-center gap-1.5">
-                      <Lock size={12} />마감됨
-                    </div>
+                    <button
+                      onClick={() => handleUnclose(poll)}
+                      disabled={isProcessing}
+                      className="flex-1 py-2.5 text-xs font-bold rounded-lg bg-toss-lightGray text-toss-gray hover:bg-amber-50 hover:text-amber-600 transition-colors disabled:opacity-50 flex items-center justify-center gap-1.5"
+                    >
+                      {isProcessing ? <Loader2 className="animate-spin" size={12} /> : <Lock size={12} />}
+                      마감 해제
+                    </button>
                   ) : (
                     <>
                       <button

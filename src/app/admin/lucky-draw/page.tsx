@@ -3,7 +3,8 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import {
   Plus, Trash2, Gift, Users,
-  X, Save, Check, Sparkles, UserPlus, Loader2, RefreshCw, Maximize2, Trophy, Pencil,
+  X, Save, Check, Sparkles, UserPlus, Loader2, RefreshCw, Maximize2, Trophy, Pencil, RotateCcw,
+  History, ChevronDown,
 } from "lucide-react";
 import { clsx } from "clsx";
 import {
@@ -11,10 +12,11 @@ import {
   createLuckyDraw,
   startDraw,
   completeDraw,
+  resetLuckyDraw,
   deleteLuckyDraw,
   updateLuckyDrawWinnerCount,
 } from "@/lib/services/luckyDrawService";
-import { LuckyDraw } from "@/types/database";
+import { DrawHistoryEntry, LuckyDraw } from "@/types/database";
 
 // ── 발표 화면 ────────────────────────────────────────────────
 const COUNTDOWN_STYLE: Record<number, string> = {
@@ -26,18 +28,19 @@ const COUNTDOWN_STYLE: Record<number, string> = {
 function PresentationView({ draw, onExit }: { draw: LuckyDraw; onExit: () => void }) {
   const multi = draw.winners.length > 1;
 
-  const prevStatus = useRef(draw.status);
+  const prevDrawVersion = useRef(draw.drawVersion ?? 0);
   const [revision, setRevision] = useState(0);
   const [countdown, setCountdown] = useState<3 | 2 | 1 | null>(null);
   // 처음부터 completed 상태로 열리면 즉시 표시, 아니면 카운트다운 후 표시
   const [showWinners, setShowWinners] = useState(draw.status === "completed");
 
   useEffect(() => {
-    if (draw.status === "completed" && prevStatus.current !== "completed") {
+    const current = draw.drawVersion ?? 0;
+    if (draw.status === "completed" && current > prevDrawVersion.current) {
       setRevision((r) => r + 1);
     }
-    prevStatus.current = draw.status;
-  }, [draw.status]);
+    prevDrawVersion.current = current;
+  }, [draw.status, draw.drawVersion]);
 
   useEffect(() => {
     if (revision === 0) return;
@@ -178,6 +181,7 @@ export default function AdminLuckyDrawPage() {
   const [presentingDraw, setPresentingDraw] = useState<LuckyDraw | null>(null);
   const [editingCountId, setEditingCountId] = useState<string | null>(null);
   const [editingCount, setEditingCount] = useState(1);
+  const [expandedHistoryId, setExpandedHistoryId] = useState<string | null>(null);
   const [newDraw, setNewDraw] = useState({
     title: "",
     targetTeams: [] as string[],
@@ -271,6 +275,18 @@ export default function AdminLuckyDrawPage() {
       await completeDraw(draw);
     } catch {
       alert("추첨 중 오류가 발생했습니다.");
+    } finally {
+      setProcessingId(null);
+    }
+  };
+
+  const handleReset = async (draw: LuckyDraw) => {
+    if (!confirm("당첨자를 초기화하시겠습니까? 추첨 결과가 모두 삭제되고 대기 상태로 돌아갑니다.")) return;
+    try {
+      setProcessingId(draw.id);
+      await resetLuckyDraw(draw.id);
+    } catch {
+      alert("초기화에 실패했습니다.");
     } finally {
       setProcessingId(null);
     }
@@ -403,14 +419,24 @@ export default function AdminLuckyDrawPage() {
                     </button>
                   )}
                   {draw.status === "completed" && (
-                    <button
-                      onClick={() => handleRedraw(draw)}
-                      disabled={processingId === draw.id}
-                      className="flex-1 lg:flex-none px-6 py-3 bg-toss-lightGray text-toss-gray text-sm font-bold rounded-xl flex items-center justify-center gap-2 hover:bg-orange-50 hover:text-orange-500 transition-all active:scale-95 disabled:opacity-60"
-                    >
-                      {processingId === draw.id ? <Loader2 className="animate-spin" size={18} /> : <RefreshCw size={18} />}
-                      다시 뽑기
-                    </button>
+                    <>
+                      <button
+                        onClick={() => handleRedraw(draw)}
+                        disabled={processingId === draw.id}
+                        className="flex-1 lg:flex-none px-6 py-3 bg-toss-lightGray text-toss-gray text-sm font-bold rounded-xl flex items-center justify-center gap-2 hover:bg-orange-50 hover:text-orange-500 transition-all active:scale-95 disabled:opacity-60"
+                      >
+                        {processingId === draw.id ? <Loader2 className="animate-spin" size={18} /> : <RefreshCw size={18} />}
+                        다시 뽑기
+                      </button>
+                      <button
+                        onClick={() => handleReset(draw)}
+                        disabled={processingId === draw.id}
+                        className="p-3 text-toss-gray hover:text-red-500 hover:bg-red-50 rounded-xl transition-colors disabled:opacity-60"
+                        title="당첨자 초기화"
+                      >
+                        <RotateCcw size={18} />
+                      </button>
+                    </>
                   )}
                   <button
                     onClick={() => enterPresentation(draw)}
@@ -487,6 +513,67 @@ export default function AdminLuckyDrawPage() {
                   </div>
                 </div>
               </div>
+
+              {/* 히스토리 섹션 */}
+              {(draw.drawHistory?.length ?? 0) > 0 && (
+                <div className="border-t border-toss-border/40">
+                  <button
+                    onClick={() => setExpandedHistoryId(expandedHistoryId === draw.id ? null : draw.id)}
+                    className="w-full flex items-center justify-between px-8 py-4 hover:bg-toss-lightGray/30 transition-colors"
+                  >
+                    <div className="flex items-center gap-2 text-sm font-bold text-toss-gray">
+                      <History size={15} />
+                      당첨 히스토리
+                      <span className="text-[11px] bg-toss-lightGray px-2 py-0.5 rounded-full font-bold">
+                        {draw.drawHistory!.length}회
+                      </span>
+                    </div>
+                    <ChevronDown
+                      size={16}
+                      className={clsx("text-toss-gray transition-transform duration-200", expandedHistoryId === draw.id && "rotate-180")}
+                    />
+                  </button>
+
+                  {expandedHistoryId === draw.id && (
+                    <div className="px-8 pb-6 flex flex-col gap-3">
+                      {[...draw.drawHistory!].reverse().map((entry: DrawHistoryEntry) => (
+                        <div key={entry.drawVersion} className="bg-toss-lightGray/20 border border-toss-border/40 rounded-2xl overflow-hidden">
+                          <div className="flex items-center justify-between px-4 py-2.5 border-b border-toss-border/30 bg-toss-lightGray/30">
+                            <div className="flex items-center gap-2">
+                              <span className="text-[11px] font-black text-toss-blue bg-toss-blue/10 px-2 py-0.5 rounded-md">
+                                #{entry.drawVersion}회차
+                              </span>
+                              <span className="text-[11px] text-toss-gray font-medium">
+                                {new Date(entry.drawnAt).toLocaleString("ko-KR", {
+                                  month: "numeric", day: "numeric",
+                                  hour: "2-digit", minute: "2-digit",
+                                })}
+                              </span>
+                            </div>
+                            <span className="text-[11px] text-toss-gray font-bold">{entry.winners.length}명</span>
+                          </div>
+                          <div className="divide-y divide-toss-border/30">
+                            {entry.winners.map((w, i) => (
+                              <div key={i} className="px-4 py-2.5 flex items-center justify-between">
+                                <span className="text-[13px] font-bold text-toss-black">{w.userName}</span>
+                                <div className="flex items-center gap-1.5">
+                                  <span className="text-[11px] font-bold text-toss-blue bg-toss-blue/5 px-2 py-0.5 rounded-md">{w.userTeam}</span>
+                                  {!draw.isGuestDraw && w.userGroup > 0 && (
+                                    <span className="text-[11px] font-bold text-toss-gray bg-toss-lightGray px-2 py-0.5 rounded-md">{w.userGroup}조</span>
+                                  )}
+                                  {w.userPhone && (
+                                    <span className="text-[11px] font-bold text-toss-gray bg-toss-lightGray px-2 py-0.5 rounded-md">{w.userPhone}</span>
+                                  )}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           ))}
 
