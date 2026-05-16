@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from "react";
 import {
-  BellRing, Send, Trash2, Loader2, Smartphone, AlertTriangle,
-  Check, CheckCircle2, XCircle, AlertCircle, RefreshCw, Bell,
+  BellRing, Send, Trash2, Loader2, Smartphone,
+  Check, CheckCircle2, XCircle, AlertCircle, RefreshCw, Bell, AlertTriangle,
 } from "lucide-react";
 import { db } from "@/lib/firebase/client";
 import { collection, query, orderBy, onSnapshot, deleteDoc, doc } from "firebase/firestore";
@@ -149,12 +149,6 @@ export default function AdminNotificationsPage() {
         </p>
       </div>
 
-      {/* 알림 기능 비활성화 안내 */}
-      <div className="flex items-start gap-3 p-4 rounded-2xl text-sm font-bold bg-amber-50 text-amber-700 border border-amber-100">
-        <AlertTriangle size={16} className="mt-0.5 shrink-0" />
-        알림 전송 기능이 일시적으로 비활성화되어 있습니다.
-      </div>
-
       {/* 결과 메시지 */}
       {result && (
         <div className={`flex items-start gap-3 p-4 rounded-2xl text-sm font-bold animate-in fade-in duration-200 ${
@@ -220,11 +214,12 @@ export default function AdminNotificationsPage() {
           </div>
 
           <button
-            disabled
-            className="w-full flex items-center justify-center gap-2 py-3 bg-toss-blue text-white font-bold rounded-xl opacity-40 cursor-not-allowed text-sm"
+            onClick={handleSend}
+            disabled={isSending}
+            className="w-full flex items-center justify-center gap-2 py-3 bg-toss-blue text-white font-bold rounded-xl hover:bg-toss-blue/90 disabled:opacity-50 transition-all text-sm"
           >
-            <Send size={16} />
-            전송 기능 비활성화됨
+            {isSending ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
+            {isSending ? "전송 중..." : "전체 기기에 알림 전송"}
           </button>
         </div>
 
@@ -328,11 +323,12 @@ export default function AdminNotificationsPage() {
                   {/* 액션 버튼 */}
                   <div className="flex items-center gap-1 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
                     <button
-                      disabled
-                      title="재전송 (비활성화됨)"
-                      className="p-2 text-toss-gray rounded-lg opacity-30 cursor-not-allowed"
+                      onClick={() => handleResend(item)}
+                      disabled={!!resendingId}
+                      title="재전송"
+                      className="p-2 text-toss-gray hover:text-toss-blue hover:bg-toss-blue/10 rounded-lg transition-colors disabled:opacity-40"
                     >
-                      {false
+                      {isResending
                         ? <Loader2 size={15} className="animate-spin" />
                         : <RefreshCw size={15} />}
                     </button>
