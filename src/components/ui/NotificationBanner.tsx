@@ -3,9 +3,17 @@
 import { useEffect, useState } from 'react';
 import { useNotification } from '@/components/providers/NotificationProvider';
 
-type BannerType = 'ios-guide' | 'android-chrome' | 'permission' | 'denied' | null;
+type BannerType = 'ios-guide' | 'android-chrome' | 'permission' | 'denied' | 'battery-guide' | null;
 
-const DISMISSED_KEY = 'rebone_notif_banner_dismissed';
+const DISMISSED_KEY  = 'rebone_notif_banner_dismissed';
+const BATTERY_GUIDE_KEY = 'rebone_battery_guide_shown';
+
+function getOS(): 'ios' | 'android' | 'other' {
+  const ua = navigator.userAgent.toLowerCase();
+  if (/iphone|ipad|ipod/.test(ua)) return 'ios';
+  if (/android/.test(ua)) return 'android';
+  return 'other';
+}
 
 function detectBanner(): BannerType {
   if (typeof window === 'undefined') return null;
@@ -31,6 +39,12 @@ function detectBanner(): BannerType {
   }
 
   if (Notification.permission === 'default') return 'permission';
+
+  // 알림 권한 허용 상태이고 배터리 안내를 아직 보지 않았으면 표시
+  if (Notification.permission === 'granted' && !localStorage.getItem(BATTERY_GUIDE_KEY)) {
+    const os = getOS();
+    if (os === 'ios' || os === 'android') return 'battery-guide';
+  }
 
   return null;
 }
@@ -60,11 +74,22 @@ export function NotificationBanner() {
     const granted = await requestPermissionAndRegister();
     setRequesting(false);
     if (granted) {
-      setBanner(null);
+      // 허용 직후 배터리 안내 팝업으로 전환
+      const os = getOS();
+      if (os === 'ios' || os === 'android') {
+        setBanner('battery-guide');
+      } else {
+        setBanner(null);
+      }
     } else {
       localStorage.setItem(DISMISSED_KEY, '1');
       setBanner(null);
     }
+  }
+
+  function dismissBatteryGuide() {
+    localStorage.setItem(BATTERY_GUIDE_KEY, '1');
+    setBanner(null);
   }
 
   if (!banner) return null;
@@ -158,6 +183,45 @@ export function NotificationBanner() {
           </button>
         </div>
       )}
+
+      {banner === 'battery-guide' && (() => {
+        const os = getOS();
+        return os === 'android' ? (
+          <div className="flex items-start gap-3">
+            <span className="text-xl mt-0.5">🔋</span>
+            <div className="flex-1 min-w-0">
+              <p className="font-semibold text-sm text-gray-900">화면이 꺼져도 알림을 받으려면</p>
+              <p className="text-xs text-gray-500 mt-1 leading-relaxed">
+                <b className="text-gray-700">설정 → 앱 → Chrome → 배터리 → 제한 없음</b>으로 변경해 주세요.<br />
+                삼성 기기는 추가로 <b className="text-gray-700">설정 → 배터리 → 백그라운드 앱 사용 제한</b>에서 Chrome을 절전 목록에서 제거해 주세요.
+              </p>
+              <button
+                onClick={dismissBatteryGuide}
+                className="mt-2 text-xs font-semibold text-white bg-[#3182f6] rounded-lg px-3 py-1.5"
+              >
+                확인
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div className="flex items-start gap-3">
+            <span className="text-xl mt-0.5">🔔</span>
+            <div className="flex-1 min-w-0">
+              <p className="font-semibold text-sm text-gray-900">알림 설정 완료!</p>
+              <p className="text-xs text-gray-500 mt-1 leading-relaxed">
+                공지가 올라오면 바로 알려드려요.<br />
+                알림이 오지 않으면 <b className="text-gray-700">설정 → 알림 → RE:BON</b>에서 허용 여부를 확인해 주세요.
+              </p>
+              <button
+                onClick={dismissBatteryGuide}
+                className="mt-2 text-xs font-semibold text-white bg-[#3182f6] rounded-lg px-3 py-1.5"
+              >
+                확인
+              </button>
+            </div>
+          </div>
+        );
+      })()}
     </div>
   );
 }
