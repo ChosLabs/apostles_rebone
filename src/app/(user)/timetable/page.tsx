@@ -40,7 +40,7 @@ export default function TimetablePage() {
             </Link>
             <div className="flex flex-col items-center">
               <span className="text-[11px] font-black text-toss-blue tracking-[0.2em] italic mb-0.5">RE:BON 2026</span>
-              <h1 className="text-[17px] font-bold text-toss-black tracking-tight">수련회 일정</h1>
+              <h1 className="text-[17px] font-bold text-toss-black tracking-tight">타임테이블</h1>
             </div>
             <div className="w-10"></div>
           </div>

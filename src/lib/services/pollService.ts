@@ -138,3 +138,7 @@ export async function unclosePoll(pollId: string): Promise<void> {
 export async function deletePoll(pollId: string): Promise<void> {
   await deleteDoc(doc(db, COL, pollId));
 }
+
+export async function resetPollVotes(pollId: string): Promise<void> {
+  await updateDoc(doc(db, COL, pollId), { votes: {}, multiVotes: {}, guestVoterInfo: {} });
+}

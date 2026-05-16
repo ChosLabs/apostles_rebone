@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { ArrowLeft, Users, UserCheck, Edit3, X, Save, Quote, Loader2, EyeOff, Eye, Lock, LogIn } from "lucide-react";
+import { ArrowLeft, Users, UserCheck, Edit3, X, Save, Quote, Loader2, EyeOff, Eye, Lock } from "lucide-react";
 import Link from "next/link";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { subscribeGroup, subscribeGroupMembers, updateGroupInfo } from "@/lib/services/groupService";
@@ -83,20 +83,11 @@ export default function MyGroupPage() {
             <Lock size={28} />
           </div>
           <p className="text-base font-bold text-toss-black">
-            {isGuest ? "로그인 후 참가자 정보가 표시됩니다" : "배정된 조가 없습니다"}
+            {isGuest ? "게스트 모드에서 제한된 기능입니다" : "배정된 조가 없습니다"}
           </p>
           <p className="text-sm text-toss-gray">
-            {isGuest ? "내 조 정보와 조원 명단을 확인하려면 로그인이 필요합니다." : "관리자에게 문의해주세요."}
+            {isGuest ? "조 정보와 조원 명단은 게스트 모드에서 이용할 수 없습니다." : "관리자에게 문의해주세요."}
           </p>
-          {isGuest && (
-            <Link
-              href="/login"
-              className="flex items-center gap-1.5 text-sm font-bold text-white bg-toss-blue px-5 py-2.5 rounded-xl mt-1"
-            >
-              <LogIn size={15} />
-              로그인하기
-            </Link>
-          )}
         </div>
       </div>
     );

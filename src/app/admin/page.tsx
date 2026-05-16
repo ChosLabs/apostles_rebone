@@ -15,11 +15,12 @@ import {
   MapPin,
   Eye,
   Wifi,
+  Moon,
 } from "lucide-react";
 import { collection, getDocs, query, orderBy, limit } from "firebase/firestore";
 import { db } from "@/lib/firebase/client";
 import { PrayerRequest } from "@/types/database";
-import { subscribeGuestMode, setGuestMode } from "@/lib/services/appConfigService";
+import { subscribeGuestMode, setGuestMode, subscribeDarkModeLocked, setDarkModeLocked } from "@/lib/services/appConfigService";
 
 function formatRelativeTime(timestamp: any): string {
   if (!timestamp) return "방금 전";
@@ -45,9 +46,16 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(true);
   const [guestMode, setGuestModeState] = useState(false);
   const [guestModeToggling, setGuestModeToggling] = useState(false);
+  const [darkModeLocked, setDarkModeLockedState] = useState(false);
+  const [darkModeToggling, setDarkModeToggling] = useState(false);
 
   useEffect(() => {
     const unsub = subscribeGuestMode(setGuestModeState);
+    return unsub;
+  }, []);
+
+  useEffect(() => {
+    const unsub = subscribeDarkModeLocked(setDarkModeLockedState);
     return unsub;
   }, []);
 
@@ -117,6 +125,15 @@ export default function AdminDashboard() {
     }
   };
 
+  const handleDarkModeLockedToggle = async () => {
+    setDarkModeToggling(true);
+    try {
+      await setDarkModeLocked(!darkModeLocked);
+    } finally {
+      setDarkModeToggling(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
@@ -157,6 +174,40 @@ export default function AdminDashboard() {
         >
           <span className={`inline-block h-5 w-5 rounded-full bg-white shadow transition-transform ${
             guestMode ? "translate-x-6" : "translate-x-1"
+          }`} />
+        </button>
+      </div>
+
+      {/* 전체 다크모드 고정 */}
+      <div className={`rounded-2xl border p-5 flex items-center justify-between gap-4 transition-colors ${
+        darkModeLocked
+          ? "bg-slate-900 border-slate-700"
+          : "bg-white border-toss-border"
+      }`}>
+        <div className="flex items-center gap-3">
+          <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
+            darkModeLocked ? "bg-slate-700 text-yellow-300" : "bg-toss-lightGray text-toss-gray"
+          }`}>
+            <Moon size={20} />
+          </div>
+          <div>
+            <p className={`text-sm font-bold ${darkModeLocked ? "text-white" : "text-toss-black"}`}>전체 다크모드 고정</p>
+            <p className={`text-xs mt-0.5 ${darkModeLocked ? "text-slate-400" : "text-toss-gray"}`}>
+              {darkModeLocked
+                ? "활성화됨 — 모든 유저 화면이 다크모드로 고정됩니다"
+                : "비활성화 — 유저가 직접 테마를 선택할 수 있습니다"}
+            </p>
+          </div>
+        </div>
+        <button
+          onClick={handleDarkModeLockedToggle}
+          disabled={darkModeToggling}
+          className={`relative inline-flex h-7 w-12 shrink-0 items-center rounded-full transition-colors focus:outline-none disabled:opacity-60 ${
+            darkModeLocked ? "bg-yellow-400" : "bg-toss-border"
+          }`}
+        >
+          <span className={`inline-block h-5 w-5 rounded-full bg-white shadow transition-transform ${
+            darkModeLocked ? "translate-x-6" : "translate-x-1"
           }`} />
         </button>
       </div>

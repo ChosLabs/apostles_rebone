@@ -5,10 +5,10 @@ import { useRouter } from "next/navigation";
 import {
   Plus, Trash2, X, Loader2, Users, Lock, Eye, EyeOff, ChevronUp, ChevronDown,
   Pencil, Check, Gift, ChevronRight, UserSquare2, Maximize2, Shuffle,
-  ChevronLeft, ChevronRight as ChevronRightIcon,
+  ChevronLeft, ChevronRight as ChevronRightIcon, RotateCcw,
 } from "lucide-react";
 import {
-  subscribePolls, createPoll, updatePoll, togglePollActive, closePoll, unclosePoll, setPollVisible, deletePoll, updatePollOrder,
+  subscribePolls, createPoll, updatePoll, togglePollActive, closePoll, unclosePoll, setPollVisible, deletePoll, updatePollOrder, resetPollVotes,
 } from "@/lib/services/pollService";
 import { createGuestLuckyDraw } from "@/lib/services/luckyDrawService";
 import { GuestCandidate, Poll } from "@/types/database";
@@ -333,6 +333,18 @@ export default function AdminVotePage() {
       if (editingId === id) setEditingId(null);
     } catch {
       alert("삭제에 실패했습니다.");
+    }
+  };
+
+  const handleResetVotes = async (poll: Poll) => {
+    if (!confirm(`"${poll.question}"\n\n이 투표의 모든 투표 기록을 초기화하시겠습니까?\n참가자들의 선택이 모두 삭제됩니다.`)) return;
+    try {
+      setProcessingId(poll.id);
+      await resetPollVotes(poll.id);
+    } catch {
+      alert("초기화에 실패했습니다.");
+    } finally {
+      setProcessingId(null);
     }
   };
 
@@ -693,6 +705,15 @@ export default function AdminVotePage() {
                     }`}
                   >
                     <Pencil size={16} />
+                  </button>
+
+                  <button
+                    onClick={() => handleResetVotes(poll)}
+                    disabled={isProcessing || getTotalVotes(poll) === 0}
+                    title="투표 기록 초기화"
+                    className="p-2.5 text-toss-gray hover:text-amber-500 hover:bg-amber-50 rounded-lg transition-colors disabled:opacity-30"
+                  >
+                    <RotateCcw size={16} />
                   </button>
 
                   <button

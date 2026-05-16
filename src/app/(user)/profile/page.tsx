@@ -10,7 +10,6 @@ import {
   LogOut,
   ChevronRight,
   ShieldCheck,
-  Settings,
   Sun,
   Moon,
   Lock,
@@ -27,8 +26,9 @@ import { logout, logoutGuest, verifyPassword, changePassword } from "@/lib/servi
 export default function MyProfilePage() {
   const router = useRouter();
   const { user, isGuest } = useAuth();
-  const { theme, toggleTheme } = useTheme();
+  const { theme, toggleTheme, isDarkModeLocked } = useTheme();
   const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [showDarkModeLockMsg, setShowDarkModeLockMsg] = useState(false);
   const [currentPw, setCurrentPw] = useState("");
   const [newPw, setNewPw] = useState("");
   const [confirmPw, setConfirmPw] = useState("");
@@ -83,9 +83,6 @@ export default function MyProfilePage() {
             <ChevronRight size={24} className="rotate-180" />
           </button>
           <h1 className="text-lg font-bold text-toss-black absolute left-1/2 -translate-x-1/2">내 정보</h1>
-          <button className="text-toss-gray">
-            <Settings size={22} />
-          </button>
         </div>
 
         <div className="flex items-center gap-5">
@@ -124,7 +121,7 @@ export default function MyProfilePage() {
               <div className="w-12 h-12 rounded-2xl bg-toss-lightGray flex items-center justify-center text-toss-gray/40">
                 <Lock size={22} />
               </div>
-              <p className="text-sm font-bold text-toss-black">로그인 후 참가자 정보가 표시됩니다</p>
+              <p className="text-sm font-bold text-toss-black">게스트 모드에서 지원하지 않는 기능입니다</p>
             </div>
           ) : (
             <div className="grid grid-cols-2 gap-y-6">
@@ -142,8 +139,20 @@ export default function MyProfilePage() {
           <MenuLink
             icon={theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}
             label={theme === "dark" ? "라이트 모드" : "다크 모드"}
-            onClick={toggleTheme}
+            onClick={() => {
+              if (isDarkModeLocked) {
+                setShowDarkModeLockMsg(true);
+                setTimeout(() => setShowDarkModeLockMsg(false), 3000);
+              } else {
+                toggleTheme();
+              }
+            }}
           />
+          {showDarkModeLockMsg && (
+            <div className="mx-4 mb-2 px-4 py-2.5 rounded-xl bg-slate-800 text-white text-xs font-medium text-center animate-in fade-in duration-200">
+              관리자가 다크모드로 고정했습니다
+            </div>
+          )}
           {!isGuest && user.role !== "admin" && (
             <MenuLink
               icon={<Lock size={18} />}

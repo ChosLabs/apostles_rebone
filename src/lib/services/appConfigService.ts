@@ -25,3 +25,13 @@ export function subscribeGuestMode(cb: (enabled: boolean, fromCache: boolean) =>
     );
   });
 }
+
+export async function setDarkModeLocked(locked: boolean) {
+  await setDoc(CONFIG_REF(), { darkModeLocked: locked }, { merge: true });
+}
+
+export function subscribeDarkModeLocked(cb: (locked: boolean) => void) {
+  return onSnapshot(CONFIG_REF(), (snap) => {
+    cb(snap.exists() ? Boolean(snap.data()?.darkModeLocked) : false);
+  });
+}

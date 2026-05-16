@@ -112,6 +112,25 @@ export default function AdminLayout({
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const pathname = usePathname();
 
+  // 어드민은 항상 라이트모드 고정
+  useEffect(() => {
+    const html = document.documentElement;
+    html.classList.remove("dark");
+
+    const observer = new MutationObserver(() => {
+      if (html.classList.contains("dark")) {
+        html.classList.remove("dark");
+      }
+    });
+    observer.observe(html, { attributes: true, attributeFilter: ["class"] });
+
+    return () => {
+      observer.disconnect();
+      const stored = localStorage.getItem("rebone_theme");
+      if (stored === "dark") html.classList.add("dark");
+    };
+  }, []);
+
   // Handle sidebar initial state and window resizing
   useEffect(() => {
     const handleResize = () => {

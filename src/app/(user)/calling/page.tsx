@@ -142,7 +142,7 @@ export default function CallingPage() {
   const handleStampClick = (zone: Zone) => {
     if (stamps.includes(zone.id)) return;
     if (isGuest) {
-      alert("로그인이 필요한 기능입니다.");
+      alert("게스트 모드에서 제한된 기능입니다.");
       return;
     }
     setSelectedZone(zone);
@@ -295,7 +295,7 @@ export default function CallingPage() {
                     }
                   >
                     {isGuest && !isStamped && <Lock size={13} />}
-                    {isStamped ? "✓ 스탬프 완료" : isGuest ? "로그인이 필요한 기능입니다" : "스탬프 인증하기"}
+                    {isStamped ? "✓ 스탬프 완료" : isGuest ? "게스트 모드에서 제한된 기능입니다" : "스탬프 인증하기"}
                   </button>
                 </div>
               )}
@@ -327,7 +327,7 @@ export default function CallingPage() {
           {isGuest ? (
             <span className="text-[10px] font-bold text-toss-gray bg-toss-lightGray px-2 py-1 rounded-md flex items-center gap-1">
               <Lock size={9} />
-              로그인 필요
+              게스트 모드
             </span>
           ) : (
             <span className="text-[10px] font-bold text-toss-blue bg-toss-blue/5 px-2 py-1 rounded-md">

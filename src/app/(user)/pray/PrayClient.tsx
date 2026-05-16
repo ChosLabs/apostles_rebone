@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { PenLine, Sparkles, User, Users, Globe, ChevronRight, Heart, Loader2, Moon, Sun, Lock, LogIn } from "lucide-react";
+import { PenLine, Sparkles, User, Users, Globe, ChevronRight, Heart, Loader2, Moon, Sun, Lock } from "lucide-react";
 import Link from "next/link";
 import { DailyPrayer } from "@/types/database";
 import { useAuth } from "@/components/providers/AuthProvider";
@@ -58,7 +58,7 @@ export default function PrayClient({
           <Sparkles size={40} className="text-toss-blue" />
         </div>
         <div className="flex items-center gap-2 mb-3">
-          <span className="text-[10px] font-bold bg-toss-blue/10 text-toss-blue px-2 py-1 rounded-md uppercase tracking-wider">Today's Topic</span>
+          <span className="text-[10px] font-bold bg-toss-blue/10 text-toss-blue px-2 py-1 rounded-md uppercase tracking-wider">오늘의 기도제목</span>
           <span className="text-xs font-medium text-toss-gray">D-{dDay > 0 ? dDay : 'DAY'}</span>
         </div>
         <h3 className="text-lg font-bold text-toss-black mb-2 leading-tight">
@@ -92,11 +92,7 @@ export default function PrayClient({
               <Lock size={16} className="text-toss-gray" />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-bold text-toss-black">로그인이 필요한 기능입니다</p>
-              <Link href="/login" className="text-xs text-toss-blue font-medium flex items-center gap-1 mt-0.5">
-                <LogIn size={11} />
-                로그인하기
-              </Link>
+              <p className="text-sm font-bold text-toss-black">게스트 모드에서 제한된 기능입니다</p>
             </div>
           </div>
         ) : (
@@ -139,7 +135,7 @@ export default function PrayClient({
           <GuestNavBlock
             icon={<User size={20} className="text-blue-500" />}
             title="나의 기도제목"
-            desc="로그인이 필요한 기능입니다"
+            desc="게스트 모드에서 제한된 기능입니다"
           />
         ) : (
           <PrayNavButton
@@ -153,7 +149,7 @@ export default function PrayClient({
           <GuestNavBlock
             icon={<Users size={20} className="text-green-500" />}
             title="우리 조 기도제목"
-            desc="로그인이 필요한 기능입니다"
+            desc="게스트 모드에서 제한된 기능입니다"
           />
         ) : (
           <PrayNavButton
