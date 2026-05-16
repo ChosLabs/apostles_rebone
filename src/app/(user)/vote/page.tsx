@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import {
   Vote, ArrowLeft, Check, Users, Loader2, RefreshCw, Lock, Shuffle,
   X, ChevronLeft, ChevronRight, UserSquare2,
@@ -316,13 +316,31 @@ export default function VotePage() {
   const [subKey, setSubKey] = useState(0);
   const [isPresenting, setIsPresenting] = useState(false);
 
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const latestPollsRef = useRef<Poll[]>([]);
+
   useEffect(() => {
     setLoading(true);
+    let isFirst = true;
     const unsub = subscribeVisiblePolls((p) => {
-      setPolls(p);
-      setLoading(false);
+      latestPollsRef.current = p;
+      if (isFirst) {
+        // 첫 스냅샷은 즉시 반영 (초기 로딩 빠르게)
+        isFirst = false;
+        setPolls(p);
+        setLoading(false);
+        return;
+      }
+      // 이후 업데이트는 200ms debounce — 연속 write 시 불필요한 re-render 방지
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+      debounceRef.current = setTimeout(() => {
+        setPolls(latestPollsRef.current);
+      }, 200);
     });
-    return unsub;
+    return () => {
+      unsub();
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
   }, [subKey]);
 
   const exitPresentation = useCallback(() => {
@@ -355,12 +373,27 @@ export default function VotePage() {
 
   const handleSingleVote = async (poll: Poll, optionId: string) => {
     if (!user || votingPollId) return;
-    if ((poll.votes?.[user.uid] ?? null) === optionId) return;
+    const prevVote = poll.votes?.[user.uid] ?? null;
+    if (prevVote === optionId) return;
+
+    // 낙관적 업데이트 — 서버 응답 전에 UI 즉시 반영
+    setPolls((prev) => prev.map((p) =>
+      p.id !== poll.id ? p : { ...p, votes: { ...(p.votes ?? {}), [user.uid]: optionId } }
+    ));
+
     try {
       setVotingPollId(poll.id);
       await castVote(poll.id, user.uid, optionId, poll.isGuestOnly ? guestVoterInfo : undefined);
     } catch (e) {
       console.error(e);
+      // 실패 시 낙관적 업데이트 롤백
+      setPolls((prev) => prev.map((p) => {
+        if (p.id !== poll.id) return p;
+        const votes = { ...(p.votes ?? {}) };
+        if (prevVote !== null) votes[user.uid] = prevVote;
+        else delete votes[user.uid];
+        return { ...p, votes };
+      }));
       alert("투표 처리 중 오류가 발생했습니다.");
     } finally {
       setVotingPollId(null);
@@ -369,13 +402,26 @@ export default function VotePage() {
 
   const handleMultiVote = async (poll: Poll, optionId: string) => {
     if (!user || votingPollId) return;
-    const myMultiVotes: string[] = poll.multiVotes?.[user.uid] ?? [];
-    const selecting = !myMultiVotes.includes(optionId);
+    const prevMultiVotes: string[] = poll.multiVotes?.[user.uid] ?? [];
+    const selecting = !prevMultiVotes.includes(optionId);
+    const nextMultiVotes = selecting
+      ? [...prevMultiVotes, optionId]
+      : prevMultiVotes.filter((id) => id !== optionId);
+
+    // 낙관적 업데이트
+    setPolls((prev) => prev.map((p) =>
+      p.id !== poll.id ? p : { ...p, multiVotes: { ...(p.multiVotes ?? {}), [user.uid]: nextMultiVotes } }
+    ));
+
     try {
       setVotingPollId(poll.id);
       await castMultiVote(poll.id, user.uid, optionId, selecting, poll.isGuestOnly ? guestVoterInfo : undefined);
     } catch (e) {
       console.error(e);
+      // 실패 시 롤백
+      setPolls((prev) => prev.map((p) =>
+        p.id !== poll.id ? p : { ...p, multiVotes: { ...(p.multiVotes ?? {}), [user.uid]: prevMultiVotes } }
+      ));
       alert("투표 처리 중 오류가 발생했습니다.");
     } finally {
       setVotingPollId(null);
