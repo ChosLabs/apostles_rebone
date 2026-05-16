@@ -26,24 +26,27 @@ self.addEventListener('push', function(event) {
   if (event.data) {
     try {
       var d = event.data.json();
-      var n = d.notification || {};
+      var n = d.notification || d.data || {};
       title = n.title || title;
       body  = n.body  || body;
     } catch (e) {}
   }
 
   event.waitUntil(
-    self.clients.matchAll({ type: 'window' }).then(function(clients) {
-      // focused: 탭이 실제 활성화된 경우만 페이지로 전달
-      // visibilityState는 백그라운드에서 'visible'로 오판될 수 있어 사용 안 함
-      var focused = clients.filter(function(c) { return c.focused; });
-      if (focused.length > 0) {
-        focused.forEach(function(c) {
+    // includeUncontrolled: true — SW 업데이트 직후 아직 claim되지 않은 탭도 포함
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(function(clients) {
+      // visibilityState 기준으로 앱 가시성 판단.
+      // c.focused는 Android에서 홈버튼 전환 타이밍에 true를 오반환하는 케이스가 있어
+      // visibilityState === 'visible'로 교체. 홈버튼 누르면 즉시 'hidden'으로 전환됨.
+      var visible = clients.filter(function(c) { return c.visibilityState === 'visible'; });
+      if (visible.length > 0) {
+        // 앱이 화면에 표시 중 → 페이지로 전달해 인앱 알림 표시
+        visible.forEach(function(c) {
           c.postMessage({ type: 'PUSH_RECEIVED', title: title, body: body });
         });
         return;
       }
-      // 포커스된 탭 없음 = 앱이 백그라운드/종료 상태 → SW가 직접 알림 표시
+      // 앱이 백그라운드/종료 상태 → SW가 직접 시스템 알림 표시
       return self.registration.showNotification(title, {
         body: body,
         icon: '/rebon_logo_blue.png',
