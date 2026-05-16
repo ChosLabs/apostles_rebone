@@ -7,21 +7,16 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useAuth } from "@/components/providers/AuthProvider";
-import { subscribeVisiblePolls, castVote, castMultiVote } from "@/lib/services/pollService";
-import { Poll } from "@/types/database";
+import { subscribeVisiblePolls, castVote, castMultiVote, fetchUserVote } from "@/lib/services/pollService";
+import { Poll, UserVote } from "@/types/database";
 
 // ── 발표용 전체화면 뷰 ────────────────────────────────────────
 function PresentationView({ polls, onExit }: { polls: Poll[]; onExit: () => void }) {
   const [current, setCurrent] = useState(0);
   const poll = polls[current] ?? null;
 
-  const getTotalVotes = (p: Poll) =>
-    p.allowMultiple ? Object.keys(p.multiVotes ?? {}).length : Object.keys(p.votes ?? {}).length;
-
-  const getVoteCount = (p: Poll, optionId: string) =>
-    p.allowMultiple
-      ? Object.values(p.multiVotes ?? {}).filter((arr) => arr.includes(optionId)).length
-      : Object.values(p.votes ?? {}).filter((v) => v === optionId).length;
+  const getTotalVotes = (p: Poll) => p.totalVoters ?? 0;
+  const getVoteCount = (p: Poll, optionId: string) => p.voteCounts?.[optionId] ?? 0;
 
   if (!poll) return null;
 
@@ -170,10 +165,10 @@ function PresentationView({ polls, onExit }: { polls: Poll[]; onExit: () => void
 
 // ── 유저용 투표 카드 ─────────────────────────────────────────
 function PollCard({
-  poll, userId, isGuest, votingPollId, onSingleVote, onMultiVote,
+  poll, userVote, isGuest, votingPollId, onSingleVote, onMultiVote,
 }: {
   poll: Poll;
-  userId: string | undefined;
+  userVote: UserVote | null;
   isGuest: boolean;
   votingPollId: string | null;
   onSingleVote: (poll: Poll, optionId: string) => void;
@@ -199,19 +194,12 @@ function PollCard({
   const canVote = !!poll.isActive && !poll.isClosed;
   const isVoting = votingPollId === poll.id;
 
-  const myVote = userId && !poll.allowMultiple ? (poll.votes?.[userId] ?? null) : null;
-  const myMultiVotes: string[] = userId && poll.allowMultiple ? (poll.multiVotes?.[userId] ?? []) : [];
+  const myVote = !poll.allowMultiple ? (userVote?.optionId ?? null) : null;
+  const myMultiVotes: string[] = poll.allowMultiple ? (userVote?.optionIds ?? []) : [];
   const hasVoted = poll.allowMultiple ? myMultiVotes.length > 0 : !!myVote;
 
-  const totalVotes = poll.allowMultiple
-    ? Object.keys(poll.multiVotes ?? {}).length
-    : Object.keys(poll.votes ?? {}).length;
-
-  const getVoteCount = (optionId: string) =>
-    poll.allowMultiple
-      ? Object.values(poll.multiVotes ?? {}).filter((arr) => arr.includes(optionId)).length
-      : Object.values(poll.votes ?? {}).filter((v) => v === optionId).length;
-
+  const totalVotes = poll.totalVoters ?? 0;
+  const getVoteCount = (optionId: string) => poll.voteCounts?.[optionId] ?? 0;
   const maxCount = Math.max(0, ...poll.options.map((o) => getVoteCount(o.id)));
 
   return (
@@ -311,6 +299,7 @@ export default function VotePage() {
   const { user, isGuest } = useAuth();
 
   const [polls, setPolls] = useState<Poll[]>([]);
+  const [userVotes, setUserVotes] = useState<Record<string, UserVote | null>>({});
   const [loading, setLoading] = useState(true);
   const [votingPollId, setVotingPollId] = useState<string | null>(null);
   const [subKey, setSubKey] = useState(0);
@@ -318,20 +307,20 @@ export default function VotePage() {
 
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const latestPollsRef = useRef<Poll[]>([]);
+  const fetchedPollIdsRef = useRef<Set<string>>(new Set());
 
+  // 투표 목록 구독 (debounce 적용)
   useEffect(() => {
     setLoading(true);
     let isFirst = true;
     const unsub = subscribeVisiblePolls((p) => {
       latestPollsRef.current = p;
       if (isFirst) {
-        // 첫 스냅샷은 즉시 반영 (초기 로딩 빠르게)
         isFirst = false;
         setPolls(p);
         setLoading(false);
         return;
       }
-      // 이후 업데이트는 200ms debounce — 연속 write 시 불필요한 re-render 방지
       if (debounceRef.current) clearTimeout(debounceRef.current);
       debounceRef.current = setTimeout(() => {
         setPolls(latestPollsRef.current);
@@ -342,6 +331,28 @@ export default function VotePage() {
       if (debounceRef.current) clearTimeout(debounceRef.current);
     };
   }, [subKey]);
+
+  // subKey 변경 시 유저 투표 캐시 초기화
+  useEffect(() => {
+    fetchedPollIdsRef.current = new Set();
+    setUserVotes({});
+  }, [subKey]);
+
+  // 새로운 투표가 생길 때마다 해당 유저의 응답을 서브컬렉션에서 1회 조회
+  useEffect(() => {
+    if (!user?.uid || !polls.length) return;
+    const uid = user.uid;
+    const toFetch = polls.filter((p) => !fetchedPollIdsRef.current.has(p.id));
+    if (!toFetch.length) return;
+    toFetch.forEach((p) => fetchedPollIdsRef.current.add(p.id));
+    Promise.all(toFetch.map((p) => fetchUserVote(p.id, uid))).then((results) => {
+      setUserVotes((prev) => {
+        const next = { ...prev };
+        toFetch.forEach((p, i) => { next[p.id] = results[i]; });
+        return next;
+      });
+    });
+  }, [polls, user?.uid]);
 
   const exitPresentation = useCallback(() => {
     if (document.fullscreenElement) {
@@ -373,26 +384,33 @@ export default function VotePage() {
 
   const handleSingleVote = async (poll: Poll, optionId: string) => {
     if (!user || votingPollId) return;
-    const prevVote = poll.votes?.[user.uid] ?? null;
-    if (prevVote === optionId) return;
+    const prevVote = userVotes[poll.id];
+    const prevOptionId = prevVote?.optionId ?? null;
+    if (prevOptionId === optionId) return;
 
-    // 낙관적 업데이트 — 서버 응답 전에 UI 즉시 반영
-    setPolls((prev) => prev.map((p) =>
-      p.id !== poll.id ? p : { ...p, votes: { ...(p.votes ?? {}), [user.uid]: optionId } }
-    ));
+    // 낙관적 업데이트: userVotes + voteCounts + totalVoters 즉시 반영
+    setUserVotes((prev) => ({ ...prev, [poll.id]: { ...prevVote, optionId } }));
+    setPolls((prev) => prev.map((p) => {
+      if (p.id !== poll.id) return p;
+      const counts = { ...(p.voteCounts ?? {}) };
+      if (prevOptionId) counts[prevOptionId] = Math.max(0, (counts[prevOptionId] ?? 0) - 1);
+      counts[optionId] = (counts[optionId] ?? 0) + 1;
+      return { ...p, voteCounts: counts, totalVoters: prevOptionId ? p.totalVoters : (p.totalVoters ?? 0) + 1 };
+    }));
 
     try {
       setVotingPollId(poll.id);
-      await castVote(poll.id, user.uid, optionId, poll.isGuestOnly ? guestVoterInfo : undefined);
+      await castVote(poll.id, user.uid, optionId, prevOptionId, poll.isGuestOnly ? guestVoterInfo : undefined);
     } catch (e) {
       console.error(e);
-      // 실패 시 낙관적 업데이트 롤백
+      // 롤백
+      setUserVotes((prev) => ({ ...prev, [poll.id]: prevVote ?? null }));
       setPolls((prev) => prev.map((p) => {
         if (p.id !== poll.id) return p;
-        const votes = { ...(p.votes ?? {}) };
-        if (prevVote !== null) votes[user.uid] = prevVote;
-        else delete votes[user.uid];
-        return { ...p, votes };
+        const counts = { ...(p.voteCounts ?? {}) };
+        counts[optionId] = Math.max(0, (counts[optionId] ?? 0) - 1);
+        if (prevOptionId) counts[prevOptionId] = (counts[prevOptionId] ?? 0) + 1;
+        return { ...p, voteCounts: counts, totalVoters: prevOptionId ? p.totalVoters : Math.max(0, (p.totalVoters ?? 0) - 1) };
       }));
       alert("투표 처리 중 오류가 발생했습니다.");
     } finally {
@@ -402,26 +420,45 @@ export default function VotePage() {
 
   const handleMultiVote = async (poll: Poll, optionId: string) => {
     if (!user || votingPollId) return;
-    const prevMultiVotes: string[] = poll.multiVotes?.[user.uid] ?? [];
-    const selecting = !prevMultiVotes.includes(optionId);
-    const nextMultiVotes = selecting
-      ? [...prevMultiVotes, optionId]
-      : prevMultiVotes.filter((id) => id !== optionId);
+    const prevVote = userVotes[poll.id];
+    const prevOptionIds: string[] = prevVote?.optionIds ?? [];
+    const selecting = !prevOptionIds.includes(optionId);
+    const nextOptionIds = selecting
+      ? [...prevOptionIds, optionId]
+      : prevOptionIds.filter((id) => id !== optionId);
 
     // 낙관적 업데이트
-    setPolls((prev) => prev.map((p) =>
-      p.id !== poll.id ? p : { ...p, multiVotes: { ...(p.multiVotes ?? {}), [user.uid]: nextMultiVotes } }
-    ));
+    setUserVotes((prev) => ({ ...prev, [poll.id]: { ...prevVote, optionIds: nextOptionIds } }));
+    setPolls((prev) => prev.map((p) => {
+      if (p.id !== poll.id) return p;
+      const counts = { ...(p.voteCounts ?? {}) };
+      counts[optionId] = Math.max(0, (counts[optionId] ?? 0) + (selecting ? 1 : -1));
+      const totalVoters = selecting && prevOptionIds.length === 0
+        ? (p.totalVoters ?? 0) + 1
+        : !selecting && prevOptionIds.length === 1
+        ? Math.max(0, (p.totalVoters ?? 0) - 1)
+        : p.totalVoters;
+      return { ...p, voteCounts: counts, totalVoters };
+    }));
 
     try {
       setVotingPollId(poll.id);
-      await castMultiVote(poll.id, user.uid, optionId, selecting, poll.isGuestOnly ? guestVoterInfo : undefined);
+      await castMultiVote(poll.id, user.uid, optionId, selecting, prevOptionIds, poll.isGuestOnly ? guestVoterInfo : undefined);
     } catch (e) {
       console.error(e);
-      // 실패 시 롤백
-      setPolls((prev) => prev.map((p) =>
-        p.id !== poll.id ? p : { ...p, multiVotes: { ...(p.multiVotes ?? {}), [user.uid]: prevMultiVotes } }
-      ));
+      // 롤백
+      setUserVotes((prev) => ({ ...prev, [poll.id]: prevVote ?? null }));
+      setPolls((prev) => prev.map((p) => {
+        if (p.id !== poll.id) return p;
+        const counts = { ...(p.voteCounts ?? {}) };
+        counts[optionId] = Math.max(0, (counts[optionId] ?? 0) + (selecting ? -1 : 1));
+        const totalVoters = selecting && prevOptionIds.length === 0
+          ? Math.max(0, (p.totalVoters ?? 0) - 1)
+          : !selecting && prevOptionIds.length === 1
+          ? (p.totalVoters ?? 0) + 1
+          : p.totalVoters;
+        return { ...p, voteCounts: counts, totalVoters };
+      }));
       alert("투표 처리 중 오류가 발생했습니다.");
     } finally {
       setVotingPollId(null);
@@ -467,7 +504,7 @@ export default function VotePage() {
               <PollCard
                 key={poll.id}
                 poll={poll}
-                userId={user?.uid}
+                userVote={userVotes[poll.id] ?? null}
                 isGuest={isGuest}
                 votingPollId={votingPollId}
                 onSingleVote={handleSingleVote}

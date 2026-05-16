@@ -193,16 +193,22 @@ export interface Poll {
   question: string;
   description?: string;
   options: Array<{ id: string; label: string }>;
-  votes: Record<string, string>; // { [userId]: optionId } — single-choice
-  multiVotes: Record<string, string[]>; // { [userId]: [optionId, ...] } — multi-choice
-  allowMultiple?: boolean; // 중복 투표 허용
-  isGuestOnly?: boolean; // 게스트 전용 투표
-  guestVoterInfo?: Record<string, { name: string; team: string; phone: string }>; // { [guestId]: info }
-  order?: number; // 유저 화면 표출 순서 (오름차순)
+  voteCounts: Record<string, number>; // { [optionId]: count } — 서버 집계
+  totalVoters: number;               // 투표 참여 고유 유저 수
+  allowMultiple?: boolean;
+  isGuestOnly?: boolean;
+  order?: number;
   isActive: boolean;
-  isClosed?: boolean; // 마감된 투표 — 재시작 불가
-  isVisible?: boolean; // 유저 화면 표출 여부
+  isClosed?: boolean;
+  isVisible?: boolean;
   createdAt: any;
+}
+
+export interface UserVote {
+  optionId?: string;       // 단일 선택
+  optionIds?: string[];    // 복수 선택
+  voterInfo?: { name: string; team: string; phone: string };
+  votedAt?: any;
 }
 
 export interface GuestCandidate {

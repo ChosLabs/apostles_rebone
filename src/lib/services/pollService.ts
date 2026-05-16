@@ -10,12 +10,16 @@ import {
   deleteDoc,
   doc,
   serverTimestamp,
-  arrayUnion,
-  arrayRemove,
+  getDoc,
+  getDocs,
+  writeBatch,
+  increment,
 } from "firebase/firestore";
-import { Poll } from "@/types/database";
+import { Poll, UserVote, GuestCandidate } from "@/types/database";
 
 const COL = "polls";
+const voteRef = (pollId: string, userId: string) => doc(db, COL, pollId, "votes", userId);
+const votesCol = (pollId: string) => collection(db, COL, pollId, "votes");
 
 export function subscribeActivePoll(
   callback: (poll: Poll | null) => void,
@@ -88,9 +92,8 @@ export async function createPoll(data: {
 }): Promise<string> {
   const ref = await addDoc(collection(db, COL), {
     ...data,
-    votes: {},
-    multiVotes: {},
-    guestVoterInfo: {},
+    voteCounts: {},
+    totalVoters: 0,
     isActive: false,
     order: Date.now(),
     createdAt: serverTimestamp(),
@@ -98,29 +101,107 @@ export async function createPoll(data: {
   return ref.id;
 }
 
+/**
+ * 단일 선택 투표.
+ * prevOptionId: 기존 투표 선택지 (변경 시 카운트 차감), null이면 최초 투표.
+ */
 export async function castVote(
   pollId: string,
   userId: string,
   optionId: string,
+  prevOptionId: string | null,
   voterInfo?: { name: string; team: string; phone: string }
 ): Promise<void> {
-  const update: Record<string, unknown> = { [`votes.${userId}`]: optionId };
-  if (voterInfo) update[`guestVoterInfo.${userId}`] = voterInfo;
-  await updateDoc(doc(db, COL, pollId), update);
+  const batch = writeBatch(db);
+
+  batch.set(voteRef(pollId, userId), {
+    optionId,
+    ...(voterInfo ? { voterInfo } : {}),
+    votedAt: serverTimestamp(),
+  });
+
+  const countUpdates: Record<string, unknown> = {
+    [`voteCounts.${optionId}`]: increment(1),
+  };
+  if (prevOptionId) {
+    // 투표 변경: 기존 선택지 차감, 신규 선택지 증가, totalVoters 유지
+    countUpdates[`voteCounts.${prevOptionId}`] = increment(-1);
+  } else {
+    // 최초 투표: 참여자 수 증가
+    countUpdates.totalVoters = increment(1);
+  }
+  batch.update(doc(db, COL, pollId), countUpdates);
+
+  await batch.commit();
 }
 
+/**
+ * 복수 선택 투표.
+ * prevOptionIds: 현재 선택된 선택지 목록.
+ */
 export async function castMultiVote(
   pollId: string,
   userId: string,
   optionId: string,
-  selected: boolean,
+  selecting: boolean,
+  prevOptionIds: string[],
   voterInfo?: { name: string; team: string; phone: string }
 ): Promise<void> {
-  const update: Record<string, unknown> = {
-    [`multiVotes.${userId}`]: selected ? arrayUnion(optionId) : arrayRemove(optionId),
+  const batch = writeBatch(db);
+  const nextOptionIds = selecting
+    ? [...prevOptionIds, optionId]
+    : prevOptionIds.filter((id) => id !== optionId);
+
+  if (nextOptionIds.length === 0) {
+    batch.delete(voteRef(pollId, userId));
+  } else {
+    batch.set(voteRef(pollId, userId), {
+      optionIds: nextOptionIds,
+      ...(voterInfo && selecting ? { voterInfo } : {}),
+      votedAt: serverTimestamp(),
+    });
+  }
+
+  const countUpdates: Record<string, unknown> = {
+    [`voteCounts.${optionId}`]: increment(selecting ? 1 : -1),
   };
-  if (voterInfo && selected) update[`guestVoterInfo.${userId}`] = voterInfo;
-  await updateDoc(doc(db, COL, pollId), update);
+  if (selecting && prevOptionIds.length === 0) {
+    countUpdates.totalVoters = increment(1);
+  } else if (!selecting && prevOptionIds.length === 1) {
+    countUpdates.totalVoters = increment(-1);
+  }
+  batch.update(doc(db, COL, pollId), countUpdates);
+
+  await batch.commit();
+}
+
+/** 유저의 특정 투표 응답을 단건 조회 */
+export async function fetchUserVote(pollId: string, userId: string): Promise<UserVote | null> {
+  const snap = await getDoc(voteRef(pollId, userId));
+  return snap.exists() ? (snap.data() as UserVote) : null;
+}
+
+/** 어드민: 특정 선택지를 고른 투표자 목록 조회 */
+export async function fetchVotersForOption(
+  pollId: string,
+  optionId: string,
+  isMultiple: boolean
+): Promise<Array<GuestCandidate>> {
+  const snap = await getDocs(votesCol(pollId));
+  return snap.docs
+    .filter((d) => {
+      const data = d.data() as UserVote;
+      return isMultiple ? data.optionIds?.includes(optionId) : data.optionId === optionId;
+    })
+    .map((d) => {
+      const data = d.data() as UserVote;
+      return {
+        guestId: d.id,
+        name: data.voterInfo?.name ?? "",
+        team: data.voterInfo?.team ?? "",
+        phone: data.voterInfo?.phone ?? "",
+      };
+    });
 }
 
 export async function togglePollActive(pollId: string, isActive: boolean): Promise<void> {
@@ -139,6 +220,13 @@ export async function deletePoll(pollId: string): Promise<void> {
   await deleteDoc(doc(db, COL, pollId));
 }
 
+/** 투표 기록 전체 초기화: 서브컬렉션 삭제 + 집계 리셋 */
 export async function resetPollVotes(pollId: string): Promise<void> {
-  await updateDoc(doc(db, COL, pollId), { votes: {}, multiVotes: {}, guestVoterInfo: {} });
+  const allDocs = (await getDocs(votesCol(pollId))).docs;
+  for (let i = 0; i < allDocs.length; i += 499) {
+    const batch = writeBatch(db);
+    allDocs.slice(i, i + 499).forEach((d) => batch.delete(d.ref));
+    await batch.commit();
+  }
+  await updateDoc(doc(db, COL, pollId), { voteCounts: {}, totalVoters: 0 });
 }

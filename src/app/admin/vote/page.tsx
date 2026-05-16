@@ -8,7 +8,7 @@ import {
   ChevronLeft, ChevronRight as ChevronRightIcon, RotateCcw,
 } from "lucide-react";
 import {
-  subscribePolls, createPoll, updatePoll, togglePollActive, closePoll, unclosePoll, setPollVisible, deletePoll, updatePollOrder, resetPollVotes,
+  subscribePolls, createPoll, updatePoll, togglePollActive, closePoll, unclosePoll, setPollVisible, deletePoll, updatePollOrder, resetPollVotes, fetchVotersForOption,
 } from "@/lib/services/pollService";
 import { createGuestLuckyDraw } from "@/lib/services/luckyDrawService";
 import { GuestCandidate, Poll } from "@/types/database";
@@ -20,13 +20,8 @@ function PresentationView({ polls, onExit }: { polls: Poll[]; onExit: () => void
   const [current, setCurrent] = useState(0);
   const poll = polls[current] ?? null;
 
-  const getTotalVotes = (p: Poll) =>
-    p.allowMultiple ? Object.keys(p.multiVotes ?? {}).length : Object.keys(p.votes ?? {}).length;
-
-  const getVoteCount = (p: Poll, optionId: string) =>
-    p.allowMultiple
-      ? Object.values(p.multiVotes ?? {}).filter((arr) => arr.includes(optionId)).length
-      : Object.values(p.votes ?? {}).filter((v) => v === optionId).length;
+  const getTotalVotes = (p: Poll) => p.totalVoters ?? 0;
+  const getVoteCount = (p: Poll, optionId: string) => p.voteCounts?.[optionId] ?? 0;
 
   if (!poll) return null;
 
@@ -173,6 +168,8 @@ export default function AdminVotePage() {
   const [expandedVoterOptionId, setExpandedVoterOptionId] = useState<string | null>(null);
   const [creatingDrawFor, setCreatingDrawFor] = useState<string | null>(null);
   const [presentingPoll, setPresentingPoll] = useState<Poll | null>(null);
+  const [votersCache, setVotersCache] = useState<Record<string, GuestCandidate[]>>({});
+  const [votersLoading, setVotersLoading] = useState<string | null>(null);
 
   const enterPresentation = useCallback(async (poll: Poll) => {
     try {
@@ -341,6 +338,12 @@ export default function AdminVotePage() {
     try {
       setProcessingId(poll.id);
       await resetPollVotes(poll.id);
+      // 해당 투표의 voter 캐시 초기화
+      setVotersCache((prev) => {
+        const next = { ...prev };
+        Object.keys(next).forEach((k) => { if (k.startsWith(`${poll.id}-`)) delete next[k]; });
+        return next;
+      });
     } catch {
       alert("초기화에 실패했습니다.");
     } finally {
@@ -364,20 +367,24 @@ export default function AdminVotePage() {
     }
   };
 
-  // ── 게스트 투표 명단 ──────────────────────────────
-  const getOptionVoters = (poll: Poll, optionId: string): Array<GuestCandidate> => {
-    const voterInfo = poll.guestVoterInfo ?? {};
-    const voterIds = poll.allowMultiple
-      ? Object.entries(poll.multiVotes ?? {}).filter(([, opts]) => opts.includes(optionId)).map(([id]) => id)
-      : Object.entries(poll.votes ?? {}).filter(([, opt]) => opt === optionId).map(([id]) => id);
-    return voterIds.map((guestId) => {
-      const info = voterInfo[guestId];
-      return info ? { guestId, ...info } : null;
-    }).filter(Boolean) as GuestCandidate[];
+  // ── 게스트 투표 명단 (lazy load) ──────────────────
+  const loadVoters = async (poll: Poll, optionId: string) => {
+    const key = `${poll.id}-${optionId}`;
+    if (votersCache[key] !== undefined || votersLoading === key) return;
+    setVotersLoading(key);
+    try {
+      const voters = await fetchVotersForOption(poll.id, optionId, !!poll.allowMultiple);
+      setVotersCache((prev) => ({ ...prev, [key]: voters }));
+    } catch {
+      alert("명단 로딩에 실패했습니다.");
+    } finally {
+      setVotersLoading(null);
+    }
   };
 
   const handleCreateDrawFromOption = async (poll: Poll, optionId: string, optionLabel: string) => {
-    const candidates = getOptionVoters(poll, optionId);
+    const key = `${poll.id}-${optionId}`;
+    const candidates = votersCache[key] ?? await fetchVotersForOption(poll.id, optionId, !!poll.allowMultiple);
     if (candidates.length === 0) { alert("해당 선택지에 투표한 게스트가 없습니다."); return; }
     const title = prompt(`추첨 제목을 입력해주세요.\n기본값: ${poll.question} - ${optionLabel}`, `${poll.question} - ${optionLabel}`);
     if (title === null) return;
@@ -394,15 +401,8 @@ export default function AdminVotePage() {
   };
 
   // ── 집계 ───────────────────────────────────────────
-  const getVoteCount = (poll: Poll, optionId: string) =>
-    poll.allowMultiple
-      ? Object.values(poll.multiVotes ?? {}).filter((arr) => arr.includes(optionId)).length
-      : Object.values(poll.votes ?? {}).filter((v) => v === optionId).length;
-
-  const getTotalVotes = (poll: Poll) =>
-    poll.allowMultiple
-      ? Object.keys(poll.multiVotes ?? {}).length
-      : Object.keys(poll.votes ?? {}).length;
+  const getVoteCount = (poll: Poll, optionId: string) => poll.voteCounts?.[optionId] ?? 0;
+  const getTotalVotes = (poll: Poll) => poll.totalVoters ?? 0;
 
   const inputCls = "w-full bg-toss-lightGray/50 border border-toss-border/40 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-indigo-500 transition-colors";
 
@@ -587,8 +587,10 @@ export default function AdminVotePage() {
                     {poll.options.map((opt) => {
                       const count = getVoteCount(poll, opt.id);
                       const pct = total === 0 ? 0 : Math.round((count / total) * 100);
-                      const voters = poll.isGuestOnly && poll.isClosed ? getOptionVoters(poll, opt.id) : [];
-                      const isExpanded = expandedVoterOptionId === `${poll.id}-${opt.id}`;
+                      const cacheKey = `${poll.id}-${opt.id}`;
+                      const voters = votersCache[cacheKey] ?? [];
+                      const isLoadingVoters = votersLoading === cacheKey;
+                      const isExpanded = expandedVoterOptionId === cacheKey;
 
                       return (
                         <div key={opt.id}>
@@ -600,13 +602,19 @@ export default function AdminVotePage() {
                                 <span className="text-sm font-black text-indigo-600">
                                   {pct}% <span className="text-xs font-medium text-toss-gray">({count})</span>
                                 </span>
-                                {poll.isGuestOnly && poll.isClosed && voters.length > 0 && (
+                                {poll.isGuestOnly && poll.isClosed && (
                                   <button
-                                    onClick={() => setExpandedVoterOptionId(isExpanded ? null : `${poll.id}-${opt.id}`)}
+                                    onClick={async () => {
+                                      const nextKey = isExpanded ? null : cacheKey;
+                                      setExpandedVoterOptionId(nextKey);
+                                      if (nextKey) await loadVoters(poll, opt.id);
+                                    }}
                                     className="text-[10px] font-bold text-orange-500 bg-orange-50 px-2 py-1 rounded-md flex items-center gap-1 hover:bg-orange-100 transition-colors"
                                   >
-                                    명단 {isExpanded ? "접기" : "보기"}
-                                    <ChevronRight size={10} className={isExpanded ? "rotate-90 transition-transform" : "transition-transform"} />
+                                    {isLoadingVoters ? <Loader2 size={10} className="animate-spin" /> : (
+                                      <>명단 {isExpanded ? "접기" : "보기"}
+                                      <ChevronRight size={10} className={isExpanded ? "rotate-90 transition-transform" : "transition-transform"} /></>
+                                    )}
                                   </button>
                                 )}
                               </div>
