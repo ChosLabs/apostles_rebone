@@ -38,24 +38,30 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setLoading(false);
     }
 
+    // enabled 값이 같을 때 세션 처리가 두 번 실행되는 것을 방지
+    // (Firestore가 fromCache=true 먼저, fromCache=false 나중에 두 번 전달하는 경우)
+    const processedEnabled = { current: null as boolean | null };
+
     const unsub = subscribeGuestMode((enabled, fromCache) => {
       setIsGuestMode(enabled);
+      const alreadyProcessed = processedEnabled.current === enabled;
+
       if (enabled) {
-        const currentSession = getSession();
-        if (currentSession?.role !== "admin") {
-          if (currentSession?.uid?.startsWith("guest_")) {
-            // 기존 게스트 세션 유지
-            setUser(currentSession);
-          } else if (currentSession) {
-            // 일반 참가자 세션 → 초기화 (게스트 폼으로 유도)
-            clearSession();
-            setUser(null);
+        if (!alreadyProcessed) {
+          processedEnabled.current = enabled;
+          const currentSession = getSession();
+          if (currentSession?.role !== "admin") {
+            if (currentSession?.uid?.startsWith("guest_")) {
+              setUser(currentSession);
+            } else if (currentSession) {
+              clearSession();
+              setUser(null);
+            }
           }
-          // 세션 없으면 null 유지 → 로그인 페이지에서 게스트 폼 표시
         }
         setLoading(false);
       } else if (!fromCache) {
-        // 서버가 OFF 확인 → 게스트 세션 제거
+        processedEnabled.current = enabled;
         setUser((prev) => (prev?.uid?.startsWith("guest_") ? null : prev));
         setLoading(false);
       }

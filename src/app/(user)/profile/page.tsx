@@ -114,14 +114,13 @@ export default function MyProfilePage() {
         <section className="bg-white dark:bg-surface rounded-3xl p-6 shadow-sm border border-toss-border/30">
           <h3 className="text-xs font-black text-toss-gray uppercase tracking-widest mb-5 italic flex items-center gap-2">
             <ShieldCheck size={14} className="text-toss-blue" />
-            수련회 배정 정보
+            {isGuest ? "게스트 정보" : "수련회 배정 정보"}
           </h3>
           {isGuest ? (
-            <div className="flex flex-col items-center justify-center py-6 gap-3 text-center">
-              <div className="w-12 h-12 rounded-2xl bg-toss-lightGray flex items-center justify-center text-toss-gray/40">
-                <Lock size={22} />
-              </div>
-              <p className="text-sm font-bold text-toss-black">게스트 모드에서 지원하지 않는 기능입니다</p>
+            <div className="grid grid-cols-2 gap-y-6">
+              <InfoItem icon={<User size={18} />} label="이름" value={user.name || "-"} />
+              <InfoItem icon={<Users size={18} />} label="소속 팀" value={user.team || "-"} />
+              <InfoItem icon={<Phone size={18} />} label="전화번호 뒷자리" value={user.phone || "-"} />
             </div>
           ) : (
             <div className="grid grid-cols-2 gap-y-6">
