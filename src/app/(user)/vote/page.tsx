@@ -277,8 +277,8 @@ function PollCard({
       </div>
 
       {canVote && (
-        <div className="bg-blue-50/50 p-3 rounded-xl border border-toss-blue/10 flex items-start gap-2.5">
-          <div className="bg-toss-blue/10 p-1.5 rounded-lg text-toss-blue mt-0.5 shrink-0">
+        <div className="bg-blue-50/50 p-3 rounded-xl border border-toss-blue/10 flex items-center gap-2.5">
+          <div className="bg-toss-blue/10 p-1.5 rounded-lg text-toss-blue shrink-0">
             <Check size={13} />
           </div>
           <p className="text-[12px] text-toss-blue/80 leading-relaxed font-medium">
