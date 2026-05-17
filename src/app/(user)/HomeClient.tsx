@@ -24,6 +24,7 @@ export default function Home({
   const [notices, setNotices] = useState<Notice[]>(initialNotices);
   const [timetable, setTimetable] = useState<TimetableItem[]>(initialTimetable);
   const [selectedNotice, setSelectedNotice] = useState<Notice | null>(null);
+  const [prayerSheetOpen, setPrayerSheetOpen] = useState(false);
   const { markAsRead, isUnread } = useReadNotices();
 
   const unreadCount = notices.filter((n) => isUnread(n.id)).length;
@@ -85,13 +86,19 @@ export default function Home({
     <div className="flex flex-col gap-6 pb-12 px-4">
       {/* 1. 오늘의 기도제목 */}
       <div className="toss-card !mb-0 bg-gradient-to-br from-toss-blue to-[#5d98f7] text-white border-none">
-        <div className="flex justify-between items-start mb-2">
+        <div className="flex justify-between items-center mb-2">
           <span className="text-[10px] font-bold bg-white/20 px-2 py-0.5 rounded-md tracking-wider">🙏 오늘의 기도제목 D-{dDay > 0 ? dDay : 'DAY'}</span>
         </div>
-        <h3 className="text-[17px] font-bold mb-1">{todayPrayer?.title || "수련회를 위한 마음 준비"}</h3>
-        <p className="text-[13px] text-white/80 leading-relaxed">
+        <h3 className="text-[17px] font-bold mb-1.5">{todayPrayer?.title || "수련회를 위한 마음 준비"}</h3>
+        <p className="text-[13px] text-white/80 leading-relaxed line-clamp-1">
           {todayPrayer?.content || "참석자 한 사람 한 사람이 기대와 갈망을 품고 올 수 있도록 기도해주세요."}
         </p>
+        <button
+          onClick={() => setPrayerSheetOpen(true)}
+          className="mt-2 text-[12px] font-semibold text-white/60 hover:text-white transition-colors"
+        >
+          전체보기 →
+        </button>
       </div>
 
       {/* 2. D-DAY COUNTER */}
@@ -246,6 +253,27 @@ export default function Home({
           </div>
         </Link>
       </section>
+
+      {/* 기도제목 바텀시트 */}
+      {prayerSheetOpen && (
+        <div className="fixed inset-0 z-[100] flex items-end justify-center bg-black/40 backdrop-blur-sm" onClick={() => setPrayerSheetOpen(false)}>
+          <div className="bg-white w-full max-w-[420px] rounded-t-3xl p-6 shadow-2xl animate-in slide-in-from-bottom duration-300" onClick={(e) => e.stopPropagation()}>
+            <div className="flex justify-between items-start mb-4">
+              <div className="flex-1 min-w-0 pr-3">
+                <span className="text-[10px] font-bold bg-toss-blue/10 text-toss-blue px-2 py-1 rounded-md">🙏 오늘의 기도제목</span>
+                <h2 className="text-lg font-bold text-toss-black mt-2 leading-tight">{todayPrayer?.title || "수련회를 위한 마음 준비"}</h2>
+              </div>
+              <button onClick={() => setPrayerSheetOpen(false)} className="p-2 hover:bg-toss-lightGray rounded-full transition-colors shrink-0">
+                <X size={20} className="text-toss-gray" />
+              </button>
+            </div>
+            <div className="text-sm text-toss-gray leading-relaxed whitespace-pre-line py-4 mb-6 max-h-[55vh] overflow-y-auto">
+              {todayPrayer?.content || "참석자 한 사람 한 사람이 기대와 갈망을 품고 올 수 있도록 기도해주세요."}
+            </div>
+            <button onClick={() => setPrayerSheetOpen(false)} className="w-full bg-toss-blue text-white font-bold py-4 rounded-xl active:scale-95 transition-all">확인</button>
+          </div>
+        </div>
+      )}
 
       {/* 공지사항 상세 모달 */}
       {selectedNotice && (

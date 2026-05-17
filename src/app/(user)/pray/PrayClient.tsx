@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { PenLine, Sparkles, User, Users, Globe, ChevronRight, Heart, Loader2, Moon, Sun, Lock } from "lucide-react";
+import { PenLine, Sparkles, User, Users, Globe, ChevronRight, Heart, Loader2, Moon, Sun, Lock, X } from "lucide-react";
 import Link from "next/link";
 import { DailyPrayer } from "@/types/database";
 import { useAuth } from "@/components/providers/AuthProvider";
@@ -21,6 +21,7 @@ export default function PrayClient({
   const [isAnonymous, setIsAnonymous] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [hasPrayedToday, setHasPrayedToday] = useState(false);
+  const [prayerSheetOpen, setPrayerSheetOpen] = useState(false);
 
   const handleSubmit = async () => {
     if (!user || !content.trim()) return;
@@ -61,24 +62,50 @@ export default function PrayClient({
           <span className="text-[10px] font-bold bg-toss-blue/10 text-toss-blue px-2 py-1 rounded-md uppercase tracking-wider">오늘의 기도제목</span>
           <span className="text-xs font-medium text-toss-gray">D-{dDay > 0 ? dDay : 'DAY'}</span>
         </div>
-        <h3 className="text-lg font-bold text-toss-black mb-2 leading-tight">
+        <h3 className="text-lg font-bold text-toss-black mb-1.5 leading-tight">
           {todayPrayer?.title || "수련회를 위한 마음 준비"}
         </h3>
-        <p className="text-sm text-toss-gray leading-relaxed mb-4">
+        <p className="text-sm text-toss-gray leading-relaxed line-clamp-1">
           {todayPrayer?.content || "참석자 한 사람 한 사람이 기대와 갈망을 품고 올 수 있도록 기도해주세요."}
         </p>
-        <button 
-          onClick={() => setHasPrayedToday(!hasPrayedToday)}
-          className={`w-full py-3 rounded-xl text-sm font-bold transition-all active:scale-95 flex items-center justify-center gap-2 shadow-sm ${
-            hasPrayedToday 
-            ? "bg-red-50 text-red-500 shadow-red-500/10" 
-            : "bg-toss-blue text-white shadow-toss-blue/20"
-          }`}
+        <button
+          onClick={() => setPrayerSheetOpen(true)}
+          className="mt-1.5 text-[12px] font-semibold text-toss-blue/70 hover:text-toss-blue transition-colors"
         >
-          <Heart size={16} fill={hasPrayedToday ? "currentColor" : "none"} />
-          {hasPrayedToday ? "함께 기도했습니다" : "함께 기도하기"}
+          전체보기 →
         </button>
       </div>
+
+      {/* 기도제목 바텀시트 */}
+      {prayerSheetOpen && (
+        <div className="fixed inset-0 z-[100] flex items-end justify-center bg-black/40 backdrop-blur-sm" onClick={() => setPrayerSheetOpen(false)}>
+          <div className="bg-white dark:bg-surface w-full max-w-[420px] rounded-t-3xl p-6 shadow-2xl animate-in slide-in-from-bottom duration-300" onClick={(e) => e.stopPropagation()}>
+            <div className="flex justify-between items-start mb-4">
+              <div className="flex-1 min-w-0 pr-3">
+                <span className="text-[10px] font-bold bg-toss-blue/10 text-toss-blue px-2 py-1 rounded-md">오늘의 기도제목</span>
+                <h2 className="text-lg font-bold text-toss-black dark:text-toss-black mt-2 leading-tight">{todayPrayer?.title || "수련회를 위한 마음 준비"}</h2>
+              </div>
+              <button onClick={() => setPrayerSheetOpen(false)} className="p-2 hover:bg-toss-lightGray rounded-full transition-colors shrink-0">
+                <X size={20} className="text-toss-gray" />
+              </button>
+            </div>
+            <div className="text-sm text-toss-gray leading-relaxed whitespace-pre-line py-4 max-h-[45vh] overflow-y-auto">
+              {todayPrayer?.content || "참석자 한 사람 한 사람이 기대와 갈망을 품고 올 수 있도록 기도해주세요."}
+            </div>
+            <button
+              onClick={() => { setHasPrayedToday(!hasPrayedToday); setPrayerSheetOpen(false); }}
+              className={`w-full py-4 rounded-xl text-sm font-bold transition-all active:scale-95 flex items-center justify-center gap-2 shadow-sm mt-6 ${
+                hasPrayedToday
+                ? "bg-red-50 text-red-500 shadow-red-500/10"
+                : "bg-toss-blue text-white shadow-toss-blue/20"
+              }`}
+            >
+              <Heart size={16} fill={hasPrayedToday ? "currentColor" : "none"} />
+              {hasPrayedToday ? "함께 기도했습니다" : "함께 기도하기"}
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* 2. 기도제목 작성 섹션 */}
       <div className="bg-white dark:bg-surface rounded-toss p-5 shadow-[0_2px_8px_rgba(0,0,0,0.04)] border border-toss-border/40">
