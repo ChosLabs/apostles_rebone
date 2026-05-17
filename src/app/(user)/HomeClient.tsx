@@ -90,9 +90,11 @@ export default function Home({
           <span className="text-[10px] font-bold bg-white/20 px-2 py-0.5 rounded-md tracking-wider">🙏 오늘의 기도제목 D-{dDay > 0 ? dDay : 'DAY'}</span>
         </div>
         <h3 className="text-[17px] font-bold mb-1.5">{todayPrayer?.title || "수련회를 위한 마음 준비"}</h3>
-        <p className="text-[13px] text-white/80 leading-relaxed line-clamp-1">
-          {todayPrayer?.content || "참석자 한 사람 한 사람이 기대와 갈망을 품고 올 수 있도록 기도해주세요."}
-        </p>
+        <div className="flex flex-col gap-0.5">
+          {(todayPrayer?.content || "참석자 한 사람 한 사람이 기대와 갈망을 품고 올 수 있도록 기도해주세요.").split('\n').filter(l => l.trim()).slice(0, 2).map((line, i) => (
+            <p key={i} className="text-[13px] text-white/80 leading-relaxed truncate">{line}</p>
+          ))}
+        </div>
         <button
           onClick={() => setPrayerSheetOpen(true)}
           className="mt-2 text-[12px] font-semibold text-white/60 hover:text-white transition-colors"

@@ -65,9 +65,11 @@ export default function PrayClient({
         <h3 className="text-lg font-bold text-toss-black mb-1.5 leading-tight">
           {todayPrayer?.title || "수련회를 위한 마음 준비"}
         </h3>
-        <p className="text-sm text-toss-gray leading-relaxed line-clamp-1">
-          {todayPrayer?.content || "참석자 한 사람 한 사람이 기대와 갈망을 품고 올 수 있도록 기도해주세요."}
-        </p>
+        <div className="flex flex-col gap-0.5">
+          {(todayPrayer?.content || "참석자 한 사람 한 사람이 기대와 갈망을 품고 올 수 있도록 기도해주세요.").split('\n').filter(l => l.trim()).slice(0, 2).map((line, i) => (
+            <p key={i} className="text-sm text-toss-gray leading-relaxed truncate">{line}</p>
+          ))}
+        </div>
         <button
           onClick={() => setPrayerSheetOpen(true)}
           className="mt-1.5 text-[12px] font-semibold text-toss-blue/70 hover:text-toss-blue transition-colors"
