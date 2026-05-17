@@ -5,18 +5,20 @@ import { NotificationProvider } from "@/components/providers/NotificationProvide
 import { ThemeProvider } from "@/components/providers/ThemeProvider";
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://apostles-rebone.pages.dev"),
+  metadataBase: new URL("https://www.apostlesrebon.com"),
   title: "RE:BON - 2026 아포슬 여름수련회",
   icons: { icon: "/applogo.png", apple: "/splash-icon.png" },
   description: "2026 아포슬 전체여름수련회",
   openGraph: {
     title: "RE:BON - 2026 아포슬 여름수련회",
     description: "2026 아포슬 전체여름수련회",
-    url: "https://apostles-rebone.pages.dev",
+    url: "https://www.apostlesrebon.com",
     siteName: "RE:BON",
     images: [
       {
-        url: "/applogo.png",
+        url: "/applogo.jpg",
+        width: 2000,
+        height: 2000,
         alt: "RE:BON 수련회 메인 이미지",
       },
     ],
@@ -27,7 +29,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "RE:BON - 2026 아포슬 여름수련회",
     description: "2026 아포슬 전체여름수련회",
-    images: ["/applogo.png"],
+    images: ["/applogo.jpg"],
   },
 };
 
